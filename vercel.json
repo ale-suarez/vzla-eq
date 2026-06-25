@@ -1,6 +1,3 @@
 {
-  "framework": "nextjs",
-  "env": {
-    "HUGGINGFACE_API_TOKEN": "@huggingface_api_token"
-  }
+  "framework": "nextjs"
 }
