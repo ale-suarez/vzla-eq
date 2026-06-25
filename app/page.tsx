@@ -195,7 +195,7 @@ export default function Home() {
                       </p>
                       <div className="flex items-center gap-2 mt-3 flex-wrap">
                         <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full", cfg.badgeClass)}>
-                          Confianza {result.confidence}%
+                          Confianza del resultado: {result.confidence}%
                         </span>
                         {result.perPhoto.some((p) => p.escalated) && (
                           <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-violet-100 text-violet-700">
@@ -238,7 +238,7 @@ export default function Home() {
                                   Foto {p.index + 1}
                                 </span>
                                 <span className={cn("text-xs font-semibold shrink-0", pc.labelColor)}>
-                                  {pc.label} · {p.confidence}%
+                                  {pc.label} · {p.confidence}% confianza
                                 </span>
                               </div>
                               <p className="text-xs text-slate-500 leading-snug">{p.finding}</p>
