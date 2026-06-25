@@ -152,21 +152,13 @@ export default function Home() {
     <div className="min-h-screen bg-slate-50 flex flex-col">
       {/* Header */}
       <header className="bg-white border-b border-slate-100 sticky top-0 z-10">
-        <div className="max-w-lg mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-slate-900 flex items-center justify-center shrink-0">
-                <Building2 className="w-3.5 h-3.5 text-white" />
-              </div>
-              <div>
-                <h1 className="text-[13px] font-semibold text-slate-900 leading-none tracking-tight">Evaluación Estructural</h1>
-                <p className="text-[11px] text-slate-400 mt-0.5">Venezuela · Respuesta al sismo</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-1.5 bg-rose-50 border border-rose-100 rounded-full px-2.5 py-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse shrink-0" />
-              <span className="text-[11px] font-semibold text-rose-600 uppercase tracking-wide">Emergencia activa</span>
-            </div>
+        <div className="max-w-lg mx-auto px-4 py-3 flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center shrink-0">
+            <Building2 className="w-4 h-4 text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-[13px] font-semibold text-slate-900 leading-none tracking-tight">Evaluación Estructural</h1>
+            <p className="text-[11px] text-slate-400 mt-0.5 font-normal">Venezuela · Respuesta al sismo</p>
           </div>
         </div>
       </header>
