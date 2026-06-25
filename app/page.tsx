@@ -869,9 +869,17 @@ export default function Home() {
                   )}
                 </AnimatePresence>
 
-                <p className="pb-2 text-center text-[11px] leading-relaxed text-on-surface-variant">
-                  Este análisis es orientativo y se basa únicamente en la información proporcionada por el usuario. Puede ayudar a identificar posibles daños, fallas constructivas o condiciones que afecten la habitabilidad de una edificación, pero no constituye una inspección estructural formal ni sustituye la evaluación presencial de un ingeniero estructural o civil calificado. Cualquier decisión sobre ocupación, reparación o intervención del inmueble deberá ser confirmada por profesionales competentes y, cuando corresponda, por las autoridades correspondientes.
-                </p>
+                <section className="pb-2">
+                  <div className="flex gap-4 rounded-[18px] border-2 border-outline-variant/30 bg-surface-container-low p-6">
+                    <Info className="mt-0.5 h-6 w-6 shrink-0 text-on-surface-variant" />
+                    <div className="space-y-1">
+                      <h4 className="text-xs font-semibold uppercase tracking-[0.12em] text-on-surface-variant">AVISO LEGAL IMPORTANTE</h4>
+                      <p className="text-sm leading-5 text-on-surface-variant">
+                        Este análisis es orientativo y se basa únicamente en la información proporcionada por el usuario. Puede ayudar a identificar posibles daños, fallas constructivas o condiciones que afecten la habitabilidad de una edificación, pero no constituye una inspección estructural formal ni sustituye la evaluación presencial de un ingeniero estructural o civil calificado. Cualquier decisión sobre ocupación, reparación o intervención del inmueble deberá ser confirmada por profesionales competentes y, cuando corresponda, por las autoridades correspondientes.
+                      </p>
+                    </div>
+                  </div>
+                </section>
               </div>
 
               <div className="pointer-events-none fixed bottom-0 left-0 z-40 w-full bg-gradient-to-t from-surface via-surface to-transparent px-5 pb-6 pt-10">
