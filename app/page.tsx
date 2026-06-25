@@ -153,13 +153,19 @@ export default function Home() {
       {/* Header */}
       <header className="bg-white border-b border-slate-100 sticky top-0 z-10">
         <div className="max-w-lg mx-auto px-4 py-3">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-slate-900 flex items-center justify-center shrink-0">
-              <Building2 className="w-3.5 h-3.5 text-white" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-slate-900 flex items-center justify-center shrink-0">
+                <Building2 className="w-3.5 h-3.5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-[13px] font-semibold text-slate-900 leading-none tracking-tight">Evaluación Estructural</h1>
+                <p className="text-[11px] text-slate-400 mt-0.5">Venezuela · Respuesta al sismo</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-[13px] font-semibold text-slate-900 leading-none tracking-tight">Evaluación Estructural</h1>
-              <p className="text-[11px] text-slate-400 mt-0.5">Venezuela · Respuesta al sismo</p>
+            <div className="flex items-center gap-1.5 bg-rose-50 border border-rose-100 rounded-full px-2.5 py-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse shrink-0" />
+              <span className="text-[11px] font-semibold text-rose-600 uppercase tracking-wide">Emergencia activa</span>
             </div>
           </div>
         </div>
