@@ -442,7 +442,7 @@ export default function Home() {
                   <p className="max-w-lg text-base leading-6 text-on-surface-variant">
                     Evalúe al instante la integridad estructural de su propiedad mediante visión artificial de grado profesional y protocolos de seguridad expertos.
                   </p>
-                  <div className="flex flex-col gap-4 pt-4">
+                  <div className="flex max-w-sm flex-col gap-4 pt-4">
                     <Button
                       type="button"
                       onClick={openCamera}
@@ -726,7 +726,7 @@ export default function Home() {
                 )}
               </AnimatePresence>
 
-              <div className="flex flex-col gap-3 pb-6">
+              <div className="mx-auto flex w-full max-w-sm flex-col gap-3 pb-6">
                 <Button onClick={resetForm} className="h-14 w-full rounded-[18px] bg-primary text-base font-bold text-white hover:bg-primary-container">
                   <Camera className="h-4 w-4" />
                   Analizar otra estructura
@@ -810,7 +810,7 @@ export default function Home() {
                   </AnimatePresence>
 
                   {fotos.length < MAX_PHOTOS && (
-                    <div className="flex w-full flex-col gap-3">
+                    <div className="mx-auto flex w-full max-w-sm flex-col gap-3">
                       <Button
                         type="button"
                         onClick={() => cameraInputRef.current?.click()}
@@ -883,7 +883,7 @@ export default function Home() {
               </div>
 
               <div className="pointer-events-none fixed bottom-0 left-0 z-40 w-full bg-gradient-to-t from-surface via-surface to-transparent px-5 pb-6 pt-10">
-                <div className="pointer-events-auto mx-auto max-w-2xl">
+                <div className="pointer-events-auto mx-auto w-full max-w-sm">
                   <Button
                     type="submit"
                     disabled={loading || fotos.length === 0}
