@@ -1,295 +1,297 @@
-<!DOCTYPE html><html class="light" lang="es-VE"><head>
-  <meta charset="utf-8">
-  <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport">
-  <title>Evaluación - Riesgo Bajo | SafeStructure</title>
-  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Inter:wght@400;600&amp;display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
-  <style>
-          .material-symbols-outlined {
-              font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-              display: inline-block;
-              line-height: 1;
-          }
-          .confidence-ring {
-              transition: stroke-dashoffset 1s ease-out;
-          }
-          .accordion-content {
-              max-height: 0;
-              overflow: hidden;
-              transition: max-height 0.3s ease-out;
-          }
-          .accordion-open .accordion-content {
-              max-height: 500px;
-          }
-          .accordion-open .chevron {
-              transform: rotate(180deg);
-          }
-          .glass-red {
-              background: rgba(255, 218, 214, 0.4);
-              backdrop-filter: blur(8px);
-          }
-      </style>
-  <script id="tailwind-config">
-          tailwind.config = {
-              darkMode: "class",
-              theme: {
-                  extend: {
-                      "colors": {
-                          "outline": "#737686",
-                          "error-container": "#ffdad6",
-                          "outline-variant": "#c3c6d7",
-                          "on-primary-fixed-variant": "#003ea8",
-                          "on-background": "#191b23",
-                          "tertiary-fixed-dim": "#ffb95f",
-                          "tertiary-container": "#996100",
-                          "surface-container": "#ededf9",
-                          "secondary-fixed": "#7ffc97",
-                          "on-surface": "#191b23",
-                          "inverse-primary": "#b4c5ff",
-                          "error": "#ba1a1a",
-                          "primary": "#004ac6",
-                          "surface-bright": "#faf8ff",
-                          "primary-fixed": "#dbe1ff",
-                          "on-error": "#ffffff",
-                          "surface-container-low": "#f3f3fe",
-                          "primary-container": "#2563eb",
-                          "background": "#faf8ff",
-                          "surface-container-high": "#e7e7f3",
-                          "on-tertiary-fixed": "#2a1700",
-                          "on-tertiary-container": "#ffeedd",
-                          "on-error-container": "#93000a",
-                          "on-secondary-container": "#007230",
-                          "inverse-surface": "#2e3039",
-                          "on-secondary-fixed": "#002109",
-                          "surface-tint": "#0053db",
-                          "on-secondary-fixed-variant": "#005320",
-                          "on-secondary": "#ffffff",
-                          "inverse-on-surface": "#f0f0fb",
-                          "tertiary-fixed": "#ffddb8",
-                          "primary-fixed-dim": "#b4c5ff",
-                          "surface-dim": "#d9d9e5",
-                          "on-primary-fixed": "#00174b",
-                          "surface-container-highest": "#e1e2ed",
-                          "surface": "#faf8ff",
-                          "tertiary": "#784b00",
-                          "surface-container-lowest": "#ffffff",
-                          "secondary": "#006e2d",
-                          "secondary-fixed-dim": "#62df7d",
-                          "surface-variant": "#e1e2ed",
-                          "on-tertiary": "#ffffff",
-                          "on-tertiary-fixed-variant": "#653e00",
-                          "secondary-container": "#7cf994",
-                          "on-primary-container": "#eeefff",
-                          "on-primary": "#ffffff",
-                          "on-surface-variant": "#434655"
-                      },
-                      "borderRadius": {
-                          "DEFAULT": "18px",
-                          "lg": "18px",
-                          "xl": "24px",
-                          "full": "9999px"
-                      },
-                      "spacing": {
-                          "section-gap": "32px",
-                          "stack-md": "16px",
-                          "stack-sm": "8px",
-                          "gutter": "16px",
-                          "margin-mobile": "20px",
-                          "stack-lg": "24px",
-                          "base": "4px"
-                      },
-                      "fontFamily": {
-                          "body-lg": ["Inter"],
-                          "headline-sm": ["Plus Jakarta Sans"],
-                          "body-md": ["Inter"],
-                          "display-lg-mobile": ["Plus Jakarta Sans"],
-                          "label-caps": ["Inter"],
-                          "display-lg": ["Plus Jakarta Sans"],
-                          "headline-md": ["Plus Jakarta Sans"]
-                      },
-                      "fontSize": {
-                          "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
-                          "headline-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
-                          "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
-                          "display-lg-mobile": ["26px", {"lineHeight": "32px", "fontWeight": "700"}],
-                          "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
-                          "display-lg": ["30px", {"lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
-                          "headline-md": ["22px", {"lineHeight": "28px", "fontWeight": "600"}]
-                      }
-                  },
-              },
-          }
-      </script>
-  <style>
-          body {
-              min-height: 100dvh;
-          }
-      </style>
-  </head>
-  <body class="bg-surface text-on-surface font-body-lg min-h-screen pb-12">
-  <!-- TopAppBar -->
-  <header class="bg-surface dark:bg-on-background fixed top-0 left-0 right-0 z-50">
-  <div class="flex justify-between items-center w-full px-margin-mobile h-14 max-w-7xl mx-auto">
-  <div class="flex items-center gap-2">
-  <span class="material-symbols-outlined text-primary dark:text-primary-fixed" style="font-variation-settings: 'FILL' 1;">shield_with_heart</span>
-  <h1 class="text-headline-md font-headline-md font-bold text-primary dark:text-primary-fixed tracking-tight">SafeStructure</h1>
-  </div>
-  <button class="material-symbols-outlined text-on-surface-variant hover:opacity-80 transition-opacity p-2">more_vert</button>
-  </div>
-  </header>
-  <!-- Main Content -->
-  <main class="mt-14 px-margin-mobile pt-stack-lg max-w-2xl mx-auto space-y-stack-lg">
-  <!-- Large Status Card: Riesgo Bajo -->
-  <div class="bg-secondary-container p-6 rounded-xl border border-secondary/10 shadow-[0px_4px_20px_rgba(0,0,0,0.05)] relative overflow-hidden">
-  <div class="flex items-start gap-4 relative z-10">
-  <div class="w-10 h-10 bg-secondary rounded-full flex items-center justify-center shrink-0">
-  <span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">check_circle</span>
-  </div>
-  <div class="space-y-1">
-  <h2 class="text-headline-md font-headline-md text-on-secondary-container">Riesgo Bajo</h2>
-  <p class="text-body-lg text-on-secondary-container font-medium">El daño visible parece menor. No se detectaron indicadores estructurales severos.</p>
-  </div>
-  </div>
-  <div class="absolute top-0 right-0 w-32 h-32 opacity-10 pointer-events-none transform translate-x-8 -translate-y-8">
-  <svg class="w-full h-full text-secondary" viewBox="0 0 100 100">
-  <circle cx="50" cy="50" fill="currentColor" r="40"></circle>
-  </svg>
-  </div>
-  </div>
-  <!-- Confidence Meter & AI Summary Bento Section -->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-stack-md">
-  <!-- Confidence Meter Card -->
-  <div class="bg-surface-container-lowest p-6 rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.05)] flex flex-col items-center justify-center text-center">
-  <div class="relative w-24 h-24 mb-3">
-  <svg class="w-full h-full -rotate-90">
-  <circle class="text-surface-container" cx="48" cy="48" fill="transparent" r="40" stroke="currentColor" stroke-width="8"></circle>
-  <circle class="text-secondary confidence-ring" cx="48" cy="48" fill="transparent" r="40" stroke="currentColor" stroke-dasharray="251.2" stroke-dashoffset="251.2" stroke-width="8"></circle>
-  </svg>
-  <div class="absolute inset-0 flex items-center justify-center">
-  <span class="text-headline-sm font-headline-sm">96%</span>
-  </div>
-  </div>
-  <p class="text-label-caps font-label-caps text-outline">Nivel de Confianza</p>
-  </div>
-  <!-- AI Explanation Card -->
-  <div class="bg-surface-container-lowest p-6 rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.05)]">
-  <div class="flex items-center gap-2 mb-2">
-  <span class="material-symbols-outlined text-primary text-body-lg">auto_awesome</span>
-  <h3 class="text-label-caps font-label-caps text-outline">Análisis de IA</h3>
-  </div>
-  <p class="text-body-md text-on-surface-variant">Nuestro modelo de visión solo detectó grietas superficiales tipo cabello. Estas son marcas típicas de asentamiento y no parecen comprometer la integridad estructural de la edificación.</p>
-  </div>
-  </div>
-  <!-- Observed Damage (Accordion) -->
-  <div class="bg-surface-container-lowest rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.05)] overflow-hidden">
-  <button class="w-full px-6 py-5 flex items-center justify-between text-left focus:outline-none transition-colors hover:bg-surface-container-low" onclick="toggleAccordion(this)">
-  <div class="flex items-center gap-3">
-  <span class="material-symbols-outlined text-on-surface-variant">search_insights</span>
-  <span class="font-headline-sm text-headline-sm">Daños Observados</span>
-  </div>
-  <span class="material-symbols-outlined chevron transition-transform duration-300">expand_more</span>
-  </button>
-  <div class="accordion-content">
-  <ul class="px-6 pb-6 space-y-4 border-t border-surface-container">
-  <li class="flex items-start gap-4 pt-4">
-  <div class="bg-error-container/30 p-2 rounded-lg">
-  <span class="material-symbols-outlined text-error text-body-lg">splitscreen</span>
-  </div>
-  <div>
-  <h4 class="font-bold text-body-md">Grieta Vertical en Pared</h4>
-  <p class="text-body-md text-on-surface-variant">Fisura vertical de carácter superficial que no afecta el soporte principal.</p>
-  </div>
-  </li>
-  <li class="flex items-start gap-4">
-  <div class="bg-surface-container p-2 rounded-lg">
-  <span class="material-symbols-outlined text-primary text-body-lg">info</span>
-  </div>
-  <div>
-  <h4 class="font-bold text-body-md">Asentamiento Menor</h4>
-  <p class="text-body-md text-on-surface-variant">Marcas leves de contracción en el friso debido a cambios de temperatura.</p>
-  </div>
-  </li>
-  </ul>
-  </div>
-  </div>
-  <!-- Recommended Actions -->
-  <section class="space-y-stack-md">
-  <h3 class="font-headline-sm text-headline-sm px-1">Acciones Recomendadas</h3>
-  <div class="space-y-stack-sm">
-  <!-- Action 1 -->
-  <div class="flex gap-4">
-  <div class="flex flex-col items-center">
-  <div class="w-10 h-10 rounded-full bg-secondary text-white flex items-center justify-center shrink-0 z-10 shadow-sm">
-  <span class="material-symbols-outlined">meeting_room</span>
-  </div>
-  <div class="w-0.5 h-full bg-surface-container-highest"></div>
-  </div>
-  <div class="pt-2 pb-6">
-  <h4 class="font-bold text-body-lg">Entrar con cuidado</h4>
-  <p class="text-body-md text-on-surface-variant">Proceda con precaución y reporte cualquier novedad de inmediato.</p>
-  </div>
-  </div>
-  <!-- Action 2 -->
-  <div class="flex gap-4">
-  <div class="flex flex-col items-center">
-  <div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center shrink-0 z-10 shadow-sm">
-  <span class="material-symbols-outlined">visibility</span>
-  </div>
-  <div class="w-0.5 h-full bg-surface-container-highest"></div>
-  </div>
-  <div class="pt-2 pb-6">
-  <h4 class="font-bold text-body-lg">Monitoreo continuo</h4>
-  <p class="text-body-md text-on-surface-variant">Observe si las marcas existentes se ensanchan o si aparecen nuevas grietas.</p>
-  </div>
-  </div>
-  <!-- Action 3 -->
-  <div class="flex gap-4">
-  <div class="flex flex-col items-center">
-  <div class="w-10 h-10 rounded-full bg-on-background text-white flex items-center justify-center shrink-0 z-10 shadow-sm">
-  <span class="material-symbols-outlined">photo_camera</span>
-  </div>
-  </div>
-  <div class="pt-2">
-  <h4 class="font-bold text-body-lg">Documentar cambios</h4>
-  <p class="text-body-md text-on-surface-variant">Tome fotos periódicas para llevar un registro de la evolución de la estructura.</p>
-  </div>
-  </div>
-  </div>
-  </section>
-  <!-- Bottom Actions (Stacked for Mobile Accessibility) -->
-  <div class="flex flex-col gap-3 py-6">
-  <button class="w-full h-14 bg-primary text-white font-bold rounded-xl active:scale-95 transition-transform duration-200 flex items-center justify-center gap-2">
-  <span class="material-symbols-outlined">add_a_photo</span>
-                  Analizar Otra Foto
-              </button>
-  <div class="grid grid-cols-2 gap-3">
-  <button class="h-14 bg-surface-container-lowest border border-outline-variant text-on-surface font-semibold rounded-xl active:scale-95 transition-transform duration-200 flex items-center justify-center gap-2">
-  <span class="material-symbols-outlined">share</span>
-                      Compartir
-                  </button>
-  <button class="h-14 bg-surface-container-lowest border border-outline-variant text-on-surface font-semibold rounded-xl active:scale-95 transition-transform duration-200 flex items-center justify-center gap-2">
-  <span class="material-symbols-outlined">picture_as_pdf</span>
-                      PDF
-                  </button>
-  </div>
-  </div>
-  </main>
-  <script>
-          function toggleAccordion(button) {
-              const container = button.parentElement;
-              container.classList.toggle('accordion-open');
-          }
-  
-          // Simple entrance animation for the confidence ring
-          window.addEventListener('load', () => {
-              const ring = document.querySelector('.confidence-ring');
-              if (ring) {
-                  // Calculation: total dasharray is 251.2 (for r=40). 96% of 251.2 is 241.15. Offset = 251.2 - 241.15 = 10.05
-                  setTimeout(() => {
-                      ring.style.strokeDashoffset = '10.05';
-                  }, 100);
-              }
-          });
-      </script>
-  </body></html>
+<!DOCTYPE html>
+
+<html class="light" lang="es-VE"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>Evaluación - Riesgo Leve | SafeStructure</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Inter:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+        }
+        .confidence-ring {
+            transition: stroke-dashoffset 1s ease-out;
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .accordion-open .accordion-content {
+            max-height: 500px;
+        }
+        .accordion-open .chevron {
+            transform: rotate(180deg);
+        }
+        .glass-red {
+            background: rgba(255, 218, 214, 0.4);
+            backdrop-filter: blur(8px);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline": "#737686",
+                        "error-container": "#ffdad6",
+                        "outline-variant": "#c3c6d7",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "on-background": "#191b23",
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "tertiary-container": "#996100",
+                        "surface-container": "#ededf9",
+                        "secondary-fixed": "#7ffc97",
+                        "on-surface": "#191b23",
+                        "inverse-primary": "#b4c5ff",
+                        "error": "#ba1a1a",
+                        "primary": "#004ac6",
+                        "surface-bright": "#faf8ff",
+                        "primary-fixed": "#dbe1ff",
+                        "on-error": "#ffffff",
+                        "surface-container-low": "#f3f3fe",
+                        "primary-container": "#2563eb",
+                        "background": "#faf8ff",
+                        "surface-container-high": "#e7e7f3",
+                        "on-tertiary-fixed": "#2a1700",
+                        "on-tertiary-container": "#ffeedd",
+                        "on-error-container": "#93000a",
+                        "on-secondary-container": "#007230",
+                        "inverse-surface": "#2e3039",
+                        "on-secondary-fixed": "#002109",
+                        "surface-tint": "#0053db",
+                        "on-secondary-fixed-variant": "#005320",
+                        "on-secondary": "#ffffff",
+                        "inverse-on-surface": "#f0f0fb",
+                        "tertiary-fixed": "#ffddb8",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "surface-dim": "#d9d9e5",
+                        "on-primary-fixed": "#00174b",
+                        "surface-container-highest": "#e1e2ed",
+                        "surface": "#faf8ff",
+                        "tertiary": "#784b00",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary": "#006e2d",
+                        "secondary-fixed-dim": "#62df7d",
+                        "surface-variant": "#e1e2ed",
+                        "on-tertiary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "secondary-container": "#7cf994",
+                        "on-primary-container": "#eeefff",
+                        "on-primary": "#ffffff",
+                        "on-surface-variant": "#434655"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "18px",
+                        "lg": "18px",
+                        "xl": "24px",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "section-gap": "32px",
+                        "stack-md": "16px",
+                        "stack-sm": "8px",
+                        "gutter": "16px",
+                        "margin-mobile": "20px",
+                        "stack-lg": "24px",
+                        "base": "4px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "headline-sm": ["Plus Jakarta Sans"],
+                        "body-md": ["Inter"],
+                        "display-lg-mobile": ["Plus Jakarta Sans"],
+                        "label-caps": ["Inter"],
+                        "display-lg": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "headline-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "display-lg-mobile": ["26px", {"lineHeight": "32px", "fontWeight": "700"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "display-lg": ["30px", {"lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-md": ["22px", {"lineHeight": "28px", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            min-height: 100dvh;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-lg min-h-screen pb-12">
+<!-- TopAppBar -->
+<header class="bg-surface dark:bg-on-background fixed top-0 left-0 right-0 z-50">
+<div class="flex justify-between items-center w-full px-margin-mobile h-14 max-w-7xl mx-auto">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary dark:text-primary-fixed" style="font-variation-settings: 'FILL' 1;">shield_with_heart</span>
+<h1 class="text-headline-md font-headline-md font-bold text-primary dark:text-primary-fixed tracking-tight">SafeStructure</h1>
+</div>
+<button class="material-symbols-outlined text-on-surface-variant hover:opacity-80 transition-opacity p-2">more_vert</button>
+</div>
+</header>
+<!-- Main Content -->
+<main class="mt-14 px-margin-mobile pt-stack-lg max-w-2xl mx-auto space-y-stack-lg">
+<!-- Large Status Card: Riesgo Leve -->
+<div class="bg-secondary-container p-6 rounded-xl border border-secondary/10 shadow-[0px_4px_20px_rgba(0,0,0,0.05)] relative overflow-hidden">
+<div class="flex items-start gap-4 relative z-10">
+<div class="w-10 h-10 bg-secondary rounded-full flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div class="space-y-1">
+<h2 class="text-headline-md font-headline-md text-on-secondary-container">Riesgo Leve</h2>
+<p class="text-body-md text-on-secondary-container font-medium">Daños no estructurales únicamente; fisuras capilares en acabados, sin daños en columnas, vigas o muros de carga; edificio apto para ocupación.</p>
+</div>
+</div>
+<div class="absolute top-0 right-0 w-32 h-32 opacity-10 pointer-events-none transform translate-x-8 -translate-y-8">
+<svg class="w-full h-full text-secondary" viewbox="0 0 100 100">
+<circle cx="50" cy="50" fill="currentColor" r="40"></circle>
+</svg>
+</div>
+</div>
+<!-- Confidence Meter & AI Summary Bento Section -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-stack-md">
+<!-- Confidence Meter Card -->
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.05)] flex flex-col items-center justify-center text-center">
+<div class="relative w-24 h-24 mb-3">
+<svg class="w-full h-full -rotate-90">
+<circle class="text-surface-container" cx="48" cy="48" fill="transparent" r="40" stroke="currentColor" stroke-width="8"></circle>
+<circle class="text-secondary confidence-ring" cx="48" cy="48" fill="transparent" r="40" stroke="currentColor" stroke-dasharray="251.2" stroke-dashoffset="251.2" stroke-width="8"></circle>
+</svg>
+<div class="absolute inset-0 flex items-center justify-center">
+<span class="text-headline-sm font-headline-sm">96%</span>
+</div>
+</div>
+<p class="text-label-caps font-label-caps text-outline">Nivel de Confianza</p>
+</div>
+<!-- AI Explanation Card -->
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.05)]">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-primary text-body-lg">auto_awesome</span>
+<h3 class="text-label-caps font-label-caps text-outline">Análisis de IA</h3>
+</div>
+<p class="text-body-md text-on-surface-variant">Nuestro modelo de visión solo detectó grietas superficiales tipo cabello. Estas son marcas típicas de asentamiento y no parecen comprometer la integridad estructural de la edificación.</p>
+</div>
+</div>
+<!-- Observed Damage (Accordion) -->
+<div class="bg-surface-container-lowest rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.05)] overflow-hidden">
+<button class="w-full px-6 py-5 flex items-center justify-between text-left focus:outline-none transition-colors hover:bg-surface-container-low" onclick="toggleAccordion(this)">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-on-surface-variant">search_insights</span>
+<span class="font-headline-sm text-headline-sm">Daños Observados</span>
+</div>
+<span class="material-symbols-outlined chevron transition-transform duration-300">expand_more</span>
+</button>
+<div class="accordion-content">
+<ul class="px-6 pb-6 space-y-4 border-t border-surface-container">
+<li class="flex items-start gap-4 pt-4">
+<div class="bg-error-container/30 p-2 rounded-lg">
+<span class="material-symbols-outlined text-error text-body-lg">splitscreen</span>
+</div>
+<div>
+<h4 class="font-bold text-body-md">Grieta Vertical en Pared</h4>
+<p class="text-body-md text-on-surface-variant">Fisura vertical de carácter superficial que no afecta el soporte principal.</p>
+</div>
+</li>
+<li class="flex items-start gap-4">
+<div class="bg-surface-container p-2 rounded-lg">
+<span class="material-symbols-outlined text-primary text-body-lg">info</span>
+</div>
+<div>
+<h4 class="font-bold text-body-md">Asentamiento Menor</h4>
+<p class="text-body-md text-on-surface-variant">Marcas leves de contracción en el friso debido a cambios de temperatura.</p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<!-- Recommended Actions -->
+<section class="space-y-stack-md">
+<h3 class="font-headline-sm text-headline-sm px-1">Acciones Recomendadas</h3>
+<div class="space-y-stack-sm">
+<!-- Action 1 -->
+<div class="flex gap-4">
+<div class="flex flex-col items-center">
+<div class="w-10 h-10 rounded-full bg-secondary text-white flex items-center justify-center shrink-0 z-10 shadow-sm">
+<span class="material-symbols-outlined">meeting_room</span>
+</div>
+<div class="w-0.5 h-full bg-surface-container-highest"></div>
+</div>
+<div class="pt-2 pb-6">
+<h4 class="font-bold text-body-lg">Entrar con cuidado</h4>
+<p class="text-body-md text-on-surface-variant">Proceda con precaución y reporte cualquier novedad de inmediato.</p>
+</div>
+</div>
+<!-- Action 2 -->
+<div class="flex gap-4">
+<div class="flex flex-col items-center">
+<div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center shrink-0 z-10 shadow-sm">
+<span class="material-symbols-outlined">visibility</span>
+</div>
+<div class="w-0.5 h-full bg-surface-container-highest"></div>
+</div>
+<div class="pt-2 pb-6">
+<h4 class="font-bold text-body-lg">Monitoreo continuo</h4>
+<p class="text-body-md text-on-surface-variant">Observe si las marcas existentes se ensanchan o si aparecen nuevas grietas.</p>
+</div>
+</div>
+<!-- Action 3 -->
+<div class="flex gap-4">
+<div class="flex flex-col items-center">
+<div class="w-10 h-10 rounded-full bg-on-background text-white flex items-center justify-center shrink-0 z-10 shadow-sm">
+<span class="material-symbols-outlined">photo_camera</span>
+</div>
+</div>
+<div class="pt-2">
+<h4 class="font-bold text-body-lg">Documentar cambios</h4>
+<p class="text-body-md text-on-surface-variant">Tome fotos periódicas para llevar un registro de la evolución de la estructura.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Bottom Actions (Stacked for Mobile Accessibility) -->
+<div class="flex flex-col gap-3 py-6">
+<button class="w-full h-14 bg-primary text-white font-bold rounded-xl active:scale-95 transition-transform duration-200 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">add_a_photo</span>
+                Analizar Otra Foto
+            </button>
+<div class="grid grid-cols-2 gap-3">
+<button class="h-14 bg-surface-container-lowest border border-outline-variant text-on-surface font-semibold rounded-xl active:scale-95 transition-transform duration-200 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">share</span>
+                    Compartir
+                </button>
+<button class="h-14 bg-surface-container-lowest border border-outline-variant text-on-surface font-semibold rounded-xl active:scale-95 transition-transform duration-200 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">picture_as_pdf</span>
+                    PDF
+                </button>
+</div>
+</div>
+</main>
+<script>
+        function toggleAccordion(button) {
+            const container = button.parentElement;
+            container.classList.toggle('accordion-open');
+        }
+
+        // Simple entrance animation for the confidence ring
+        window.addEventListener('load', () => {
+            const ring = document.querySelector('.confidence-ring');
+            if (ring) {
+                // Calculation: total dasharray is 251.2 (for r=40). 96% of 251.2 is 241.15. Offset = 251.2 - 241.15 = 10.05
+                setTimeout(() => {
+                    ring.style.strokeDashoffset = '10.05';
+                }, 100);
+            }
+        });
+    </script>
+</body></html>

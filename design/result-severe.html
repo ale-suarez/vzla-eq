@@ -3,7 +3,7 @@
 <html class="light" lang="es-VE"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
-<title>Evaluación - Riesgo Moderado | SafeStructure</title>
+<title>Evaluación - Riesgo Grave | SafeStructure</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Inter:wght@400;600&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
@@ -27,9 +27,18 @@
         .accordion-open .chevron {
             transform: rotate(180deg);
         }
-        .glass-red {
-            background: rgba(255, 218, 214, 0.4);
-            backdrop-filter: blur(8px);
+        /* Custom deep maroon for Grave Risk */
+        .bg-grave {
+            background-color: #630000;
+        }
+        .text-grave {
+            color: #630000;
+        }
+        .bg-grave-container {
+            background-color: #ffdad6;
+        }
+        .on-grave-container {
+            color: #410002;
         }
     </style>
 <script id="tailwind-config">
@@ -124,12 +133,12 @@
         }
     </script>
 <style>
-        body {
-            min-height: 100dvh;
-        }
-    </style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
 </head>
-<body class="bg-surface text-on-surface font-body-lg min-h-screen pb-12">
+<body class="bg-surface text-on-surface font-body-lg min-h-screen pb-10">
 <!-- TopAppBar -->
 <header class="bg-surface dark:bg-on-background fixed top-0 left-0 right-0 z-50">
 <div class="flex justify-between items-center w-full px-margin-mobile h-14 max-w-7xl mx-auto">
@@ -142,19 +151,20 @@
 </header>
 <!-- Main Content -->
 <main class="mt-14 px-margin-mobile pt-stack-lg max-w-2xl mx-auto space-y-stack-lg">
-<!-- Large Status Card: Riesgo Moderado -->
-<div class="bg-tertiary-container p-6 rounded-xl border border-tertiary/10 shadow-[0px_4px_20px_rgba(0,0,0,0.05)] relative overflow-hidden">
+<!-- Large Status Card: Grave Risk -->
+<div class="bg-grave-container p-6 rounded-xl border border-grave/20 shadow-[0px_4px_20px_rgba(0,0,0,0.05)] relative overflow-hidden">
 <div class="flex items-start gap-4 relative z-10">
-<div class="w-10 h-10 bg-tertiary rounded-full flex items-center justify-center shrink-0">
-<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">warning</span>
+<div class="w-10 h-10 bg-grave flex items-center justify-center shrink-0 rounded-full" style="background-color: #630000;">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">report</span>
 </div>
 <div class="space-y-1">
-<h2 class="text-headline-md font-headline-md text-on-tertiary-container">Riesgo Moderado</h2>
-<p class="text-body-md text-on-tertiary-container font-medium leading-relaxed">Elementos estructurales con daños reparables; fisuras diagonales en esquinas de vanos, fisuración menor en columnas, deformación en puertas y ventanas; ocupación restringida hasta inspección, riesgo de colapso bajo.</p>
+<h2 class="text-headline-md font-headline-md text-grave" style="color: #630000;">Riesgo Grave</h2>
+<p class="text-body-md on-grave-container font-medium leading-tight" style="color: #410002;">Daños significativos en elementos estructurales primarios; fisuras amplias, desprendimiento de concreto, acero de refuerzo expuesto, deformación visible; edificio debe ser evacuado, no apto para ocupación hasta reparación certificada por ingeniero.</p>
 </div>
 </div>
+<!-- Atmospheric Pattern -->
 <div class="absolute top-0 right-0 w-32 h-32 opacity-10 pointer-events-none transform translate-x-8 -translate-y-8">
-<svg class="w-full h-full text-tertiary" viewbox="0 0 100 100">
+<svg class="w-full h-full text-grave" style="color: #630000;" viewbox="0 0 100 100">
 <circle cx="50" cy="50" fill="currentColor" r="40"></circle>
 </svg>
 </div>
@@ -166,10 +176,10 @@
 <div class="relative w-24 h-24 mb-3">
 <svg class="w-full h-full -rotate-90">
 <circle class="text-surface-container" cx="48" cy="48" fill="transparent" r="40" stroke="currentColor" stroke-width="8"></circle>
-<circle class="text-tertiary confidence-ring" cx="48" cy="48" fill="transparent" r="40" stroke="currentColor" stroke-dasharray="251.2" stroke-dashoffset="30.1" stroke-width="8"></circle>
+<circle class="confidence-ring" cx="48" cy="48" fill="transparent" r="40" stroke="#630000" stroke-dasharray="251.2" stroke-dashoffset="251.2" stroke-width="8"></circle>
 </svg>
 <div class="absolute inset-0 flex items-center justify-center">
-<span class="text-headline-sm font-headline-sm">88%</span>
+<span class="text-headline-sm font-headline-sm">98%</span>
 </div>
 </div>
 <p class="text-label-caps font-label-caps text-outline">Nivel de Confianza</p>
@@ -180,7 +190,7 @@
 <span class="material-symbols-outlined text-primary text-body-lg">auto_awesome</span>
 <h3 class="text-label-caps font-label-caps text-outline">Análisis de IA</h3>
 </div>
-<p class="text-body-md text-on-surface-variant">El modelo identificó grietas diagonales significativas y un leve desprendimiento del friso. Aunque la estructura principal parece estable, estos patrones sugieren tensiones internas que requieren evaluación de un experto.</p>
+<p class="text-body-md text-on-surface-variant">Nuestro sistema ha detectado inestabilidad estructural crítica. Los patrones de fractura en las columnas de soporte indican una falla inminente por compresión.</p>
 </div>
 </div>
 <!-- Observed Damage (Accordion) -->
@@ -196,100 +206,102 @@
 <ul class="px-6 pb-6 space-y-4 border-t border-surface-container">
 <li class="flex items-start gap-4 pt-4">
 <div class="bg-error-container/30 p-2 rounded-lg">
-<span class="material-symbols-outlined text-error text-body-lg">splitscreen</span>
+<span class="material-symbols-outlined text-grave text-body-lg" style="color: #630000;">potted_plant</span>
 </div>
 <div>
-<h4 class="font-bold text-body-md">Grieta Vertical en Pared</h4>
-<p class="text-body-md text-on-surface-variant">Fisura vertical profunda que se extiende más de 3 metros a través de la pared estructural principal.</p>
+<h4 class="font-bold text-body-md">Exposición de Acero</h4>
+<p class="text-body-md text-on-surface-variant">Corrosión severa y pandeo del acero de refuerzo en la base de la columna principal.</p>
 </div>
 </li>
 <li class="flex items-start gap-4">
 <div class="bg-error-container/30 p-2 rounded-lg">
-<span class="material-symbols-outlined text-error text-body-lg">rebase_edit</span>
+<span class="material-symbols-outlined text-grave text-body-lg" style="color: #630000;">heart_broken</span>
 </div>
 <div>
-<h4 class="font-bold text-body-md">Desplazamiento de Viga</h4>
-<p class="text-body-md text-on-surface-variant">La viga de soporte horizontal se ha movido aproximadamente 5 cm de su punto de anclaje.</p>
+<h4 class="font-bold text-body-md">Fractura Diagonal</h4>
+<p class="text-body-md text-on-surface-variant">Grieta de cizallamiento mayor a 2cm de ancho atravesando el muro de carga.</p>
 </div>
 </li>
 </ul>
 </div>
 </div>
-<!-- Recommended Actions -->
+<!-- Recommended Actions (Timeline-ish style) -->
 <section class="space-y-stack-md">
 <h3 class="font-headline-sm text-headline-sm px-1">Acciones Recomendadas</h3>
 <div class="space-y-stack-sm">
 <!-- Action 1 -->
 <div class="flex gap-4">
 <div class="flex flex-col items-center">
-<div class="w-10 h-10 rounded-full bg-tertiary text-white flex items-center justify-center shrink-0 z-10 shadow-sm">
-<span class="material-symbols-outlined">person_off</span>
+<div class="w-10 h-10 rounded-full bg-grave text-white flex items-center justify-center shrink-0 z-10 shadow-sm" style="background-color: #630000;">
+<span class="material-symbols-outlined">block</span>
 </div>
 <div class="w-0.5 h-full bg-surface-container-highest"></div>
 </div>
 <div class="pt-2 pb-6">
-<h4 class="font-bold text-body-lg">Limitar ocupación</h4>
-<p class="text-body-md text-on-surface-variant">Evite permanecer mucho tiempo en las zonas afectadas.</p>
+<h4 class="font-bold text-body-lg">Evacuación Inmediata</h4>
+<p class="text-body-md text-on-surface-variant">El edificio no es apto para ocupación. Nadie debe permanecer en el interior bajo ninguna circunstancia.</p>
 </div>
 </div>
 <!-- Action 2 -->
 <div class="flex gap-4">
 <div class="flex flex-col items-center">
 <div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center shrink-0 z-10 shadow-sm">
-<span class="material-symbols-outlined">engineering</span>
+<span class="material-symbols-outlined">warning</span>
 </div>
 <div class="w-0.5 h-full bg-surface-container-highest"></div>
 </div>
 <div class="pt-2 pb-6">
-<h4 class="font-bold text-body-lg">Solicitar inspección</h4>
-<p class="text-body-md text-on-surface-variant">Contacte a un ingeniero civil colegiado para una evaluación formal.</p>
+<h4 class="font-bold text-body-lg">Perímetro de Seguridad</h4>
+<p class="text-body-md text-on-surface-variant">Acordone el área externa. Existe riesgo de desprendimiento de escombros hacia la vía pública.</p>
 </div>
 </div>
 <!-- Action 3 -->
 <div class="flex gap-4">
 <div class="flex flex-col items-center">
 <div class="w-10 h-10 rounded-full bg-on-background text-white flex items-center justify-center shrink-0 z-10 shadow-sm">
-<span class="material-symbols-outlined">sensors</span>
+<span class="material-symbols-outlined">call</span>
 </div>
 </div>
 <div class="pt-2">
-<h4 class="font-bold text-body-lg">Monitorear réplicas</h4>
-<p class="text-body-md text-on-surface-variant">Reevalúe el área inmediatamente después de cualquier actividad sísmica adicional.</p>
+<h4 class="font-bold text-body-lg">Reportar a Autoridades</h4>
+<p class="text-body-md text-on-surface-variant">Llame a protección civil o bomberos de inmediato para reportar el estado de colapso potencial.</p>
 </div>
 </div>
 </div>
 </section>
-<!-- Bottom Actions -->
+<!-- Bottom Actions (Stacked for Mobile Accessibility) -->
 <div class="flex flex-col gap-3 py-6">
 <button class="w-full h-14 bg-primary text-white font-bold rounded-xl active:scale-95 transition-transform duration-200 flex items-center justify-center gap-2">
 <span class="material-symbols-outlined">add_a_photo</span>
-            Analizar Otra Foto
-        </button>
+                Analizar Otra Foto
+            </button>
 <div class="grid grid-cols-2 gap-3">
 <button class="h-14 bg-surface-container-lowest border border-outline-variant text-on-surface font-semibold rounded-xl active:scale-95 transition-transform duration-200 flex items-center justify-center gap-2">
 <span class="material-symbols-outlined">share</span>
-                Compartir
-            </button>
+                    Compartir
+                </button>
 <button class="h-14 bg-surface-container-lowest border border-outline-variant text-on-surface font-semibold rounded-xl active:scale-95 transition-transform duration-200 flex items-center justify-center gap-2">
 <span class="material-symbols-outlined">picture_as_pdf</span>
-                PDF
-            </button>
+                    PDF
+                </button>
 </div>
 </div>
 </main>
 <script>
-    function toggleAccordion(button) {
-        const container = button.parentElement;
-        container.classList.toggle('accordion-open');
-    }
-
-    // Simple entrance animation for the confidence ring
-    window.addEventListener('load', () => {
-        const ring = document.querySelector('.confidence-ring');
-        if (ring) {
-            // Calculation: total dasharray is 251.2 (for r=40). 88% of 251.2 is 221.05. Offset = 251.2 - 221.05 = 30.15
-            ring.style.strokeDashoffset = '30.15';
+        function toggleAccordion(button) {
+            const container = button.parentElement;
+            container.classList.toggle('accordion-open');
         }
-    });
-</script>
+
+        // Simple entrance animation for the confidence ring
+        window.addEventListener('load', () => {
+            const ring = document.querySelector('.confidence-ring');
+            if (ring) {
+                // Calculation: total dasharray is 251.2 (for r=40). 98% of 251.2 is 246.2. Offset = 251.2 - 246.2 = 5
+                setTimeout(() => {
+                    ring.style.strokeDashoffset = '5';
+                }, 100);
+            }
+        });
+    </script>
 </body></html>

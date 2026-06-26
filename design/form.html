@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>Formulario de Evaluación | SafeStructure</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;family=Plus+Jakarta+Sans:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        
+        /* Custom radio button appearance for mobile-friendly chips */
+        .chip-group input[type="radio"]:checked + label {
+            background-color: #2563eb;
+            color: #ffffff;
+            border-color: #2563eb;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .safe-area-bottom {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-highest": "#e1e2ed",
+                        "on-secondary": "#ffffff",
+                        "secondary": "#006e2d",
+                        "secondary-fixed-dim": "#62df7d",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "tertiary-container": "#996100",
+                        "error": "#ba1a1a",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "on-tertiary-fixed": "#2a1700",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "on-primary": "#ffffff",
+                        "surface-bright": "#faf8ff",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-fixed": "#ffddb8",
+                        "secondary-fixed": "#7ffc97",
+                        "surface-container-lowest": "#ffffff",
+                        "primary": "#004ac6",
+                        "on-surface-variant": "#434655",
+                        "on-surface": "#191b23",
+                        "on-error": "#ffffff",
+                        "tertiary": "#784b00",
+                        "secondary-container": "#7cf994",
+                        "surface": "#faf8ff",
+                        "on-background": "#191b23",
+                        "outline-variant": "#c3c6d7",
+                        "surface-container-low": "#f3f3fe",
+                        "surface-dim": "#d9d9e5",
+                        "on-secondary-container": "#007230",
+                        "on-primary-fixed": "#00174b",
+                        "surface-container": "#ededf9",
+                        "surface-tint": "#0053db",
+                        "primary-container": "#2563eb",
+                        "primary-fixed": "#dbe1ff",
+                        "on-primary-container": "#eeefff",
+                        "on-secondary-fixed-variant": "#005320",
+                        "on-error-container": "#93000a",
+                        "error-container": "#ffdad6",
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "outline": "#737686",
+                        "inverse-surface": "#2e3039",
+                        "surface-container-high": "#e7e7f3",
+                        "on-tertiary-container": "#ffeedd",
+                        "inverse-primary": "#b4c5ff",
+                        "inverse-on-surface": "#f0f0fb",
+                        "background": "#faf8ff",
+                        "on-secondary-fixed": "#002109",
+                        "surface-variant": "#e1e2ed"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "18px",
+                        "xl": "24px",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-sm": "8px",
+                        "section-gap": "32px",
+                        "stack-lg": "24px",
+                        "stack-md": "16px",
+                        "margin-mobile": "20px",
+                        "base": "4px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Inter"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "body-lg": ["Inter"],
+                        "display-lg-mobile": ["Plus Jakarta Sans"],
+                        "headline-sm": ["Plus Jakarta Sans"],
+                        "display-lg": ["Plus Jakarta Sans"],
+                        "label-caps": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-md": ["22px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "display-lg-mobile": ["26px", {"lineHeight": "32px", "fontWeight": "700"}],
+                        "headline-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "display-lg": ["30px", {"lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-[#F8FAFC] text-on-surface font-body-md selection:bg-primary-fixed">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 bg-surface dark:bg-on-background shadow-none">
+<div class="flex justify-between items-center w-full px-margin-mobile h-14 max-w-7xl mx-auto">
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-surface-container transition-colors text-on-surface-variant" onclick="history.back()">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<h1 class="text-headline-sm font-headline-sm text-primary dark:text-primary-fixed tracking-tight">Nueva Evaluación</h1>
+<div class="w-10"></div> <!-- Spacer for balance -->
+</div>
+</header>
+<main class="pt-20 pb-40 px-margin-mobile max-w-2xl mx-auto">
+<!-- Animated Intro Banner -->
+<div class="mb-section-gap relative rounded-xl overflow-hidden h-32 flex items-center justify-center">
+
+<div class="relative z-10 text-center px-6">
+<h2 class="text-headline-md font-headline-md text-on-surface">Cuéntanos un poco sobre el lugar</h2>
+<p class="text-body-md text-on-surface-variant">Tus respuestas nos ayudan a darte una mejor recomendación.</p>
+</div>
+</div>
+<form class="space-y-stack-lg" id="evaluationForm">
+<!-- Question 1 -->
+<div class="bg-surface-container-lowest p-stack-md rounded-lg shadow-[0px_4px_20px_rgba(0,0,0,0.05)]">
+<p class="text-body-lg font-headline-sm mb-stack-sm text-on-surface">¿Cuál es el uso del edificio?</p>
+<div class="flex flex-wrap gap-stack-sm chip-group">
+<input class="hidden" id="res" name="uso" type="radio" value="Residencial"/>
+<label class="px-4 py-2 border border-outline-variant rounded-full text-body-md cursor-pointer transition-all hover:bg-surface-container-low" for="res">Residencial</label>
+<input class="hidden" id="com" name="uso" type="radio" value="Comercial"/>
+<label class="px-4 py-2 border border-outline-variant rounded-full text-body-md cursor-pointer transition-all hover:bg-surface-container-low" for="com">Comercial</label>
+<input class="hidden" id="mix" name="uso" type="radio" value="Mixto"/>
+<label class="px-4 py-2 border border-outline-variant rounded-full text-body-md cursor-pointer transition-all hover:bg-surface-container-low" for="mix">Mixto</label>
+</div>
+</div>
+<!-- Question 2 -->
+<div class="bg-surface-container-lowest p-stack-md rounded-lg shadow-[0px_4px_20px_rgba(0,0,0,0.05)]">
+<p class="text-body-lg font-headline-sm mb-stack-sm text-on-surface">¿Cuántos pisos tiene?</p>
+<div class="flex flex-wrap gap-stack-sm chip-group">
+<input class="hidden" id="p1" name="pisos" type="radio" value="1"/>
+<label class="w-10 h-10 flex items-center justify-center border border-outline-variant rounded-full text-body-md cursor-pointer transition-all hover:bg-surface-container-low" for="p1">1</label>
+<input class="hidden" id="p2" name="pisos" type="radio" value="2"/>
+<label class="w-10 h-10 flex items-center justify-center border border-outline-variant rounded-full text-body-md cursor-pointer transition-all hover:bg-surface-container-low" for="p2">2</label>
+<input class="hidden" id="p3" name="pisos" type="radio" value="3"/>
+<label class="w-10 h-10 flex items-center justify-center border border-outline-variant rounded-full text-body-md cursor-pointer transition-all hover:bg-surface-container-low" for="p3">3</label>
+<input class="hidden" id="p4" name="pisos" type="radio" value="4"/>
+<label class="w-10 h-10 flex items-center justify-center border border-outline-variant rounded-full text-body-md cursor-pointer transition-all hover:bg-surface-container-low" for="p4">4</label>
+<input class="hidden" id="p5" name="pisos" type="radio" value="5+"/>
+<label class="px-4 py-2 flex items-center justify-center border border-outline-variant rounded-full text-body-md cursor-pointer transition-all hover:bg-surface-container-low" for="p5">5 o más</label>
+</div>
+</div>
+<!-- Question 3 -->
+<div class="bg-surface-container-lowest p-stack-md rounded-lg shadow-[0px_4px_20px_rgba(0,0,0,0.05)]">
+<p class="text-body-lg font-headline-sm mb-stack-sm text-on-surface">¿Tiene sótano o garaje subterráneo?</p>
+<div class="flex flex-wrap gap-stack-sm chip-group">
+<input class="hidden" id="sot_no" name="sotano" type="radio" value="No"/>
+<label class="px-4 py-2 border border-outline-variant rounded-full text-body-md cursor-pointer transition-all" for="sot_no">No</label>
+<input class="hidden" id="sot_1" name="sotano" type="radio" value="Sí: 1 nivel"/>
+<label class="px-4 py-2 border border-outline-variant rounded-full text-body-md cursor-pointer transition-all" for="sot_1">Sí: 1 nivel</label>
+<input class="hidden" id="sot_2" name="sotano" type="radio" value="Sí: 2 o más niveles"/>
+<label class="px-4 py-2 border border-outline-variant rounded-full text-body-md cursor-pointer transition-all" for="sot_2">Sí: 2 o más niveles</label>
+</div>
+</div>
+<!-- Emergency Warning (OJO) -->
+<div class="bg-[#FEF2F2] border border-error-container p-stack-md rounded-lg flex gap-4">
+<div class="w-10 h-10 rounded-full bg-error flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-on-error" data-icon="warning" data-weight="fill">warning</span>
+</div>
+<div>
+<h3 class="text-headline-sm font-headline-sm text-error mb-1">¡OJO!</h3>
+<p class="text-body-md text-on-error-container leading-tight">Si el edificio está inclinado, tiene pisos aplastados o paredes caídas, <strong>no entres</strong>. Escríbenos de inmediato.</p>
+</div>
+</div>
+<!-- Question 4 -->
+<div class="bg-surface-container-lowest p-stack-md rounded-lg shadow-[0px_4px_20px_rgba(0,0,0,0.05)]">
+<p class="text-body-lg font-headline-sm mb-stack-sm text-on-surface">¿El primer piso tiene columnas sin paredes, local comercial o estacionamiento?</p>
+<div class="flex flex-wrap gap-stack-sm chip-group">
+<input class="hidden" id="pp_si" name="primer_piso" type="radio" value="Sí"/>
+<label class="px-4 py-2 border border-outline-variant rounded-full text-body-md cursor-pointer transition-all" for="pp_si">Sí</label>
+<input class="hidden" id="pp_no" name="primer_piso" type="radio" value="No"/>
+<label class="px-4 py-2 border border-outline-variant rounded-full text-body-md cursor-pointer transition-all" for="pp_no">No</label>
+<input class="hidden" id="pp_ns" name="primer_piso" type="radio" value="No sé"/>
+<label class="px-4 py-2 border border-outline-variant rounded-full text-body-md cursor-pointer transition-all" for="pp_ns">No sé</label>
+</div>
+</div>
+<!-- Question 5 -->
+<div class="bg-surface-container-lowest p-stack-md rounded-lg shadow-[0px_4px_20px_rgba(0,0,0,0.05)]">
+<p class="text-body-lg font-headline-sm mb-stack-sm text-on-surface">¿De qué está construido?</p>
+<div class="flex flex-wrap gap-stack-sm chip-group">
+<input class="hidden" id="m_con" name="material" type="radio" value="Concreto"/>
+<label class="px-4 py-2 border border-outline-variant rounded-full text-body-md cursor-pointer transition-all" for="m_con">Concreto</label>
+<input class="hidden" id="m_lad" name="material" type="radio" value="Ladrillo"/>
+<label class="px-4 py-2 border border-outline-variant rounded-full text-body-md cursor-pointer transition-all" for="m_lad">Ladrillo</label>
+<input class="hidden" id="m_blo" name="material" type="radio" value="Bloque"/>
+<label class="px-4 py-2 border border-outline-variant rounded-full text-body-md cursor-pointer transition-all" for="m_blo">Bloque</label>
+<input class="hidden" id="m_mad" name="material" type="radio" value="Madera"/>
+<label class="px-4 py-2 border border-outline-variant rounded-full text-body-md cursor-pointer transition-all" for="m_mad">Madera</label>
+<input class="hidden" id="m_met" name="material" type="radio" value="Metal"/>
+<label class="px-4 py-2 border border-outline-variant rounded-full text-body-md cursor-pointer transition-all" for="m_met">Metal</label>
+</div>
+</div>
+<!-- Question 6 -->
+<div class="bg-surface-container-lowest p-stack-md rounded-lg shadow-[0px_4px_20px_rgba(0,0,0,0.05)]">
+<p class="text-body-lg font-headline-sm mb-stack-sm text-on-surface">¿Año aproximado de construcción?</p>
+<div class="flex flex-col gap-2 chip-group">
+<input class="hidden" id="a_1970" name="año" type="radio" value="Antes de 1970"/>
+<label class="px-4 py-3 border border-outline-variant rounded-lg text-body-md cursor-pointer transition-all" for="a_1970">Antes de 1970</label>
+<input class="hidden" id="a_2000" name="año" type="radio" value="1970–2000"/>
+<label class="px-4 py-3 border border-outline-variant rounded-lg text-body-md cursor-pointer transition-all" for="a_2000">1970–2000</label>
+<input class="hidden" id="a_now" name="año" type="radio" value="Después del 2000"/>
+<label class="px-4 py-3 border border-outline-variant rounded-lg text-body-md cursor-pointer transition-all" for="a_now">Después del 2000</label>
+</div>
+</div>
+<!-- Question 7 -->
+<div class="bg-surface-container-lowest p-stack-md rounded-lg shadow-[0px_4px_20px_rgba(0,0,0,0.05)]">
+<p class="text-body-lg font-headline-sm mb-stack-sm text-on-surface">¿El terreno es plano o en pendiente?</p>
+<div class="flex flex-wrap gap-stack-sm chip-group">
+<input class="hidden" id="t_pla" name="terreno" type="radio" value="Plano"/>
+<label class="px-4 py-2 border border-outline-variant rounded-full text-body-md cursor-pointer transition-all" for="t_pla">Plano</label>
+<input class="hidden" id="t_pen" name="terreno" type="radio" value="Pendiente"/>
+<label class="px-4 py-2 border border-outline-variant rounded-full text-body-md cursor-pointer transition-all" for="t_pen">Pendiente</label>
+<input class="hidden" id="t_ns" name="terreno" type="radio" value="No sé"/>
+<label class="px-4 py-2 border border-outline-variant rounded-full text-body-md cursor-pointer transition-all" for="t_ns">No sé</label>
+</div>
+</div>
+<!-- Question 8 -->
+<div class="bg-surface-container-lowest p-stack-md rounded-lg shadow-[0px_4px_20px_rgba(0,0,0,0.05)]">
+<p class="text-body-lg font-headline-sm mb-stack-sm text-on-surface">¿Tenía daños o grietas antes del sismo?</p>
+<div class="flex flex-col gap-2 chip-group">
+<input class="hidden" id="d_no" name="danos" type="radio" value="No"/>
+<label class="px-4 py-3 border border-outline-variant rounded-lg text-body-md cursor-pointer transition-all" for="d_no">No</label>
+<input class="hidden" id="d_min" name="danos" type="radio" value="Menores"/>
+<label class="px-4 py-3 border border-outline-variant rounded-lg text-body-md cursor-pointer transition-all" for="d_min">Sí: menores</label>
+<input class="hidden" id="d_sig" name="danos" type="radio" value="Significativos"/>
+<label class="px-4 py-3 border border-outline-variant rounded-lg text-body-md cursor-pointer transition-all" for="d_sig">Sí: significativos</label>
+</div>
+</div>
+<!-- Question 9 -->
+<div class="bg-surface-container-lowest p-stack-md rounded-lg shadow-[0px_4px_20px_rgba(0,0,0,0.05)]">
+<p class="text-body-lg font-headline-sm mb-stack-sm text-on-surface">¿Cuántas personas viven o trabajan en el edificio?</p>
+<div class="flex flex-wrap gap-stack-sm chip-group">
+<input class="hidden" id="p_1-5" name="personas" type="radio" value="1-5"/>
+<label class="px-4 py-2 border border-outline-variant rounded-full text-body-md cursor-pointer transition-all" for="p_1-5">1–5</label>
+<input class="hidden" id="p_6-20" name="personas" type="radio" value="6-20"/>
+<label class="px-4 py-2 border border-outline-variant rounded-full text-body-md cursor-pointer transition-all" for="p_6-20">6–20</label>
+<input class="hidden" id="p_20plus" name="personas" type="radio" value="Más de 20"/>
+<label class="px-4 py-2 border border-outline-variant rounded-full text-body-md cursor-pointer transition-all" for="p_20plus">Más de 20</label>
+</div>
+</div>
+</form>
+</main>
+<!-- Action Section Footer -->
+<div class="fixed bottom-0 left-0 w-full bg-surface dark:bg-on-background px-margin-mobile pt-4 pb-10 shadow-[0px_-4px_20px_rgba(0,0,0,0.05)] safe-area-bottom">
+<div class="max-w-2xl mx-auto flex flex-col gap-3">
+<button class="w-full h-14 bg-primary text-on-primary rounded-lg font-headline-sm flex items-center justify-center gap-2 active:scale-95 transition-transform duration-200">
+<span class="material-symbols-outlined" data-icon="photo_camera" data-weight="fill">photo_camera</span>
+                Tomar Foto
+            </button>
+<button class="w-full h-14 bg-surface-container-lowest border border-outline-variant text-on-surface font-headline-sm flex items-center justify-center gap-2 active:scale-95 transition-transform duration-200">
+<span class="material-symbols-outlined" data-icon="upload">upload</span>
+                Subir desde Galería
+            </button>
+</div>
+</div>
+<!-- Micro-interaction Script -->
+<script>
+        // Simple animation logic for selected state feedback
+        const labels = document.querySelectorAll('.chip-group label');
+        labels.forEach(label => {
+            label.addEventListener('click', () => {
+                // Add a little spring effect on click
+                label.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    label.style.transform = 'scale(1)';
+                }, 100);
+            });
+        });
+
+        // Form monitoring to enable/disable primary button (optional UX improvement)
+        const form = document.getElementById('evaluationForm');
+        const primaryBtn = document.querySelector('button.bg-primary');
+        
+        form.addEventListener('change', () => {
+            const checkedCount = form.querySelectorAll('input[type="radio"]:checked').length;
+            if (checkedCount > 4) {
+                primaryBtn.classList.remove('opacity-50');
+            } else {
+                // Not mandatory for this stage, but good for UX
+            }
+        });
+    </script>
+</body></html>
