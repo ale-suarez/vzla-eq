@@ -1,0 +1,304 @@
+<!DOCTYPE html><html class="light" lang="es-VE"><head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport">
+  <title>SafeStructure - Resultados del Análisis</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Inter:wght@400;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;family=Plus+Jakarta+Sans:wght@100..900&amp;display=swap" rel="stylesheet">
+  <script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "secondary-container": "#7cf994",
+                      "on-primary": "#ffffff",
+                      "surface-variant": "#e1e2ed",
+                      "surface-container-low": "#f3f3fe",
+                      "background": "#faf8ff",
+                      "on-background": "#191b23",
+                      "on-tertiary": "#ffffff",
+                      "surface": "#faf8ff",
+                      "tertiary": "#784b00",
+                      "surface-container-highest": "#e1e2ed",
+                      "on-primary-container": "#eeefff",
+                      "error-container": "#ffdad6",
+                      "surface-tint": "#0053db",
+                      "on-secondary-fixed": "#002109",
+                      "primary-container": "#2563eb",
+                      "primary": "#004ac6",
+                      "outline-variant": "#c3c6d7",
+                      "error": "#ba1a1a",
+                      "on-primary-fixed": "#00174b",
+                      "inverse-on-surface": "#f0f0fb",
+                      "secondary": "#006e2d",
+                      "primary-fixed-dim": "#b4c5ff",
+                      "inverse-primary": "#b4c5ff",
+                      "on-secondary-container": "#007230",
+                      "on-secondary": "#ffffff",
+                      "surface-container-lowest": "#ffffff",
+                      "on-error-container": "#93000a",
+                      "surface-dim": "#d9d9e5",
+                      "tertiary-fixed": "#ffddb8",
+                      "on-error": "#ffffff",
+                      "surface-container-high": "#e7e7f3",
+                      "on-secondary-fixed-variant": "#005320",
+                      "on-primary-fixed-variant": "#003ea8",
+                      "primary-fixed": "#dbe1ff",
+                      "tertiary-container": "#996100",
+                      "on-tertiary-fixed-variant": "#653e00",
+                      "on-tertiary-container": "#ffeedd",
+                      "inverse-surface": "#2e3039",
+                      "on-surface-variant": "#434655",
+                      "tertiary-fixed-dim": "#ffb95f",
+                      "secondary-fixed": "#7ffc97",
+                      "surface-container": "#ededf9",
+                      "secondary-fixed-dim": "#62df7d",
+                      "outline": "#737686",
+                      "surface-bright": "#faf8ff",
+                      "on-surface": "#191b23",
+                      "on-tertiary-fixed": "#2a1700"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "18px",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "stack-md": "16px",
+                      "margin-mobile": "20px",
+                      "stack-lg": "24px",
+                      "gutter": "16px",
+                      "section-gap": "32px",
+                      "stack-sm": "8px",
+                      "base": "4px"
+              },
+              "fontFamily": {
+                      "display-lg-mobile": ["Plus Jakarta Sans"],
+                      "label-caps": ["Inter"],
+                      "headline-md": ["Plus Jakarta Sans"],
+                      "body-lg": ["Inter"],
+                      "headline-sm": ["Plus Jakarta Sans"],
+                      "body-md": ["Inter"],
+                      "display-lg": ["Plus Jakarta Sans"]
+              },
+              "fontSize": {
+                      "display-lg-mobile": ["26px", {"lineHeight": "32px", "fontWeight": "700"}],
+                      "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                      "headline-md": ["22px", {"lineHeight": "28px", "fontWeight": "600"}],
+                      "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "headline-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                      "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "display-lg": ["30px", {"lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+              }
+            },
+          },
+        }
+      </script>
+  <style>
+          .material-symbols-outlined {
+              font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+          }
+          .hide-scrollbar::-webkit-scrollbar { display: none; }
+          .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+          
+          .confidence-circle {
+              transition: stroke-dashoffset 0.8s ease-out;
+          }
+  
+          .active-img-glow {
+              outline: 3px solid #004ac6;
+              outline-offset: 2px;
+          }
+      </style>
+  <style>
+          body {
+              min-height: 100dvh;
+          }
+      </style>
+  </head>
+  <body class="bg-background text-on-surface font-body-md antialiased pb-12">
+  <!-- Barra de Navegación Superior -->
+  <header class="sticky top-0 z-50 bg-surface dark:bg-on-background w-full h-14 flex items-center justify-between px-margin-mobile max-w-7xl mx-auto">
+  <div class="flex items-center gap-3">
+  <span class="material-symbols-outlined text-primary dark:text-primary-fixed" data-icon="shield_with_heart">shield_with_heart</span>
+  <h1 class="text-headline-md font-headline-md font-bold text-primary dark:text-primary-fixed tracking-tight">SafeStructure</h1>
+  </div>
+  <button class="hover:opacity-80 transition-opacity flex items-center justify-center p-2 rounded-full">
+  <span class="material-symbols-outlined text-on-surface-variant" data-icon="more_vert">more_vert</span>
+  </button>
+  </header>
+  <main class="px-margin-mobile py-stack-lg max-w-2xl mx-auto space-y-section-gap">
+  <!-- Tarjeta de Riesgo General -->
+  <section class="space-y-stack-md">
+  <div class="bg-tertiary-fixed rounded-xl p-stack-lg shadow-[0px_4px_20px_rgba(0,0,0,0.05)] flex items-center justify-between overflow-hidden relative">
+  <div class="relative z-10 flex-1">
+  <span class="text-label-caps font-label-caps text-on-tertiary-fixed-variant uppercase">Nivel de Riesgo General</span>
+  <h2 class="text-display-lg-mobile font-display-lg-mobile text-on-tertiary-fixed mt-1">Riesgo Medio</h2>
+  <p class="text-body-md text-on-tertiary-fixed-variant mt-2 max-w-[200px]">Se detectaron problemas estructurales en 4 de las 10 fotos analizadas. Se recomienda consulta profesional inmediata.</p>
+  </div>
+  <!-- Indicador de Confianza -->
+  <div class="relative z-10 flex flex-col items-center">
+  <div class="relative flex items-center justify-center">
+  <svg class="w-24 h-24 transform -rotate-90">
+  <circle class="text-on-tertiary-fixed/20" cx="48" cy="48" fill="transparent" r="40" stroke="currentColor" stroke-width="6"></circle>
+  <circle class="text-tertiary confidence-circle" cx="48" cy="48" fill="transparent" r="40" stroke="currentColor" stroke-dasharray="251.2" stroke-dashoffset="30.1" stroke-width="6"></circle>
+  </svg>
+  <span class="absolute text-headline-sm font-headline-sm text-on-tertiary-fixed">88%</span>
+  </div>
+  <span class="text-label-caps font-label-caps text-on-tertiary-fixed-variant mt-2 text-center leading-tight">Confianza Agregada</span>
+  </div>
+  <!-- Forma abstracta en el fondo -->
+  <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-tertiary-container/10 rounded-full blur-3xl"></div>
+  </div>
+  </section>
+  <!-- Galería de Imágenes / Resultados Horizontales -->
+  <section class="space-y-stack-md">
+  <div class="flex items-center justify-between">
+  <h3 class="text-headline-sm font-headline-sm text-on-surface">Activos Analizados</h3>
+  <span class="text-label-caps font-label-caps text-outline">10 Elementos</span>
+  </div>
+  <div class="flex overflow-x-auto hide-scrollbar gap-stack-md pb-4 snap-x snap-mandatory">
+  <!-- Generador de miniaturas -->
+  <!-- Item 1 (Activo) -->
+  <button class="snap-start flex-shrink-0 flex flex-col items-center gap-2 group" onclick="selectImage(0)">
+  <div class="relative w-20 h-20 rounded-lg overflow-hidden active-img-glow" id="thumb-0">
+  <img alt="Detalle de grieta diagonal en muro de concreto" class="w-full h-full object-cover grayscale-0" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4wU9no_F_tXtQGqCKP0rfCfq5ozUjtHMThiqClXXXiyzqK8F07jR3QdNAAw0qvNjH4xO-sbIvfWCNpmRGy776jK22nw3di3T_y6QQdcWggtptlkgbAMtz4xeTd3cPxeTFPan1RqZrcvDgP-TjQUumynGH6_IT3elUWyVO9UX1R3QnFy5BxoNwRDln5_ojrQPgr6QDL9pkDt45jqT06zgoUHhvI1YF8g7ciSA9AZvzjPqcw7j71GaHfF0hpQSp03QA5bdWLPsz7ko">
+  <div class="absolute top-1 right-1 bg-tertiary-container text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">Medio</div>
+  </div>
+  <span class="text-label-caps font-label-caps text-primary">92% Conf.</span>
+  </button>
+  <!-- Item 2 -->
+  <button class="snap-start flex-shrink-0 flex flex-col items-center gap-2 group" onclick="selectImage(1)">
+  <div class="relative w-20 h-20 rounded-lg overflow-hidden border border-outline-variant" id="thumb-1">
+  <img alt="Viga de madera con daños por humedad" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIrGScVaVolVFe0QUXGR_7eZn6qU-LUWNH8Yts6C6efwlE3Hs8A9FbUd0AgWsPPFTgyFvbH-QcCqAZZJThTSfm7W-0W5V_Nc-LOe10mJrfZM0ga_2bNwMIJzUPJdT7W7-AHHpk3r6sAC1ZTelhnbixk44xSsHiaU3CS1syo154dQ3CimGR90T6XR_g8uEp3bEdY16aF4pgdD2QhIhBeowbO2GA9GJUfvPrs0pQva3sGMQDBkhCbPnTrh7e39DQSz8RWNoHOwWTTUw">
+  <div class="absolute top-1 right-1 bg-error text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">Alto</div>
+  </div>
+  <span class="text-label-caps font-label-caps text-outline">98% Conf.</span>
+  </button>
+  <script>
+                      const gallery = document.currentScript.parentElement;
+                      const risks = ['Bajo', 'Bajo', 'Medio', 'Bajo', 'Alto', 'Bajo', 'Bajo', 'Medio'];
+                      const riskColors = ['bg-secondary', 'bg-secondary', 'bg-tertiary-container', 'bg-secondary', 'bg-error', 'bg-secondary', 'bg-secondary', 'bg-tertiary-container'];
+                      for(let i=0; i<8; i++) {
+                          const btn = document.createElement('button');
+                          btn.className = "snap-start flex-shrink-0 flex flex-col items-center gap-2 group";
+                          btn.onclick = () => selectImage(i+2);
+                          btn.innerHTML = `
+                              <div class="relative w-20 h-20 rounded-lg overflow-hidden border border-outline-variant" id="thumb-${i+2}">
+                                  <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuDec-f3vTrc5pgZDkmyUkPej1oaDUCZz42ewPQs4DwjA1t67bQcdp8CgZwu9juNwkMJ9oud6fEKvrxoKaqWYzE7QpE5Z1swcgkBw6upJLOssd1asqseIe47R0CsVQZw2OgOH70-6gwI8VJqAVJ8dV6ewD5jE17SL44FQxR6SyY0ljNU6L4XEJXigTRmPPsW_pVGHhL2Qtjy1w9pWu6rislZpg-iEDM4QBWMqDYh1zjN5Ew9DLfZtjXXOduJF43Iynfx22SKRpRyEfs" class="w-full h-full object-cover opacity-50 grayscale">
+                                  <div class="absolute top-1 right-1 ${riskColors[i]} text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">${risks[i]}</div>
+                              </div>
+                              <span class="text-label-caps font-label-caps text-outline">${85 + i}% Conf.</span>
+                          `;
+                          gallery.appendChild(btn);
+                      }
+                  </script>
+  </div>
+  </section>
+  <!-- Detalle de Imagen Seleccionada -->
+  <section class="bg-surface-container-lowest rounded-xl border border-outline-variant p-stack-lg space-y-stack-lg shadow-[0px_4px_20px_rgba(0,0,0,0.02)] transition-all duration-300" id="analysis-detail">
+  <div class="flex flex-col md:flex-row gap-stack-lg">
+  <div class="w-full md:w-1/2 aspect-video rounded-lg overflow-hidden bg-surface-container">
+  <img alt="Fotografía técnica detallada" class="w-full h-full object-cover" id="main-image" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDec-f3vTrc5pgZDkmyUkPej1oaDUCZz42ewPQs4DwjA1t67bQcdp8CgZwu9juNwkMJ9oud6fEKvrxoKaqWYzE7QpE5Z1swcgkBw6upJLOssd1asqseIe47R0CsVQZw2OgOH70-6gwI8VJqAVJ8dV6ewD5jE17SL44FQxR6SyY0ljNU6L4XEJXigTRmPPsW_pVGHhL2Qtjy1w9pWu6rislZpg-iEDM4QBWMqDYh1zjN5Ew9DLfZtjXXOduJF43Iynfx22SKRpRyEfs">
+  </div>
+  <div class="w-full md:w-1/2 space-y-stack-md">
+  <div class="flex items-center gap-2">
+  <span class="material-symbols-outlined text-tertiary" data-icon="analytics">analytics</span>
+  <h4 class="text-headline-sm font-headline-sm text-on-surface">Resultado del Análisis de IA</h4>
+  </div>
+  <div class="space-y-stack-sm">
+  <p class="text-label-caps font-label-caps text-outline uppercase">Daño Observado</p>
+  <p class="text-body-md text-on-surface-variant">Se identificó una grieta por cizallamiento diagonal en el soporte principal de la fundación. El ancho supera los 2 mm, indicando movimiento estructural activo.</p>
+  </div>
+  <div class="space-y-stack-sm">
+  <p class="text-label-caps font-label-caps text-outline uppercase">Detalles de Confianza</p>
+  <div class="flex items-center gap-2">
+  <div class="flex-1 h-2 bg-surface-container rounded-full overflow-hidden">
+  <div class="w-[92%] h-full bg-primary"></div>
+  </div>
+  <span class="text-body-md font-bold text-primary">92%</span>
+  </div>
+  </div>
+  </div>
+  </div>
+  </section>
+  <!-- Acciones Recomendadas -->
+  <section class="space-y-stack-md">
+  <h3 class="text-headline-sm font-headline-sm text-on-surface">Acciones Recomendadas</h3>
+  <div class="space-y-stack-md">
+  <!-- Acción 1 -->
+  <div class="flex items-start gap-stack-md bg-white p-stack-md rounded-xl border border-outline-variant shadow-sm">
+  <div class="bg-primary-fixed w-10 h-10 rounded-full flex items-center justify-center shrink-0">
+  <span class="material-symbols-outlined text-primary" data-icon="engineering">engineering</span>
+  </div>
+  <div>
+  <h4 class="text-body-lg font-bold text-on-surface">Programar Inspección Profesional</h4>
+  <p class="text-body-md text-on-surface-variant">Las grietas detectadas superan la profundidad cosmética. Consulte a un ingeniero estructural colegiado en un plazo de 7 días.</p>
+  </div>
+  </div>
+  <!-- Acción 2 -->
+  <div class="flex items-start gap-stack-md bg-white p-stack-md rounded-xl border border-outline-variant shadow-sm">
+  <div class="bg-secondary-container w-10 h-10 rounded-full flex items-center justify-center shrink-0">
+  <span class="material-symbols-outlined text-on-secondary-container" data-icon="monitoring">monitoring</span>
+  </div>
+  <div>
+  <h4 class="text-body-lg font-bold text-on-surface">Instalar Monitores de Grietas</h4>
+  <p class="text-body-md text-on-surface-variant">Coloque monitores de precisión sobre las grietas principales para rastrear el movimiento durante las próximas 4 semanas.</p>
+  </div>
+  </div>
+  </div>
+  </section>
+  <!-- Acciones Primarias -->
+  <section class="flex flex-col gap-stack-md pb-8">
+  <button class="w-full h-14 bg-primary text-on-primary rounded-xl font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+  <span class="material-symbols-outlined" data-icon="picture_as_pdf">picture_as_pdf</span>
+                  Exportar Reporte PDF
+              </button>
+  <div class="grid grid-cols-2 gap-stack-md">
+  <button class="h-14 bg-white border border-outline-variant text-on-surface rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-surface-container-low transition-colors">
+  <span class="material-symbols-outlined" data-icon="share">share</span>
+                      Compartir
+                  </button>
+  <button class="h-14 bg-white border border-outline-variant text-on-surface rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-surface-container-low transition-colors">
+  <span class="material-symbols-outlined" data-icon="add_a_photo">add_a_photo</span>
+                      Nuevo Análisis
+                  </button>
+  </div>
+  </section>
+  </main>
+  <script>
+          function selectImage(index) {
+              // Actualizar UI de miniaturas
+              document.querySelectorAll('[id^="thumb-"]').forEach(el => {
+                  el.classList.remove('active-img-glow');
+                  el.classList.add('border', 'border-outline-variant');
+              });
+              const selectedThumb = document.getElementById(`thumb-${index}`);
+              if (selectedThumb) {
+                  selectedThumb.classList.add('active-img-glow');
+                  selectedThumb.classList.remove('border', 'border-outline-variant');
+              }
+  
+              // Simular cambio de contenido
+              const detailSection = document.getElementById('analysis-detail');
+              detailSection.style.opacity = '0.5';
+              
+              setTimeout(() => {
+                  const isHigh = [1, 6].includes(index);
+                  const isMedium = [0, 4, 9].includes(index);
+                  const riskDesc = isHigh ? 'Se detectó separación severa de elementos estructurales. Alta probabilidad de falla de carga.' : (isMedium ? 'Se observaron grietas o deterioros moderados. Se recomienda monitoreo.' : 'Problemas cosméticos a nivel superficial únicamente. Sin preocupaciones estructurales.');
+                  const conf = 85 + Math.floor(Math.random() * 14);
+  
+                  detailSection.querySelector('h4').textContent = `Resultado del Análisis de IA: Foto #${index + 1}`;
+                  detailSection.querySelector('.text-body-md').textContent = riskDesc;
+                  detailSection.querySelector('.text-primary').textContent = `${conf}%`;
+                  detailSection.querySelector('.bg-primary').style.width = `${conf}%`;
+                  
+                  detailSection.style.opacity = '1';
+              }, 200);
+          }
+      </script>
+  </body></html>

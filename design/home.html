@@ -1,0 +1,247 @@
+<!DOCTYPE html><html class="light" lang="es-VE"><head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>SafeStructure - Inicio</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+  <script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "outline": "#737686",
+                      "error-container": "#ffdad6",
+                      "outline-variant": "#c3c6d7",
+                      "on-primary-fixed-variant": "#003ea8",
+                      "on-background": "#191b23",
+                      "tertiary-fixed-dim": "#ffb95f",
+                      "tertiary-container": "#996100",
+                      "surface-container": "#ededf9",
+                      "secondary-fixed": "#7ffc97",
+                      "on-surface": "#191b23",
+                      "inverse-primary": "#b4c5ff",
+                      "error": "#ba1a1a",
+                      "primary": "#004ac6",
+                      "surface-bright": "#faf8ff",
+                      "primary-fixed": "#dbe1ff",
+                      "on-error": "#ffffff",
+                      "surface-container-low": "#f3f3fe",
+                      "primary-container": "#2563eb",
+                      "background": "#faf8ff",
+                      "surface-container-high": "#e7e7f3",
+                      "on-tertiary-fixed": "#2a1700",
+                      "on-tertiary-container": "#ffeedd",
+                      "on-error-container": "#93000a",
+                      "on-secondary-container": "#007230",
+                      "inverse-surface": "#2e3039",
+                      "on-secondary-fixed": "#002109",
+                      "surface-tint": "#0053db",
+                      "on-secondary-fixed-variant": "#005320",
+                      "on-secondary": "#ffffff",
+                      "inverse-on-surface": "#f0f0fb",
+                      "tertiary-fixed": "#ffddb8",
+                      "primary-fixed-dim": "#b4c5ff",
+                      "surface-dim": "#d9d9e5",
+                      "on-primary-fixed": "#00174b",
+                      "surface-container-highest": "#e1e2ed",
+                      "surface": "#faf8ff",
+                      "tertiary": "#784b00",
+                      "surface-container-lowest": "#ffffff",
+                      "secondary": "#006e2d",
+                      "secondary-fixed-dim": "#62df7d",
+                      "surface-variant": "#e1e2ed",
+                      "on-tertiary": "#ffffff",
+                      "on-tertiary-fixed-variant": "#653e00",
+                      "secondary-container": "#7cf994",
+                      "on-primary-container": "#eeefff",
+                      "on-primary": "#ffffff",
+                      "on-surface-variant": "#434655"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px",
+                      "brand": "18px"
+              },
+              "spacing": {
+                      "section-gap": "32px",
+                      "stack-md": "16px",
+                      "stack-sm": "8px",
+                      "gutter": "16px",
+                      "margin-mobile": "20px",
+                      "stack-lg": "24px",
+                      "base": "4px"
+              },
+              "fontFamily": {
+                      "body-lg": ["Inter"],
+                      "headline-sm": ["Plus Jakarta Sans"],
+                      "body-md": ["Inter"],
+                      "display-lg-mobile": ["Plus Jakarta Sans"],
+                      "label-caps": ["Inter"],
+                      "display-lg": ["Plus Jakarta Sans"],
+                      "headline-md": ["Plus Jakarta Sans"]
+              },
+              "fontSize": {
+                      "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "headline-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                      "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "display-lg-mobile": ["26px", {"lineHeight": "32px", "fontWeight": "700"}],
+                      "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                      "display-lg": ["30px", {"lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "headline-md": ["22px", {"lineHeight": "28px", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+      </script>
+  <style>
+          .material-symbols-outlined {
+              font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+              display: inline-block;
+              line-height: 1;
+              text-transform: none;
+              letter-spacing: normal;
+              word-wrap: normal;
+              white-space: nowrap;
+              direction: ltr;
+          }
+          .glass-card {
+              background: rgba(255, 255, 255, 0.8);
+              backdrop-filter: blur(12px);
+              -webkit-backdrop-filter: blur(12px);
+          }
+          body {
+              background-color: #F8FAFC;
+          }
+      </style>
+  <style>
+      body {
+        min-height: max(884px, 100dvh);
+      }
+    </style>
+  </head>
+  <body class="font-body-lg text-on-surface antialiased">
+  <!-- TopAppBar -->
+  <header class="fixed top-0 left-0 right-0 z-50 bg-surface dark:bg-on-background">
+  <div class="flex justify-between items-center w-full px-margin-mobile h-14 max-w-7xl mx-auto">
+  <div class="flex items-center gap-2">
+  <span class="material-symbols-outlined text-primary dark:text-primary-fixed" style="font-size: 28px;">shield_with_heart</span>
+  <h1 class="text-headline-md font-headline-md font-bold text-primary dark:text-primary-fixed tracking-tight">SafeStructure</h1>
+  </div>
+  <div class="flex items-center gap-4">
+  <button class="material-symbols-outlined text-on-surface-variant dark:text-outline-variant hover:opacity-80 transition-opacity">notifications</button>
+  <button class="material-symbols-outlined text-on-surface-variant dark:text-outline-variant hover:opacity-80 transition-opacity">account_circle</button>
+  </div>
+  </div>
+  </header>
+  <main class="mt-14 max-w-7xl mx-auto">
+  <!-- Hero Section -->
+  <section class="relative px-margin-mobile pt-10 pb-section-gap overflow-hidden">
+  <div class="absolute -top-24 -right-24 w-64 h-64 bg-primary-fixed rounded-full blur-[100px] opacity-40"></div>
+  <div class="relative z-10 space-y-stack-md">
+  <div class="inline-flex items-center px-3 py-1 bg-primary-fixed text-on-primary-fixed-variant rounded-full text-label-caps font-label-caps">
+  <span class="material-symbols-outlined text-[14px] mr-1">bolt</span>
+                  ANÁLISIS CON IA
+              </div>
+  <h2 class="text-display-lg-mobile font-display-lg-mobile md:text-display-lg md:font-display-lg text-on-surface tracking-tight max-w-md">
+                  ¿Es segura su casa?
+              </h2>
+  <p class="text-body-lg font-body-lg text-on-surface-variant max-w-lg leading-relaxed">
+                  Evalúe al instante la integridad estructural de su propiedad mediante visión artificial de grado profesional y protocolos de seguridad expertos.
+              </p>
+  <div class="pt-stack-lg flex flex-col gap-stack-md">
+  <button class="w-full h-14 bg-primary-container text-on-primary hover:bg-primary transition-colors rounded-brand font-bold text-body-lg flex items-center justify-center gap-2 shadow-[0px_4px_20px_rgba(37,99,235,0.2)] active:scale-95 transition-transform duration-200">
+  <span class="material-symbols-outlined">photo_camera</span>
+                      Tomar Foto
+                  </button>
+  <button class="w-full h-14 bg-surface-container-lowest text-on-surface border border-outline-variant hover:bg-surface-container transition-colors rounded-brand font-semibold text-body-lg flex items-center justify-center gap-2 active:scale-95 transition-transform duration-200">
+  <span class="material-symbols-outlined">file_upload</span>
+                      Subir Imagen
+                  </button>
+  </div>
+  </div>
+  </section>
+  <!-- How It Works (Bento-ish Grid) -->
+  <section class="px-margin-mobile py-section-gap space-y-stack-lg">
+  <div class="space-y-base">
+  <h3 class="text-headline-sm font-headline-sm text-on-surface">Cómo funciona</h3>
+  <p class="text-body-md font-body-md text-on-surface-variant">Tres pasos simples para su tranquilidad.</p>
+  </div>
+  <div class="flex flex-col gap-stack-md md:grid md:grid-cols-3">
+  <!-- Card 1 -->
+  <div class="bg-surface-container-lowest p-stack-lg rounded-brand shadow-[0px_4px_20px_rgba(0,0,0,0.05)] border border-surface-container flex flex-col items-start gap-stack-md">
+  <div class="w-12 h-12 rounded-full bg-primary-fixed flex items-center justify-center text-primary">
+  <span class="material-symbols-outlined text-[28px]">add_a_photo</span>
+  </div>
+  <div class="space-y-stack-sm">
+  <h4 class="text-headline-sm font-headline-sm text-on-surface">1. Tome una foto</h4>
+  <p class="text-body-md font-body-md text-on-surface-variant">Capture grietas visibles, manchas de humedad o descuadres en sus paredes o techos.</p>
+  </div>
+  </div>
+  <!-- Card 2 -->
+  <div class="bg-surface-container-lowest p-stack-lg rounded-brand shadow-[0px_4px_20px_rgba(0,0,0,0.05)] border border-surface-container flex flex-col items-start gap-stack-md">
+  <div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center text-secondary">
+  <span class="material-symbols-outlined text-[28px]">psychology</span>
+  </div>
+  <div class="space-y-stack-sm">
+  <h4 class="text-headline-sm font-headline-sm text-on-surface">2. La IA analiza</h4>
+  <p class="text-body-md font-body-md text-on-surface-variant">Nuestra red neuronal identifica patrones y realiza una Evaluación de Daños para determinar el Riesgo Bajo, Medio o Alto.</p>
+  </div>
+  </div>
+  <!-- Card 3 -->
+  <div class="bg-surface-container-lowest p-stack-lg rounded-brand shadow-[0px_4px_20px_rgba(0,0,0,0.05)] border border-surface-container flex flex-col items-start gap-stack-md">
+  <div class="w-12 h-12 rounded-full bg-tertiary-fixed flex items-center justify-center text-tertiary">
+  <span class="material-symbols-outlined text-[28px]">assignment_turned_in</span>
+  </div>
+  <div class="space-y-stack-sm">
+  <h4 class="text-headline-sm font-headline-sm text-on-surface">3. Obtenga su reporte</h4>
+  <p class="text-body-md font-body-md text-on-surface-variant">Reciba un desglose detallado y los pasos recomendados para reparaciones o inspección formal.</p>
+  </div>
+  </div>
+  </div>
+  </section>
+  <!-- Visual Context Image Section -->
+  <section class="px-margin-mobile py-section-gap">
+  <div class="relative w-full h-[240px] rounded-brand overflow-hidden shadow-lg">
+  <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10"></div>
+  <div class="absolute bottom-6 left-6 z-20 text-white space-y-base">
+  <span class="text-label-caps font-label-caps bg-primary px-2 py-1 rounded">FUNCIÓN PRO</span>
+  <h3 class="text-headline-md font-headline-md">Escaneos de alta precisión</h3>
+  <p class="text-body-md opacity-90 max-w-xs">Use tecnología LIDAR para un análisis de profundidad milimétrico de desplazamientos estructurales.</p>
+  </div>
+  <div class="bg-cover bg-center w-full h-full transform transition-transform duration-700 hover:scale-105" data-alt="A cinematic, high-resolution photo of a modern architectural interior with clean lines and soft lighting. The image captures a pristine living room where a smartphone is being used to scan a wall, with a subtle digital blue grid overlay illustrating LIDAR technology. The mood is professional, calm, and technologically advanced, echoing the light-mode UI palette of soft whites and deep blues." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCK16xLzO-X_jgprkXvVXhr_N1WaZvEQ1jjW88wPTI8-T6fjk6KbdRb0p_-wVvGiEMjjUEMy-V_TV33yWzaka1WRlGHjCbwu_RRMMqSPK0mcjc8Vm9AwCo7iPhrFFhkwgnPUUBAurK0hgg9IQ8asaHsMRie7AB5YpZhUaqPDXZunBN45_600GcWviZYBB4nPZKxAYOjWIHBd_0w0mYJzzZnK3neSqmg1-hEYOFXbYXSrGTPYy6L8XOyHuNJCukWbydcCiWrtiyXqh0')"></div>
+  </div>
+  </section>
+  <!-- Disclaimer Card -->
+  <section class="px-margin-mobile py-section-gap mb-10">
+  <div class="bg-surface-container-low border-2 border-outline-variant/30 p-stack-lg rounded-brand flex gap-stack-md">
+  <span class="material-symbols-outlined text-on-surface-variant shrink-0" style="font-size: 24px;">info</span>
+  <div class="space-y-base">
+  <h4 class="text-label-caps font-label-caps text-on-surface-variant">AVISO LEGAL IMPORTANTE</h4>
+  <p class="text-body-md font-body-md text-on-surface-variant leading-snug">
+                      SafeStructure proporciona una evaluación preliminar únicamente con fines informativos. No sustituye una inspección profesional de ingeniería estructural. Si sospecha un peligro inmediato, evacúe y contacte a los servicios de emergencia.
+                  </p>
+  </div>
+  </div>
+  </section>
+  </main>
+  <script>
+      // Simple scroll interaction for the TopAppBar
+      window.addEventListener('scroll', () => {
+          const header = document.querySelector('header');
+          if (window.scrollY > 20) {
+              header.classList.add('shadow-md');
+              header.classList.remove('bg-surface');
+              header.style.backgroundColor = 'rgba(250, 248, 255, 0.9)';
+              header.style.backdropFilter = 'blur(8px)';
+          } else {
+              header.classList.remove('shadow-md');
+              header.style.backgroundColor = '';
+              header.style.backdropFilter = '';
+          }
+      });
+  </script>
+  </body></html>

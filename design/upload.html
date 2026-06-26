@@ -1,0 +1,256 @@
+<!DOCTYPE html><html class="light" lang="es-VE"><head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport">
+  <title>SafeStructure - Nueva Evaluación</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Inter:wght@400;600&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+  <script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "outline": "#737686",
+                      "error-container": "#ffdad6",
+                      "outline-variant": "#c3c6d7",
+                      "on-primary-fixed-variant": "#003ea8",
+                      "on-background": "#191b23",
+                      "tertiary-fixed-dim": "#ffb95f",
+                      "tertiary-container": "#996100",
+                      "surface-container": "#ededf9",
+                      "secondary-fixed": "#7ffc97",
+                      "on-surface": "#191b23",
+                      "inverse-primary": "#b4c5ff",
+                      "error": "#ba1a1a",
+                      "primary": "#004ac6",
+                      "surface-bright": "#faf8ff",
+                      "primary-fixed": "#dbe1ff",
+                      "on-error": "#ffffff",
+                      "surface-container-low": "#f3f3fe",
+                      "primary-container": "#2563eb",
+                      "background": "#faf8ff",
+                      "surface-container-high": "#e7e7f3",
+                      "on-tertiary-fixed": "#2a1700",
+                      "on-tertiary-container": "#ffeedd",
+                      "on-error-container": "#93000a",
+                      "on-secondary-container": "#007230",
+                      "inverse-surface": "#2e3039",
+                      "on-secondary-fixed": "#002109",
+                      "surface-tint": "#0053db",
+                      "on-secondary-fixed-variant": "#005320",
+                      "on-secondary": "#ffffff",
+                      "inverse-on-surface": "#f0f0fb",
+                      "tertiary-fixed": "#ffddb8",
+                      "primary-fixed-dim": "#b4c5ff",
+                      "surface-dim": "#d9d9e5",
+                      "on-primary-fixed": "#00174b",
+                      "surface-container-highest": "#e1e2ed",
+                      "surface": "#faf8ff",
+                      "tertiary": "#784b00",
+                      "surface-container-lowest": "#ffffff",
+                      "secondary": "#006e2d",
+                      "secondary-fixed-dim": "#62df7d",
+                      "surface-variant": "#e1e2ed",
+                      "on-tertiary": "#ffffff",
+                      "on-tertiary-fixed-variant": "#653e00",
+                      "secondary-container": "#7cf994",
+                      "on-primary-container": "#eeefff",
+                      "on-primary": "#ffffff",
+                      "on-surface-variant": "#434655"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px",
+                      "custom": "18px"
+              },
+              "spacing": {
+                      "section-gap": "32px",
+                      "stack-md": "16px",
+                      "stack-sm": "8px",
+                      "gutter": "16px",
+                      "margin-mobile": "20px",
+                      "stack-lg": "24px",
+                      "base": "4px"
+              },
+              "fontFamily": {
+                      "body-lg": ["Inter"],
+                      "headline-sm": ["Plus Jakarta Sans"],
+                      "body-md": ["Inter"],
+                      "display-lg-mobile": ["Plus Jakarta Sans"],
+                      "label-caps": ["Inter"],
+                      "display-lg": ["Plus Jakarta Sans"],
+                      "headline-md": ["Plus Jakarta Sans"]
+              },
+              "fontSize": {
+                      "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "headline-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                      "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "display-lg-mobile": ["26px", {"lineHeight": "32px", "fontWeight": "700"}],
+                      "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                      "display-lg": ["30px", {"lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "headline-md": ["22px", {"lineHeight": "28px", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+      </script>
+  <style>
+          body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+          .material-symbols-outlined {
+              font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+              display: inline-block;
+              line-height: 1;
+          }
+          .upload-dashed {
+              background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='18' ry='18' stroke='%23C3C6D7FF' stroke-width='2' stroke-dasharray='8%2c 12' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
+              border-radius: 18px;
+          }
+          body {
+              min-height: 100dvh;
+          }
+      </style>
+  </head>
+  <body class="bg-background text-on-surface min-h-screen flex flex-col">
+  <!-- TopAppBar -->
+  <header class="fixed top-0 left-0 w-full z-50 bg-surface dark:bg-on-background">
+  <div class="flex justify-between items-center w-full px-margin-mobile h-14 max-w-7xl mx-auto">
+  <div class="flex items-center gap-3">
+  <span class="material-symbols-outlined text-primary text-headline-md">shield_with_heart</span>
+  <h1 class="text-headline-md font-headline-md font-bold text-primary dark:text-primary-fixed tracking-tight">SafeStructure</h1>
+  </div>
+  <button class="text-on-surface-variant hover:opacity-80 transition-opacity p-2">
+  <span class="material-symbols-outlined">help_outline</span>
+  </button>
+  </div>
+  </header>
+  <!-- Main Content Canvas -->
+  <main class="flex-grow pt-14 pb-[100px] px-margin-mobile max-w-2xl mx-auto w-full">
+  <div class="mt-stack-lg space-y-stack-lg">
+  <!-- Page Header -->
+  <section>
+  <h2 class="text-display-lg-mobile font-display-lg-mobile text-on-surface">Nueva Evaluación</h2>
+  <p class="text-body-md font-body-md text-on-surface-variant mt-1">Toma una foto clara del área estructural que deseas analizar.</p>
+  </section>
+  <!-- Upload Area -->
+  <section class="upload-dashed w-full bg-surface-container-lowest flex flex-col items-center justify-center py-10 px-6 transition-all duration-300" id="dropZone">
+  <div class="w-16 h-16 rounded-full bg-primary-fixed flex items-center justify-center mb-stack-md">
+  <span class="material-symbols-outlined text-primary text-[32px]">add_a_photo</span>
+  </div>
+  <div class="text-center space-y-stack-sm mb-stack-lg">
+  <p class="text-headline-sm font-headline-sm text-on-surface">Comenzar Escaneo</p>
+  <p class="text-body-md font-body-md text-on-surface-variant">Toca para usar la cámara o sube desde tu galería</p>
+  </div>
+  <div class="flex flex-col w-full gap-stack-md">
+  <button class="h-14 w-full bg-primary text-on-primary font-body-lg rounded-custom flex items-center justify-center gap-2 active:scale-95 transition-transform" onclick="handlePhotoAction()">
+  <span class="material-symbols-outlined">photo_camera</span>
+                          Tomar Foto
+                      </button>
+  <button class="h-14 w-full bg-surface-container border border-outline-variant text-on-surface font-body-lg rounded-custom flex items-center justify-center gap-2 active:scale-95 transition-transform" onclick="handlePhotoAction()">
+  <span class="material-symbols-outlined">collections</span>
+                          Elegir de la Galería
+                      </button>
+  </div>
+  <!-- Preview Placeholder (hidden until photo selected) -->
+  <div class="hidden w-full mt-4 rounded-custom overflow-hidden shadow-sm border border-outline-variant" id="photoPreview">
+  <img alt="Fotografía de primer plano de una pared de concreto estructural que muestra grietas menores." class="w-full h-48 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFmTOlTjJMtRM-tdud6dp6Z7DCZ2RxESmyKVuFq8VgTSRvibdwgR9GjaGzz1CEuAH3ml0qnJGgjCGZnA7JLp7-IazkD3YWKPEy-O-cm6H50vdcaq9ySD0q8JVtGLnKI96hm3xtSTa3TJoNUbbyzzQwwA9L83HTzcruFCb-4assZMXiB4D3oD03nFxfu9ZqeoVtuWQaqqRk3WMR-s0K9paLY4oNCZYsqpbYiLdZAxfo6VYXUmCo-0aeq1Qt04_hSUK4oa6zLQKpzp4">
+  <div class="bg-surface-container px-4 py-3 flex justify-between items-center">
+  <span class="text-label-caps font-label-caps text-on-surface-variant">FOTO_01.JPG</span>
+  <button class="text-error text-body-md font-semibold" onclick="removePhoto()">Eliminar</button>
+  </div>
+  </div>
+  </section>
+  <!-- Photo Tips -->
+  <section class="space-y-stack-md">
+  <div class="flex items-center gap-2">
+  <span class="material-symbols-outlined text-secondary">info</span>
+  <h3 class="text-headline-sm font-headline-sm text-on-surface">Consejos para la Foto</h3>
+  </div>
+  <div class="grid grid-cols-1 gap-stack-md">
+  <!-- Tip Card 1 -->
+  <div class="bg-surface-container-lowest p-4 rounded-custom shadow-[0px_4px_20px_rgba(0,0,0,0.05)] border border-surface-container flex items-start gap-4">
+  <div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center shrink-0">
+  <span class="material-symbols-outlined text-on-secondary-container">light_mode</span>
+  </div>
+  <div class="space-y-1">
+  <p class="font-headline-sm text-on-surface text-[16px]">Buena Iluminación</p>
+  <p class="text-body-md font-body-md text-on-surface-variant">Asegúrate de que el área esté bien iluminada. Evita sombras pesadas o reflejos para un análisis preciso.</p>
+  </div>
+  </div>
+  <!-- Tip Card 2 -->
+  <div class="bg-surface-container-lowest p-4 rounded-custom shadow-[0px_4px_20px_rgba(0,0,0,0.05)] border border-surface-container flex items-start gap-4">
+  <div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center shrink-0">
+  <span class="material-symbols-outlined text-on-secondary-container">zoom_out_map</span>
+  </div>
+  <div class="space-y-1">
+  <p class="font-headline-sm text-on-surface text-[16px]">Captura el Área Completa</p>
+  <p class="text-body-md font-body-md text-on-surface-variant">Da un paso atrás para capturar el contexto. Nuestra IA necesita ver las estructuras circundantes.</p>
+  </div>
+  </div>
+  <!-- Tip Card 3 -->
+  <div class="bg-surface-container-lowest p-4 rounded-custom shadow-[0px_4px_20px_rgba(0,0,0,0.05)] border border-surface-container flex items-start gap-4">
+  <div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center shrink-0">
+  <span class="material-symbols-outlined text-on-secondary-container">apartment</span>
+  </div>
+  <div class="space-y-1">
+  <p class="font-headline-sm text-on-surface text-[16px]">Incluye Paredes y Techos</p>
+  <p class="text-body-md font-body-md text-on-surface-variant">Incluye las uniones donde las paredes se encuentran con los techos o pisos para detectar cambios estructurales.</p>
+  </div>
+  </div>
+  </div>
+  </section>
+  </div>
+  </main>
+  <!-- Sticky Bottom Action -->
+  <div class="fixed bottom-0 left-0 w-full px-margin-mobile pb-6 bg-gradient-to-t from-background via-background to-transparent pt-10 pointer-events-none z-40">
+  <div class="max-w-2xl mx-auto pointer-events-auto">
+  <button class="w-full h-14 bg-outline text-on-primary-fixed-variant font-headline-sm rounded-custom opacity-50 cursor-not-allowed transition-all duration-300" disabled="" id="analyzeBtn">
+                  Analizar Imagen
+              </button>
+  </div>
+  </div>
+  <script>
+          function handlePhotoAction() {
+              // Simulated photo selection
+              const preview = document.getElementById('photoPreview');
+              const analyzeBtn = document.getElementById('analyzeBtn');
+              const dropZone = document.getElementById('dropZone');
+              
+              preview.classList.remove('hidden');
+              analyzeBtn.disabled = false;
+              analyzeBtn.classList.remove('bg-outline', 'opacity-50', 'cursor-not-allowed');
+              analyzeBtn.classList.add('bg-primary', 'text-on-primary', 'shadow-lg');
+              
+              // Visual feedback on dropzone
+              dropZone.classList.add('bg-primary-container', 'bg-opacity-10');
+              
+              // Smooth scroll to bottom to ensure user sees the button active
+              window.scrollTo({
+                  top: document.body.scrollHeight,
+                  behavior: 'smooth'
+              });
+          }
+  
+          function removePhoto() {
+              const preview = document.getElementById('photoPreview');
+              const analyzeBtn = document.getElementById('analyzeBtn');
+              const dropZone = document.getElementById('dropZone');
+              
+              preview.classList.add('hidden');
+              analyzeBtn.disabled = true;
+              analyzeBtn.classList.add('bg-outline', 'opacity-50', 'cursor-not-allowed');
+              analyzeBtn.classList.remove('bg-primary', 'text-on-primary', 'shadow-lg');
+              
+              dropZone.classList.remove('bg-primary-container', 'bg-opacity-10');
+          }
+  
+          // Add micro-interaction for button press
+          document.querySelectorAll('button').forEach(btn => {
+              btn.addEventListener('mousedown', () => btn.classList.add('scale-95'));
+              btn.addEventListener('mouseup', () => btn.classList.remove('scale-95'));
+              btn.addEventListener('mouseleave', () => btn.classList.remove('scale-95'));
+          });
+      </script>
+  </body></html>

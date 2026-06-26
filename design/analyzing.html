@@ -1,0 +1,268 @@
+<!DOCTYPE html><html class="light" lang="es-VE"><head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>SafeStructure | Análisis de IA</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet">
+  <!-- Material Symbols -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                  "outline": "#737686",
+                  "error-container": "#ffdad6",
+                  "outline-variant": "#c3c6d7",
+                  "on-primary-fixed-variant": "#003ea8",
+                  "on-background": "#191b23",
+                  "tertiary-fixed-dim": "#ffb95f",
+                  "tertiary-container": "#996100",
+                  "surface-container": "#ededf9",
+                  "secondary-fixed": "#7ffc97",
+                  "on-surface": "#191b23",
+                  "inverse-primary": "#b4c5ff",
+                  "error": "#ba1a1a",
+                  "primary": "#004ac6",
+                  "surface-bright": "#faf8ff",
+                  "primary-fixed": "#dbe1ff",
+                  "on-error": "#ffffff",
+                  "surface-container-low": "#f3f3fe",
+                  "primary-container": "#2563eb",
+                  "background": "#faf8ff",
+                  "surface-container-high": "#e7e7f3",
+                  "on-tertiary-fixed": "#2a1700",
+                  "on-tertiary-container": "#ffeedd",
+                  "on-error-container": "#93000a",
+                  "on-secondary-container": "#007230",
+                  "inverse-surface": "#2e3039",
+                  "on-secondary-fixed": "#002109",
+                  "surface-tint": "#0053db",
+                  "on-secondary-fixed-variant": "#005320",
+                  "on-secondary": "#ffffff",
+                  "inverse-on-surface": "#f0f0fb",
+                  "tertiary-fixed": "#ffddb8",
+                  "primary-fixed-dim": "#b4c5ff",
+                  "surface-dim": "#d9d9e5",
+                  "on-primary-fixed": "#00174b",
+                  "surface-container-highest": "#e1e2ed",
+                  "surface": "#faf8ff",
+                  "tertiary": "#784b00",
+                  "surface-container-lowest": "#ffffff",
+                  "secondary": "#006e2d",
+                  "secondary-fixed-dim": "#62df7d",
+                  "surface-variant": "#e1e2ed",
+                  "on-tertiary": "#ffffff",
+                  "on-tertiary-fixed-variant": "#653e00",
+                  "secondary-container": "#7cf994",
+                  "on-primary-container": "#eeefff",
+                  "on-primary": "#ffffff",
+                  "on-surface-variant": "#434655"
+              },
+              "borderRadius": {
+                  "DEFAULT": "18px",
+                  "lg": "18px",
+                  "xl": "24px",
+                  "full": "9999px"
+              },
+              "spacing": {
+                  "section-gap": "32px",
+                  "stack-md": "16px",
+                  "stack-sm": "8px",
+                  "gutter": "16px",
+                  "margin-mobile": "20px",
+                  "stack-lg": "24px",
+                  "base": "4px"
+              },
+              "fontFamily": {
+                  "body-lg": ["Inter"],
+                  "headline-sm": ["Plus Jakarta Sans"],
+                  "body-md": ["Inter"],
+                  "display-lg-mobile": ["Plus Jakarta Sans"],
+                  "label-caps": ["Inter"],
+                  "display-lg": ["Plus Jakarta Sans"],
+                  "headline-md": ["Plus Jakarta Sans"]
+              },
+              "fontSize": {
+                  "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                  "headline-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                  "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                  "display-lg-mobile": ["26px", {"lineHeight": "32px", "fontWeight": "700"}],
+                  "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                  "display-lg": ["30px", {"lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                  "headline-md": ["22px", {"lineHeight": "28px", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+      </script>
+  <style>
+          .material-symbols-outlined {
+              font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+          }
+          
+          /* Analysis Pulse Animation */
+          @keyframes soft-pulse {
+              0% { transform: scale(1); opacity: 0.15; }
+              50% { transform: scale(1.4); opacity: 0.05; }
+              100% { transform: scale(1.8); opacity: 0; }
+          }
+          .pulse-ring {
+              animation: soft-pulse 3s infinite ease-out;
+          }
+          .pulse-ring-delayed {
+              animation: soft-pulse 3s infinite ease-out 1.5s;
+          }
+  
+          /* Progress Bar Animation */
+          @keyframes progress-fill {
+              from { width: 0%; }
+              to { width: 100%; }
+          }
+          .progress-animate {
+              animation: progress-fill 10s linear forwards;
+          }
+  
+          /* Floating Atmosphere */
+          .glass-card {
+              background: rgba(255, 255, 255, 0.7);
+              backdrop-filter: blur(12px);
+              -webkit-backdrop-filter: blur(12px);
+          }
+  
+          /* Status Fade In/Out */
+          .status-message {
+              transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+          }
+          .status-hidden {
+              opacity: 0;
+              transform: translateY(10px);
+          }
+      </style>
+  <style>
+          body {
+            min-height: max(884px, 100dvh);
+          }
+      </style>
+  </head>
+  <body class="bg-surface text-on-surface min-h-screen flex flex-col font-body-md overflow-x-hidden">
+  <!-- Top App Bar -->
+  <header class="bg-surface fixed top-0 left-0 w-full z-50 h-14">
+  <div class="flex justify-between items-center w-full px-margin-mobile h-full max-w-7xl mx-auto">
+  <div class="flex items-center gap-2">
+  <span class="material-symbols-outlined text-primary font-headline-md" style="font-variation-settings: 'FILL' 1;">shield_with_heart</span>
+  <h1 class="text-headline-md font-headline-md font-bold text-primary tracking-tight">SafeStructure</h1>
+  </div>
+  <button class="text-on-surface-variant hover:opacity-80 transition-opacity active:scale-95 duration-200">
+  <span class="material-symbols-outlined">info</span>
+  </button>
+  </div>
+  </header>
+  <!-- Main Canvas -->
+  <main class="flex-1 flex flex-col items-center justify-center px-margin-mobile pt-14 pb-10 relative overflow-hidden">
+  <!-- Animated Background Elements -->
+  <div class="absolute inset-0 pointer-events-none z-0">
+  <div class="absolute top-1/4 -left-20 w-64 h-64 bg-primary-fixed-dim opacity-20 blur-[100px] rounded-full"></div>
+  <div class="absolute bottom-1/4 -right-20 w-80 h-80 bg-secondary-fixed-dim opacity-20 blur-[120px] rounded-full"></div>
+  </div>
+  <!-- AI Pulse Visualizer -->
+  <div class="relative w-72 h-72 flex items-center justify-center z-10 mb-stack-lg">
+  <!-- Pulsing Rings -->
+  <div class="absolute w-full h-full rounded-full bg-primary pulse-ring"></div>
+  <div class="absolute w-full h-full rounded-full bg-primary pulse-ring-delayed"></div>
+  <!-- Core Scanner Visual -->
+  <div class="w-48 h-48 rounded-full glass-card border border-outline-variant flex items-center justify-center shadow-lg relative overflow-hidden">
+  <!-- Interior Scan Line -->
+  <div class="absolute w-full h-1 bg-gradient-to-r from-transparent via-primary/40 to-transparent top-1/2 -translate-y-1/2 animate-bounce"></div>
+  <div class="flex flex-col items-center gap-2">
+  <span class="material-symbols-outlined text-primary text-[48px]" style="font-variation-settings: 'wght' 200;">biotech</span>
+  <span class="text-label-caps font-label-caps text-primary uppercase tracking-widest">Analizando</span>
+  </div>
+  </div>
+  </div>
+  <!-- Progress Section -->
+  <div class="w-full max-w-md z-10 flex flex-col gap-stack-md px-4">
+  <!-- Rotating Status Messages -->
+  <div class="h-8 flex items-center justify-center overflow-hidden">
+  <p class="text-headline-sm font-headline-sm text-on-surface text-center status-message" id="status-text">
+                      Iniciando escaneo estructural...
+                  </p>
+  </div>
+  <!-- Custom Progress Bar -->
+  <div class="w-full h-3 bg-surface-container rounded-full overflow-hidden border border-outline-variant/30">
+  <div class="h-full bg-primary rounded-full progress-animate shadow-[0_0_12px_rgba(37,99,235,0.4)]" id="progress-bar"></div>
+  </div>
+  <!-- Meta info -->
+  <div class="flex justify-between items-center text-on-surface-variant">
+  <span class="text-body-md font-body-md">Tiempo estimado: 5-10 segundos</span>
+  <span class="text-body-md font-body-md font-bold text-primary" id="percent-text">0%</span>
+  </div>
+  </div>
+  <!-- Detailed Analysis Feed (Mini Bento) -->
+  <div class="grid grid-cols-2 gap-stack-sm w-full max-w-md mt-stack-lg z-10">
+  <div class="glass-card p-4 rounded-xl border border-outline-variant/30 flex flex-col gap-1">
+  <span class="text-label-caps font-label-caps text-on-surface-variant">SENSORES</span>
+  <div class="flex items-center gap-2">
+  <span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+  <span class="text-body-md font-body-md font-semibold">Activo</span>
+  </div>
+  </div>
+  <div class="glass-card p-4 rounded-xl border border-outline-variant/30 flex flex-col gap-1">
+  <span class="text-label-caps font-label-caps text-on-surface-variant">CONFIANZA</span>
+  <div class="flex items-center gap-2">
+  <span class="text-body-md font-body-md font-semibold" id="confidence-val">94.2%</span>
+  </div>
+  </div>
+  </div>
+  </main>
+  <script>
+          const statusMessages = [
+              "Detectando daños estructurales...",
+              "Evaluando fatiga del concreto...",
+              "Mapeando patrones de grietas...",
+              "Ejecutando evaluación de alta fidelidad...",
+              "Calculando umbrales de seguridad...",
+              "Sintetizando informe final..."
+          ];
+  
+          const statusEl = document.getElementById('status-text');
+          const percentEl = document.getElementById('percent-text');
+          const confidenceEl = document.getElementById('confidence-val');
+          let currentStatusIndex = 0;
+          let progressPercent = 0;
+  
+          // Rotate Messages
+          function updateStatus() {
+              statusEl.classList.add('status-hidden');
+              setTimeout(() => {
+                  currentStatusIndex = (currentStatusIndex + 1) % statusMessages.length;
+                  statusEl.innerText = statusMessages[currentStatusIndex];
+                  statusEl.classList.remove('status-hidden');
+              }, 500);
+          }
+  
+          setInterval(updateStatus, 2500);
+  
+          // Update Progress Numbers
+          const progressInterval = setInterval(() => {
+              progressPercent += 1;
+              percentEl.innerText = `${progressPercent}%`;
+              
+              // Randomly fluctuate confidence slightly
+              const baseConf = 94.2;
+              const variance = (Math.random() * 0.4) - 0.2;
+              confidenceEl.innerText = `${(baseConf + variance).toFixed(1)}%`;
+  
+              if (progressPercent >= 100) {
+                  clearInterval(progressInterval);
+                  // En una aplicación real, aquí pasaríamos a los resultados
+                  setTimeout(() => {
+                      statusEl.innerText = "Análisis completado";
+                  }, 500);
+              }
+          }, 100);
+      </script>
+  </body></html>
