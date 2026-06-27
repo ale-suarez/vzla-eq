@@ -3,32 +3,15 @@ import { handle } from "hono/vercel";
 import OpenAI from "openai";
 import sharp from "sharp";
 
+import { MAX_PHOTOS, type AnalysisResult, type PhotoResult, type VerdictLevel } from "@/lib/assessment";
+
 export const runtime = "nodejs";
 
 const app = new Hono().basePath("/api");
 
-const MAX_PHOTOS = 10;
 const MODEL_FAST = "gpt-4.1-mini";
 const MODEL_STRONG = "gpt-4.1";
 const ESCALATION_CONFIDENCE_THRESHOLD = 70;
-
-type VerdictLevel = "SEGURO" | "PRECAUCION" | "PELIGRO";
-
-interface PhotoResult {
-  index: number;
-  verdict: VerdictLevel;
-  confidence: number;
-  finding: string;
-  escalated: boolean;
-}
-
-interface AnalysisResult {
-  verdict: VerdictLevel;
-  confidence: number;
-  finding: string;
-  perPhoto: PhotoResult[];
-  showAuthorities: boolean;
-}
 
 function verdictSeverity(v: VerdictLevel): number {
   return v === "PELIGRO" ? 2 : v === "PRECAUCION" ? 1 : 0;
