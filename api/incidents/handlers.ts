@@ -22,6 +22,7 @@ function buildIncidentPayload(input: Record<string, unknown>): IncidentInsert {
     terrain_type: optionalText(input.terrain_type),
     latitude: optionalNumber(input.latitude),
     longitude: optionalNumber(input.longitude),
+    address: optionalText(input.address),
     feedback: optionalText(input.feedback),
   };
 
@@ -66,6 +67,7 @@ function buildPublicIncidentPayload(input: Record<string, unknown>): IncidentIns
     terrain_type: optionalText(input.terrain_type),
     latitude: optionalNumber(input.latitude),
     longitude: optionalNumber(input.longitude),
+    address: optionalText(input.address),
     analysis_status: analysis ? "complete" : "pending",
     ai_verdict: verdict,
     severity: verdict,
@@ -101,6 +103,7 @@ function buildUpdatePayload(input: Record<string, unknown>): IncidentUpdate {
   maybeSet("terrain_type", optionalText(input.terrain_type));
   maybeSet("latitude", optionalNumber(input.latitude));
   maybeSet("longitude", optionalNumber(input.longitude));
+  maybeSet("address", optionalText(input.address));
 
   return payload;
 }
@@ -115,7 +118,7 @@ export async function incidentsGet(c: Context) {
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("incidents")
-    .select("id, state, severity, analysis_status, ai_verdict, confidence, finding, assigned_to, created_at, updated_at, contact, building_use, build_year, levels, basements, material, terrain_type, latitude, longitude, feedback")
+    .select("id, state, severity, analysis_status, ai_verdict, confidence, finding, assigned_to, created_at, updated_at, contact, building_use, build_year, levels, basements, material, terrain_type, latitude, longitude, address, feedback")
     .order("created_at", { ascending: false })
     .limit(100);
 

@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useAssessment } from "@/components/assessment-provider";
 import { RouteTransition } from "@/components/assessment-visuals";
+import LocationPicker from "@/components/location-picker";
 import { EMPTY_FORM_ANSWERS, FORM_QUESTIONS, isFormComplete, type FormQuestion } from "@/lib/assessment";
 import { cn } from "@/lib/utils";
 
@@ -45,7 +46,7 @@ function OptionChip({
 
 export default function FormPage() {
   const router = useRouter();
-  const { form, hydrated, setFormField, setFormQuestion } = useAssessment();
+  const { form, hydrated, setFormField, setFormLocation, setFormQuestion } = useAssessment();
 
   // Until the client has rehydrated cached answers from sessionStorage, render
   // the empty form so the first paint matches the server HTML (no hydration
@@ -115,16 +116,17 @@ export default function FormPage() {
               </div>
             </label>
 
-            <label className="block space-y-1.5">
-              <span className="text-sm font-medium text-on-surface-variant">Dirección</span>
-              <input
-                type="text"
-                value={displayForm.address}
-                onChange={(e) => setFormField("address", e.target.value)}
-                placeholder="Calle, sector, ciudad"
-                className="h-11 w-full rounded-[12px] border border-outline-variant bg-surface-container-lowest px-3 text-sm text-on-surface outline-none placeholder:text-outline focus:border-primary"
+            <div className="block space-y-1.5">
+              <span className="text-sm font-medium text-on-surface-variant">Ubicación</span>
+              <LocationPicker
+                value={{
+                  latitude: displayForm.latitude,
+                  longitude: displayForm.longitude,
+                  address: displayForm.address,
+                }}
+                onChange={setFormLocation}
               />
-            </label>
+            </div>
           </div>
 
           {/* Sección: sobre el edificio */}

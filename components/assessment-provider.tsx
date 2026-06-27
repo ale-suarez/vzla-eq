@@ -26,6 +26,7 @@ type AssessmentContextValue = AssessmentState & {
   setError: (value: string | null) => void;
   runAnalysis: () => Promise<AnalysisResult | null>;
   setFormField: (field: "phone" | "address", value: string) => void;
+  setFormLocation: (location: { latitude: number; longitude: number; address: string }) => void;
   setFormQuestion: (questionId: string, value: string) => void;
 };
 
@@ -93,6 +94,10 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
     setForm((current) => ({ ...current, [field]: value }));
   }, []);
 
+  const setFormLocation = useCallback((location: { latitude: number; longitude: number; address: string }) => {
+    setForm((current) => ({ ...current, ...location }));
+  }, []);
+
   const setFormQuestion = useCallback((questionId: string, value: string) => {
     setForm((current) => ({ ...current, questions: { ...current.questions, [questionId]: value } }));
   }, []);
@@ -109,8 +114,9 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
     }
 
     // Cache the citizen's form answers alongside the result so they survive a
-    // refresh. Phone/address are held here for the future DB step; only the
-    // questionnaire answers are sent to the LLM (see runAnalysis).
+    // refresh. Phone, the pinned location (lat/lng + geocoded address), and the
+    // questionnaire all live here; only the questionnaire answers are sent to
+    // the LLM (see runAnalysis). Location is persisted to the incident on save.
     window.sessionStorage.setItem(
       ASSESSMENT_STORAGE_KEY,
       JSON.stringify({
@@ -250,6 +256,7 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
       setError,
       runAnalysis,
       setFormField,
+      setFormLocation,
       setFormQuestion,
     }),
     [
@@ -266,6 +273,7 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
       runAnalysis,
       selectedPhotoIndex,
       setFormField,
+      setFormLocation,
       setFormQuestion,
     ]
   );

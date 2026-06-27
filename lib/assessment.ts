@@ -113,7 +113,11 @@ export const FORM_QUESTIONS: FormQuestion[] = [
 
 export interface FormAnswers {
   phone: string;
+  /** Geocoded human-readable label for the pinned location (reference only). */
   address: string;
+  /** Authoritative location: set once the citizen places a pin. */
+  latitude: number | null;
+  longitude: number | null;
   /** Keyed by FormQuestion.id; value is the selected option string. */
   questions: Record<string, string>;
 }
@@ -121,12 +125,21 @@ export interface FormAnswers {
 export const EMPTY_FORM_ANSWERS: FormAnswers = {
   phone: "",
   address: "",
+  latitude: null,
+  longitude: null,
   questions: {},
 };
 
-/** True when contact fields and every question have been answered. */
+/**
+ * True when the form is ready to submit: a phone to coordinate the visit, a
+ * pinned location (lat/lng drive the dashboard map), and every question
+ * answered. The address label is derived from the pin, so it is not gated on.
+ */
 export function isFormComplete(answers: FormAnswers): boolean {
-  if (answers.phone.trim() === "" || answers.address.trim() === "") {
+  if (answers.phone.trim() === "") {
+    return false;
+  }
+  if (answers.latitude === null || answers.longitude === null) {
     return false;
   }
   return FORM_QUESTIONS.every((q) => Boolean(answers.questions[q.id]));
@@ -147,6 +160,9 @@ export interface IncidentFields {
   basements?: number;
   material?: string;
   terrain_type?: string;
+  latitude?: number;
+  longitude?: number;
+  address?: string;
 }
 
 // Representative year per construction-era bucket (FORM_QUESTIONS id "anio").
@@ -173,8 +189,8 @@ function parseLevels(value: string | undefined): number | undefined {
 /**
  * Maps the citizen questionnaire answers onto incidents-table columns. Only
  * answered fields are included, so the result is safe to spread into the
- * incident create payload. Address is intentionally not mapped here — turning
- * it into latitude/longitude requires geocoding (see results page).
+ * incident create payload. The location picker resolves the address to a
+ * pinned latitude/longitude, so those carry straight through.
  */
 export function formToIncidentFields(answers: FormAnswers): IncidentFields {
   const q = answers.questions;
@@ -182,6 +198,12 @@ export function formToIncidentFields(answers: FormAnswers): IncidentFields {
 
   const contact = answers.phone.trim();
   if (contact) fields.contact = contact;
+
+  if (answers.latitude !== null) fields.latitude = answers.latitude;
+  if (answers.longitude !== null) fields.longitude = answers.longitude;
+
+  const address = answers.address.trim();
+  if (address) fields.address = address;
 
   if (q.uso) fields.building_use = q.uso;
   if (q.material) fields.material = q.material;
