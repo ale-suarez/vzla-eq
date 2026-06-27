@@ -53,7 +53,7 @@ export function SiteHeader() {
       <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between px-5">
         <Link href="/" transitionTypes={["nav-back"]} className="flex items-center gap-2">
           <ShieldCheck className="h-7 w-7 text-primary" />
-          <h1 className="font-heading text-[22px] font-bold tracking-tight text-primary">SafeStructure</h1>
+          <h1 className="font-heading text-[22px] font-bold tracking-tight text-primary">Chequeo Estructural</h1>
         </Link>
         <div className="flex items-center gap-3">
           {/* TODO: wire to a notifications surface when one exists. */}
