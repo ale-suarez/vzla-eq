@@ -49,6 +49,19 @@ This avoids creating many isolated Hono apps while still keeping the code organi
 
 Authentication is Supabase auth using magic links.
 
+Email delivery for magic links should use Supabase Custom SMTP. In this project, configure Resend in the Supabase dashboard rather than in the app env file.
+
+Set it under `Supabase Dashboard -> Authentication -> SMTP` for the project.
+
+Suggested SMTP settings for Resend:
+
+- host: `smtp.resend.com`
+- port: `465`
+- username: `resend`
+- password: the Resend SMTP password you generated in the Resend dashboard
+
+Set `RESEND_SMTP_PASSWORD` in your local `.env` when running the Supabase CLI locally.
+
 Flow:
 
 1. An engineer opens `/login`.
