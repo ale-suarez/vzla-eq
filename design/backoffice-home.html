@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Incident Monitor - Seismic Guard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;family=Plus+Jakarta+Sans:wght@600;700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;family=Plus+Jakarta+Sans:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container": "#ededf9",
+                        "secondary": "#006e2d",
+                        "tertiary-fixed-dim": "#ffb95f",
+                        "on-tertiary-container": "#ffeedd",
+                        "on-secondary-fixed-variant": "#005320",
+                        "tertiary-container": "#996100",
+                        "on-tertiary": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "on-secondary": "#ffffff",
+                        "surface-container-low": "#f3f3fe",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-fixed-variant": "#653e00",
+                        "surface-container-high": "#e7e7f3",
+                        "surface": "#faf8ff",
+                        "on-error": "#ffffff",
+                        "surface-dim": "#d9d9e5",
+                        "primary-container": "#2563eb",
+                        "tertiary": "#784b00",
+                        "primary": "#004ac6",
+                        "outline": "#737686",
+                        "on-surface-variant": "#434655",
+                        "surface-container-highest": "#e1e2ed",
+                        "secondary-fixed-dim": "#62df7d",
+                        "surface-bright": "#faf8ff",
+                        "inverse-primary": "#b4c5ff",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-fixed-dim": "#b4c5ff",
+                        "background": "#faf8ff",
+                        "tertiary-fixed": "#ffddb8",
+                        "on-tertiary-fixed": "#2a1700",
+                        "secondary-container": "#7cf994",
+                        "on-primary-container": "#eeefff",
+                        "primary-fixed": "#dbe1ff",
+                        "on-secondary-fixed": "#002109",
+                        "on-secondary-container": "#007230",
+                        "on-surface": "#191b23",
+                        "secondary-fixed": "#7ffc97",
+                        "error": "#ba1a1a",
+                        "surface-variant": "#e1e2ed",
+                        "on-primary-fixed-variant": "#003ea8",
+                        "on-background": "#191b23",
+                        "surface-tint": "#0053db",
+                        "outline-variant": "#c3c6d7",
+                        "inverse-surface": "#2e3039",
+                        "on-primary": "#ffffff",
+                        "inverse-on-surface": "#f0f0fb",
+                        "on-primary-fixed": "#00174b"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "card": "18px",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-md": "16px",
+                        "base": "4px",
+                        "margin-mobile": "20px",
+                        "gutter": "16px",
+                        "stack-sm": "8px",
+                        "stack-lg": "24px",
+                        "section-gap": "32px"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-sm": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "display-lg-mobile": ["Plus Jakarta Sans"],
+                        "body-lg": ["Inter"],
+                        "display-lg": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                        "headline-md": ["22px", {"lineHeight": "28px", "fontWeight": "600"}],
+                        "display-lg-mobile": ["26px", {"lineHeight": "32px", "fontWeight": "700"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "display-lg": ["30px", {"lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .soft-shadow {
+            box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.05);
+        }
+        body {
+            background-color: #F8FAFC;
+        }
+        .scroll-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scroll-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="font-body-md text-on-surface selection:bg-primary-container selection:text-on-primary-container">
+<!-- Navigation Drawer (Desktop) -->
+<aside class="fixed left-0 top-0 z-40 py-stack-lg h-screen w-[280px] hidden md:flex flex-col bg-surface-container-low dark:bg-inverse-surface border-r border-outline-variant dark:border-outline">
+<div class="px-6 mb-8">
+<h2 class="font-headline-sm text-headline-sm text-primary">Structural Safety</h2>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="flex items-center gap-3 py-3 px-6 mx-2 text-on-surface-variant hover:bg-surface-container-highest rounded-full transition-all group" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-caps text-label-caps">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 py-3 px-6 mx-2 bg-secondary-container text-on-secondary-container rounded-full transition-transform duration-200" href="#">
+<span class="material-symbols-outlined">assignment_late</span>
+<span class="font-label-caps text-label-caps">Unassigned</span>
+</a>
+<a class="flex items-center gap-3 py-3 px-6 mx-2 text-on-surface-variant hover:bg-surface-container-highest rounded-full transition-all group" href="#">
+<span class="material-symbols-outlined">assignment_ind</span>
+<span class="font-label-caps text-label-caps">My Tasks</span>
+</a>
+<a class="flex items-center gap-3 py-3 px-6 mx-2 text-on-surface-variant hover:bg-surface-container-highest rounded-full transition-all group" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-label-caps text-label-caps">Archive</span>
+</a>
+</nav>
+</aside>
+<div class="md:ml-[280px] min-h-screen flex flex-col">
+<!-- Top App Bar -->
+<header class="w-full top-0 sticky z-30 bg-surface dark:bg-surface-dim border-b border-outline-variant dark:border-outline flex items-center justify-between px-margin-mobile h-[64px]">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">analytics</span>
+<h1 class="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed-dim">Incident Monitor</h1>
+</div>
+<div class="flex items-center gap-4"><button class="hidden md:flex items-center gap-2 h-10 px-4 bg-primary text-white rounded-full font-label-caps text-label-caps shadow-sm hover:opacity-90 transition-opacity"><span class="material-symbols-outlined text-sm">add</span>Crear Incidencia</button>
+<button class="p-2 hover:bg-surface-container-high rounded-full transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">search</span>
+</button>
+<div class="h-10 w-10 rounded-full bg-primary-fixed flex items-center justify-center overflow-hidden border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A professional portrait of a senior structural engineer in a minimalist modern setting. The engineer wears clean business-casual attire, exuding confidence and expertise. The background is a blurred, high-end office environment with cool blue and white tones, matching the Seismic Guard brand identity. High-key soft lighting emphasizes a clean, professional aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC8Lzwd2aTHVd5zwMqGiLFavMOK0spHVOgWKp6O0dFjoXkDIGx7Tu0Ix97ky-0M-z3LFSFEcqsW2y2n00NpL8C6wxmcGHViHZU7cCAmatEq3wnMDTNhd_2vtvZoaLX1qnkgyv1bCguBQ94i-TUlJw6ObaFsqajzcFuXcz3ks7RjN-gIK0Z5OPx38RIhorSvrRXqIxymJTb9M81CPV36NMItg5K8XeJjrlXipdPJBbxvsjDLPy6TKf4vdIIL8clV7BhOn-USyY-gc64"/>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-1 px-margin-mobile py-stack-lg max-w-5xl mx-auto w-full pb-32">
+<!-- Welcome / Stats Summary (Bento-style) -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-stack-md mb-stack-lg">
+<div class="md:col-span-2 p-6 bg-white rounded-card soft-shadow flex flex-col justify-center">
+<h2 class="font-headline-sm text-headline-sm text-on-surface mb-2">Panel de Control de Incidentes</h2>
+<p class="text-on-surface-variant font-body-md">Bienvenido de nuevo, Ing. Carlos. Hay 12 reportes nuevos que requieren su atención hoy.</p>
+</div>
+<div class="p-6 bg-primary-container text-on-primary-container rounded-card soft-shadow flex items-center justify-between">
+<div>
+<p class="font-label-caps text-label-caps opacity-80">RIESGO CRÍTICO</p>
+<p class="text-[32px] font-bold">04</p>
+</div>
+<span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1;">warning</span>
+</div>
+</section>
+<!-- Filters -->
+<div class="flex items-center gap-2 mb-stack-lg overflow-x-auto pb-2 scroll-hide">
+<button class="px-5 py-2 rounded-full bg-primary text-white font-label-caps text-label-caps whitespace-nowrap">Todos</button>
+<button class="px-5 py-2 rounded-full bg-surface-container-high text-on-surface-variant hover:bg-primary-fixed transition-colors font-label-caps text-label-caps whitespace-nowrap">Sin Asignar</button>
+<button class="px-5 py-2 rounded-full bg-surface-container-high text-on-surface-variant hover:bg-primary-fixed transition-colors font-label-caps text-label-caps whitespace-nowrap">Asignados a mí</button>
+<button class="px-5 py-2 rounded-full bg-surface-container-high text-on-surface-variant hover:bg-primary-fixed transition-colors font-label-caps text-label-caps whitespace-nowrap flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">filter_list</span>
+                    Filtrar
+                </button>
+</div>
+<!-- Incident List -->
+<div class="space-y-stack-md">
+<!-- Card 1: Severo/Unassigned -->
+<div class="bg-white rounded-card soft-shadow p-stack-md border-l-4 border-error hover:scale-[1.01] transition-transform duration-200">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div class="flex items-start gap-4">
+<div class="w-12 h-12 rounded-xl bg-error-container text-error flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">report</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Edificio Libertador, Caracas</h3>
+<p class="text-on-surface-variant text-body-md">ID: #SG-2024-089 • Reportado hace 2h</p>
+<div class="flex flex-wrap items-center gap-2 mt-2">
+<span class="px-2 py-0.5 rounded bg-error-container text-on-error-container font-label-caps text-label-caps uppercase">Severo</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface-variant font-label-caps text-label-caps">Pendiente</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col md:items-end gap-2 shrink-0">
+<p class="text-body-md text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-base">person_off</span>
+                                No asignado
+                            </p>
+<div class="flex gap-2">
+<button class="h-10 px-4 rounded-full border border-outline-variant text-on-surface-variant font-label-caps text-label-caps hover:bg-surface-container transition-colors">Ver detalles</button>
+<button class="h-10 px-4 rounded-full bg-primary text-white font-label-caps text-label-caps shadow-sm active:opacity-80 transition-opacity">Asignar a mí</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 2: Grave/Assigned -->
+<div class="bg-white rounded-card soft-shadow p-stack-md border-l-4 border-tertiary hover:scale-[1.01] transition-transform duration-200">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div class="flex items-start gap-4">
+<div class="w-12 h-12 rounded-xl bg-tertiary-fixed text-tertiary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">home_repair_service</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Residencias El Ávila, Sector A</h3>
+<p class="text-on-surface-variant text-body-md">ID: #SG-2024-075 • Reportado ayer</p>
+<div class="flex flex-wrap items-center gap-2 mt-2">
+<span class="px-2 py-0.5 rounded bg-tertiary-fixed text-on-tertiary-fixed-variant font-label-caps text-label-caps uppercase">Grave</span>
+<span class="px-2 py-0.5 rounded bg-secondary-container text-on-secondary-container font-label-caps text-label-caps uppercase">En Revisión</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col md:items-end gap-2 shrink-0">
+<p class="text-body-md text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-base">person</span>
+                                Ing. Carlos Pérez
+                            </p>
+<button class="h-10 px-6 rounded-full border border-outline-variant text-on-surface-variant font-label-caps text-label-caps hover:bg-surface-container transition-colors">Ver detalles</button>
+</div>
+</div>
+</div>
+<!-- Card 3: Moderado/Unassigned -->
+<div class="bg-white rounded-card soft-shadow p-stack-md border-l-4 border-primary hover:scale-[1.01] transition-transform duration-200">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div class="flex items-start gap-4">
+<div class="w-12 h-12 rounded-xl bg-primary-fixed text-primary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">info</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Puente Los Ruices (Pilastra Norte)</h3>
+<p class="text-on-surface-variant text-body-md">ID: #SG-2024-102 • Reportado hace 6h</p>
+<div class="flex flex-wrap items-center gap-2 mt-2">
+<span class="px-2 py-0.5 rounded bg-primary-fixed text-on-primary-fixed-variant font-label-caps text-label-caps uppercase">Moderado</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-highest text-on-surface-variant font-label-caps text-label-caps">Pendiente</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col md:items-end gap-2 shrink-0">
+<p class="text-body-md text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-base">person_off</span>
+                                No asignado
+                            </p>
+<div class="flex gap-2">
+<button class="h-10 px-4 rounded-full border border-outline-variant text-on-surface-variant font-label-caps text-label-caps hover:bg-surface-container transition-colors">Ver detalles</button>
+<button class="h-10 px-4 rounded-full bg-primary text-white font-label-caps text-label-caps shadow-sm active:opacity-80 transition-opacity">Asignar a mí</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 4: Leve/Assigned -->
+<div class="bg-white rounded-card soft-shadow p-stack-md border-l-4 border-secondary hover:scale-[1.01] transition-transform duration-200">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+<div class="flex items-start gap-4">
+<div class="w-12 h-12 rounded-xl bg-secondary-container text-secondary flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Centro Comercial El Recreo</h3>
+<p class="text-on-surface-variant text-body-md">ID: #SG-2024-044 • Hace 3 días</p>
+<div class="flex flex-wrap items-center gap-2 mt-2">
+<span class="px-2 py-0.5 rounded bg-secondary-fixed text-on-secondary-fixed-variant font-label-caps text-label-caps uppercase">Leve</span>
+<span class="px-2 py-0.5 rounded bg-secondary-container text-on-secondary-container font-label-caps text-label-caps uppercase">En Revisión</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col md:items-end gap-2 shrink-0">
+<p class="text-body-md text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-base">person</span>
+                                Ing. Carlos Pérez
+                            </p>
+<button class="h-10 px-6 rounded-full border border-outline-variant text-on-surface-variant font-label-caps text-label-caps hover:bg-surface-container transition-colors">Ver detalles</button>
+</div>
+</div>
+</div>
+</div>
+<button class="md:hidden fixed bottom-24 right-6 w-14 h-14 bg-primary text-white rounded-full shadow-lg flex items-center justify-center z-40 active:scale-95 transition-transform"><span class="material-symbols-outlined text-3xl">add</span></button></main>
+<!-- Bottom Navigation Bar (Mobile) -->
+<nav class="fixed bottom-0 w-full h-[84px] md:hidden bg-surface dark:bg-inverse-surface border-t border-outline-variant dark:border-outline shadow-sm flex justify-around items-center px-4 pb-safe z-40">
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant active:bg-surface-container scale-95 active:scale-100 transition-transform" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-caps text-label-caps">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed-dim relative after:content-[''] after:absolute after:bottom-1 after:w-1 after:h-1 after:bg-primary after:rounded-full scale-95 active:scale-100 transition-transform" href="#">
+<span class="material-symbols-outlined">list_alt</span>
+<span class="font-label-caps text-label-caps">Incidentes</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant active:bg-surface-container scale-95 active:scale-100 transition-transform" href="#">
+<span class="material-symbols-outlined">person_check</span>
+<span class="font-label-caps text-label-caps">Assigned</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant active:bg-surface-container scale-95 active:scale-100 transition-transform" href="#">
+<span class="material-symbols-outlined">bar_chart</span>
+<span class="font-label-caps text-label-caps">Stats</span>
+</a>
+</nav>
+</div>
+<script>
+        // Micro-interactions for buttons
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('mousedown', () => {
+                button.style.transform = 'scale(0.98)';
+            });
+            button.addEventListener('mouseup', () => {
+                button.style.transform = 'scale(1)';
+            });
+            button.addEventListener('mouseleave', () => {
+                button.style.transform = 'scale(1)';
+            });
+        });
+
+        // Filter selection logic
+        const filterButtons = document.querySelectorAll('.flex.items-center.gap-2.mb-stack-lg button');
+        filterButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                filterButtons.forEach(b => {
+                    b.classList.remove('bg-primary', 'text-white');
+                    b.classList.add('bg-surface-container-high', 'text-on-surface-variant');
+                });
+                btn.classList.remove('bg-surface-container-high', 'text-on-surface-variant');
+                btn.classList.add('bg-primary', 'text-white');
+            });
+        });
+    </script>
+<div class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" id="incident-modal"><div class="bg-surface w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-card shadow-xl flex flex-col"><div class="sticky top-0 bg-surface px-6 py-4 border-b border-outline-variant flex justify-between items-center"><div><h2 class="font-headline-sm text-headline-sm">Detalles de Incidencia</h2><p class="text-body-md text-on-surface-variant">ID: #SG-2024-089</p></div><button class="p-2 hover:bg-surface-container rounded-full" onclick="document.getElementById('incident-modal').classList.add('hidden')"><span class="material-symbols-outlined">close</span></button></div><div class="p-6 space-y-6"><section><h3 class="font-label-caps text-label-caps text-primary mb-3">EVIDENCIA FOTOGRÁFICA</h3><div class="grid grid-cols-2 gap-2"><div class="aspect-square bg-surface-container-highest rounded-lg overflow-hidden"><img alt="Grieta en columna" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAigirE0DG3UA5RaBKZTFUncc8_fhqAOLnhHQ9ZgXQpUkwDTJvjYPAwzmj5peMG7buxHrrQEfVEpQbVAxzMzO42zS51nktDKt17-ChwtGyV9Mh90nzUwZzj2NGcMn-xQMFlzHj32uNPmAaVQc68OPkgH_l36aEfEDDWCjlAAGvxkvwwLH7Ux57rPkoD9_BNgeZT7cfHMwXO9jnte01J45wt5VZvUSW8Z_W1nCnaV05BfUA8bKQQFv2EOyUGsTQrpoxVap4yjiN3_9A"/></div><div class="aspect-square bg-surface-container-highest rounded-lg overflow-hidden"><img alt="Daño estructural" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDaUsWY1fq71OlJ3fKygsfccyGdBsEBXYmmN1IYwrTOj-rfww283o9Hid_mzsZUtVJuvxxBt_6-fxJDOHx8nCvN9T8AhgYhgAx0LRq2xg0k32XY-QcFRg7YjOSWYXUb92dv9d3YjnFNvWJxG5V8bhEEyTqChRYtgjbTk9x_oJvLwI3yjWTuLJEv7eyzx0WDjTF4KkWl6ZNy_CY2VEdwQMnRzT2jhL9MdtYZ0TCrkvYc3nTTabhN55j_-SZvhpio53plzv6CaZ6DfAI"/></div></div></section><section class="grid grid-cols-2 gap-4"><div class="space-y-1"><p class="text-label-caps text-on-surface-variant">USO DE EDIFICACIÓN</p><p class="text-body-lg">Residencial</p></div><div class="space-y-1"><p class="text-label-caps text-on-surface-variant">AÑO DE CONSTRUCCIÓN</p><p class="text-body-lg">1985</p></div><div class="space-y-1"><p class="text-label-caps text-on-surface-variant">NIVELES / SÓTANOS</p><p class="text-body-lg">12 / 2</p></div><div class="space-y-1"><p class="text-label-caps text-on-surface-variant">MATERIAL</p><p class="text-body-lg">Concreto Armado</p></div><div class="col-span-2 space-y-1"><p class="text-label-caps text-on-surface-variant">TIPO DE TERRENO</p><p class="text-body-lg">Sedimentario (Relleno)</p></div></section><div class="pt-4 border-t border-outline-variant flex gap-3"><button class="flex-1 h-12 bg-primary text-white rounded-full font-label-caps">INICIAR EVALUACIÓN</button><button class="flex-1 h-12 border border-outline text-on-surface rounded-full font-label-caps">DESCARGAR PDF</button></div></div></div></div></body></html>
