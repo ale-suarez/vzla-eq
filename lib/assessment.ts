@@ -378,4 +378,3 @@ export function verdictBadgeClass(verdict: VerdictLevel) {
   if (verdict === "severe") return "bg-[#630000] text-white";
   return "bg-destructive text-white";
 }
-

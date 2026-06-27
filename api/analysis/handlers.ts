@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import sharp from "sharp";
+import type { Context } from "hono";
 
 import { FORM_QUESTIONS, MAX_PHOTOS, type AnalysisResult, type PhotoResult, type VerdictLevel } from "@/lib/assessment";
 
@@ -64,7 +64,7 @@ async function analyzeImage(
   client: OpenAI,
   base64: string,
   model: string,
-  contextBlock: string
+  contextBlock: string,
 ): Promise<{ verdict: VerdictLevel; confidence: number; finding: string }> {
   const response = await client.chat.completions.create({
     model,
@@ -104,13 +104,10 @@ async function analyzeImage(
   return { verdict, confidence, finding };
 }
 
-export async function POST(req: NextRequest) {
+export async function analyzePost(c: Context) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    return NextResponse.json(
-      { error: "Servicio no configurado correctamente." },
-      { status: 500 }
-    );
+    return c.json({ error: "Servicio no configurado correctamente." }, 500);
   }
 
   const client = new OpenAI({ apiKey });
@@ -118,7 +115,7 @@ export async function POST(req: NextRequest) {
   let files: File[];
   let contextBlock = "";
   try {
-    const formData = await req.formData();
+    const formData = await c.req.raw.formData();
     files = formData.getAll("fotos") as File[];
 
     const rawForm = formData.get("form");
@@ -127,14 +124,14 @@ export async function POST(req: NextRequest) {
       contextBlock = buildContextBlock(parsed.questions ?? {});
     }
   } catch {
-    return NextResponse.json({ error: "Error al leer el formulario." }, { status: 400 });
+    return c.json({ error: "Error al leer el formulario." }, 400);
   }
 
   if (!files || files.length === 0) {
-    return NextResponse.json({ error: "No se recibieron imágenes." }, { status: 400 });
+    return c.json({ error: "No se recibieron imágenes." }, 400);
   }
   if (files.length > MAX_PHOTOS) {
-    return NextResponse.json({ error: "Máximo 10 fotos por análisis." }, { status: 400 });
+    return c.json({ error: `Máximo ${MAX_PHOTOS} fotos por análisis.` }, 400);
   }
 
   const photoResults: PhotoResult[] = [];
@@ -163,9 +160,7 @@ export async function POST(req: NextRequest) {
   }
 
   const worstPhoto = photoResults.reduce((worst, current) =>
-    verdictSeverity(current.verdict) > verdictSeverity(worst.verdict)
-      ? current
-      : worst
+    verdictSeverity(current.verdict) > verdictSeverity(worst.verdict) ? current : worst,
   );
 
   const overallVerdict = worstPhoto.verdict;
@@ -184,5 +179,6 @@ export async function POST(req: NextRequest) {
     showAuthorities: overallVerdict !== "low",
   };
 
-  return NextResponse.json(result);
+  return c.json(result);
 }
+

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Bell, ShieldCheck, UserCircle2 } from "lucide-react";
 
@@ -9,12 +10,42 @@ import { Bell, ShieldCheck, UserCircle2 } from "lucide-react";
 // Home (`/`) renders this same header, so it is intentionally not headerless.
 const HEADERLESS_ROUTES = ["/form", "/backoffice"];
 
+type SessionData = {
+  authenticated: boolean;
+  role: "anonymous" | "engineer" | "admin";
+  backoffice?: boolean;
+};
+
 export function SiteHeader() {
   const pathname = usePathname();
+  const [session, setSession] = useState<SessionData | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    const load = async () => {
+      const response = await fetch("/api/auth/me");
+      const body = (await response.json()) as { data?: SessionData };
+      if (active) {
+        setSession(body.data ?? { authenticated: false, role: "anonymous" });
+      }
+    };
+
+    void load();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   if (HEADERLESS_ROUTES.includes(pathname)) {
     return null;
   }
+
+  const backoffice = Boolean(session?.backoffice);
+  // Professional access: authenticated backoffice users go straight to their
+  // dashboard; everyone else lands on the backoffice entry point (login).
+  const professionalHref = backoffice ? "/dashboard" : "/backoffice";
 
   return (
     <header style={{ viewTransitionName: "site-header" }} className="fixed left-0 right-0 top-0 z-50 bg-surface/90 backdrop-blur-md">
@@ -29,10 +60,10 @@ export function SiteHeader() {
             <Bell className="h-6 w-6" />
           </button>
           <Link
-            href="/backoffice"
+            href={professionalHref}
             transitionTypes={["nav-forward"]}
             className="text-on-surface-variant transition-opacity hover:opacity-80"
-            aria-label="Acceso profesional"
+            aria-label={backoffice ? "Panel profesional" : "Acceso profesional"}
           >
             <UserCircle2 className="h-6 w-6" />
           </Link>

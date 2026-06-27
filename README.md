@@ -1,36 +1,91 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Vzla EQ
 
-## Getting Started
+Structural damage assessment platform for citizens, engineers, and admins.
 
-First, run the development server:
+## What this repo contains
+
+- A public frontend for the citizen flow.
+- A backoffice frontend for engineers and admins.
+- A single Hono API entrypoint at `app/api/[...route]/route.ts`.
+- Supabase auth, RBAC, and Postgres schema for incidents and engineer profiles.
+
+## Architecture
+
+- `app/` is frontend only.
+- `api/` contains all backend logic, grouped by domain:
+  - `api/auth`
+  - `api/incidents`
+  - `api/analysis`
+- `api/app.ts` composes the feature routers.
+- `proxy.ts` does optimistic redirects only.
+- Supabase remains the source of truth for auth state and row-level access control.
+
+See the full design notes in [docs/architecture.md](docs/architecture.md).
+
+## Development
+
+1. Install dependencies.
+2. Create a `.env` file with the required Supabase and OpenAI variables.
+3. Start the app:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The app runs at `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Required environment variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+SUPABASE_SECRET_KEY=
+OPENAI_API_KEY=
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+```
 
-## Learn More
+## API surface
 
-To learn more about Next.js, take a look at the following resources:
+Auth:
+- `POST /api/auth/magic-link`
+- `GET /api/auth/callback`
+- `GET /api/auth/me`
+- `POST /api/auth/signout`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Analysis:
+- `POST /api/analizar`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Incidents:
+- `GET /api/incidents`
+- `POST /api/incidents`
+- `GET /api/incidents/:id`
+- `PUT /api/incidents/:id`
 
-## Deploy on Vercel
+## Roles
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Anonymous users can use the public assessment flow.
+- Engineers can log in with a magic link and access the dashboard.
+- Admins have access to all backoffice functionality.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Supabase model
+
+- `engineers` stores certified engineer profiles.
+- `admin_users` stores admin identities.
+- `incidents` stores citizen submissions and engineer-reviewed cases.
+- `incident_photos` stores per-photo metadata and analysis output.
+
+The constraints and policies are documented in [docs/architecture.md](docs/architecture.md).
+
+## Working on the codebase
+
+- Read [AGENTS.md](AGENTS.md) before editing backend or frontend code.
+- Read [CLAUDE.md](CLAUDE.md) for the practical FE/API workflow.
+- Keep UI changes in `app/`.
+- Keep backend changes in `api/`.
+
+## Validation
+
+```bash
+npm run lint
+npm run build
+```

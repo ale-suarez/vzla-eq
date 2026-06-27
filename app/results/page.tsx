@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, Camera, CheckCircle2, ChevronRight, Globe, HardHat, Phone, Search, Share2 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -24,6 +24,8 @@ export default function ResultPage() {
   const router = useRouter();
   const { result, previews, error, selectedPhotoIndex, setError, clearEvaluation, selectPhotoIndex } = useAssessment();
   const [inspectionRequested, setInspectionRequested] = useState(false);
+  const [saving, startSaving] = useTransition();
+  const [incidentId, setIncidentId] = useState<string | null>(null);
 
   // TODO(backend): wire this to the DB once the inspection-request endpoint
   // exists. For now it only shows a client-side confirmation.
@@ -66,7 +68,48 @@ export default function ResultPage() {
 
   const resetForm = () => {
     clearEvaluation();
+    setIncidentId(null);
+    setInspectionRequested(false);
     router.push("/upload", { scroll: false, transitionTypes: ["nav-back"] });
+  };
+
+  const saveIncident = () => {
+    if (!result) {
+      return;
+    }
+
+    setError(null);
+    setIncidentId(null);
+
+    startSaving(async () => {
+      try {
+        const response = await fetch("/api/incidents", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            analysis: {
+              verdict: result.verdict,
+              confidence: result.confidence,
+              finding: result.finding,
+            },
+            raw_ai: result,
+            analysis_status: "complete",
+            state: "pending",
+          }),
+        });
+
+        const body = (await response.json()) as { data?: { id?: string }; error?: string };
+
+        if (!response.ok) {
+          setError(body.error ?? "No se pudo registrar el incidente.");
+          return;
+        }
+
+        setIncidentId(body.data?.id ?? null);
+      } catch {
+        setError("Error de conexión. No se pudo registrar el incidente.");
+      }
+    });
   };
 
   return (
@@ -295,6 +338,19 @@ export default function ResultPage() {
         </AnimatePresence>
 
         <div className="mx-auto flex w-full max-w-sm flex-col gap-3 pb-6">
+          <Button
+            type="button"
+            onClick={saveIncident}
+            disabled={saving || Boolean(incidentId)}
+            className="h-14 w-full rounded-[18px] bg-secondary text-base font-bold text-white hover:bg-secondary/90"
+          >
+            {saving ? "Guardando..." : incidentId ? "Incidente guardado" : "Registrar incidente"}
+          </Button>
+          {incidentId && (
+            <p className="rounded-[16px] border border-secondary/20 bg-secondary-container px-4 py-3 text-sm text-on-secondary-container">
+              Incidente registrado. Token: <span className="font-semibold">{incidentId}</span>
+            </p>
+          )}
           {inspectionRequested ? (
             <div className="flex items-start gap-3 rounded-[18px] border border-secondary/20 bg-secondary-container px-4 py-4 text-sm font-medium text-on-secondary-container">
               <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
