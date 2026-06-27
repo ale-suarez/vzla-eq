@@ -6,9 +6,10 @@ import { usePathname } from "next/navigation";
 import { Bell, ShieldCheck, UserCircle2 } from "lucide-react";
 
 // Routes that render their own bespoke header (the questionnaire and the
-// engineer backoffice). The shared citizen header is hidden on these.
+// engineer console). The shared citizen header is hidden on these.
 // Home (`/`) renders this same header, so it is intentionally not headerless.
-const HEADERLESS_ROUTES = ["/form", "/backoffice"];
+// `/dashboard` (and its nested incident routes) ship their own top bar.
+const HEADERLESS_PREFIXES = ["/form", "/dashboard"];
 
 type SessionData = {
   authenticated: boolean;
@@ -38,14 +39,14 @@ export function SiteHeader() {
     };
   }, []);
 
-  if (HEADERLESS_ROUTES.includes(pathname)) {
+  if (HEADERLESS_PREFIXES.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`))) {
     return null;
   }
 
   const backoffice = Boolean(session?.backoffice);
   // Professional access: authenticated backoffice users go straight to their
-  // dashboard; everyone else lands on the backoffice entry point (login).
-  const professionalHref = backoffice ? "/dashboard" : "/backoffice";
+  // console; everyone else lands on the login page to authenticate.
+  const professionalHref = backoffice ? "/dashboard" : "/login";
 
   return (
     <header style={{ viewTransitionName: "site-header" }} className="fixed left-0 right-0 top-0 z-50 bg-surface/90 backdrop-blur-md">

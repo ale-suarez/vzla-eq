@@ -22,64 +22,71 @@ export type Incident = {
   lng: number;
 };
 
-// Map centered on Caracas. Mocked data — coords are placed near real landmarks.
+// Map centered on Caracas. Used as the default view + fallback for incidents
+// that have no coordinates yet.
 export const CARACAS_CENTER = { lng: -66.8792, lat: 10.4806 };
 
-// Hardcoded sample incidents (no backend). Verdict/state use the shared enums.
-export const INCIDENTS: Incident[] = [
-  {
-    id: "#SG-2024-089",
-    title: "Edificio Libertador, Caracas",
-    meta: "Reportado hace 2h",
-    verdict: "critical",
-    state: "pending",
-    assignee: null,
-    icon: ShieldAlert,
-    accent: "border-l-destructive",
-    iconWrap: "bg-error-container text-destructive",
-    lat: 10.5061,
-    lng: -66.9146,
-  },
-  {
-    id: "#SG-2024-075",
-    title: "Residencias El Ávila, Sector A",
-    meta: "Reportado ayer",
-    verdict: "severe",
-    state: "in_review",
-    assignee: "Ing. Carlos Pérez",
-    icon: TriangleAlert,
-    accent: "border-l-tertiary",
-    iconWrap: "bg-tertiary-fixed text-tertiary",
-    lat: 10.5089,
-    lng: -66.8534,
-  },
-  {
-    id: "#SG-2024-102",
-    title: "Puente Los Ruices (Pilastra Norte)",
-    meta: "Reportado hace 6h",
-    verdict: "moderate",
-    state: "pending",
-    assignee: null,
-    icon: Info,
-    accent: "border-l-primary",
-    iconWrap: "bg-primary-fixed text-primary",
-    lat: 10.4934,
-    lng: -66.8267,
-  },
-  {
-    id: "#SG-2024-044",
-    title: "Centro Comercial El Recreo",
-    meta: "Hace 3 días",
-    verdict: "low",
-    state: "in_review",
-    assignee: "Ing. Carlos Pérez",
-    icon: ClipboardCheck,
-    accent: "border-l-secondary",
-    iconWrap: "bg-secondary-container text-secondary",
-    lat: 10.4942,
-    lng: -66.8786,
-  },
-];
+// Per-verdict list-card presentation (icon + accent + icon-chip styles). The DB
+// row carries no presentation info, so the console derives it from the verdict.
+const VERDICT_PRESENTATION: Record<
+  VerdictLevel,
+  { icon: LucideIcon; accent: string; iconWrap: string }
+> = {
+  critical: { icon: ShieldAlert, accent: "border-l-destructive", iconWrap: "bg-error-container text-destructive" },
+  severe: { icon: TriangleAlert, accent: "border-l-tertiary", iconWrap: "bg-tertiary-fixed text-tertiary" },
+  moderate: { icon: Info, accent: "border-l-primary", iconWrap: "bg-primary-fixed text-primary" },
+  low: { icon: ClipboardCheck, accent: "border-l-secondary", iconWrap: "bg-secondary-container text-secondary" },
+};
+
+// Subset of an incidents row the console list/map needs. Mirrors the columns
+// returned by `GET /api/incidents` (see api/incidents/handlers.ts).
+export type DbIncident = {
+  id: string;
+  building_use: string | null;
+  contact: string | null;
+  finding: string | null;
+  severity: VerdictLevel | null;
+  ai_verdict: VerdictLevel | null;
+  state: IncidentState | null;
+  assigned_to: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  created_at: string | null;
+};
+
+function relativeTime(iso: string | null): string {
+  if (!iso) return "Fecha desconocida";
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return "Fecha desconocida";
+  const mins = Math.max(0, Math.round((Date.now() - then) / 60000));
+  if (mins < 60) return `Reportado hace ${mins} min`;
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24) return `Reportado hace ${hrs}h`;
+  const days = Math.round(hrs / 24);
+  return days === 1 ? "Reportado ayer" : `Hace ${days} días`;
+}
+
+// Adapts a DB incidents row into the presentation `Incident` the console
+// renders. Verdict falls back severity -> ai_verdict -> "moderate"; rows
+// without coordinates are placed at the Caracas center so they still list.
+export function fromDbIncident(row: DbIncident): Incident {
+  const verdict: VerdictLevel = row.severity ?? row.ai_verdict ?? "moderate";
+  const presentation = VERDICT_PRESENTATION[verdict];
+
+  return {
+    id: row.id,
+    title: row.building_use?.trim() || "Incidente sin ubicación",
+    meta: relativeTime(row.created_at),
+    verdict,
+    state: row.state ?? "pending",
+    assignee: row.assigned_to,
+    icon: presentation.icon,
+    accent: presentation.accent,
+    iconWrap: presentation.iconWrap,
+    lat: row.latitude ?? CARACAS_CENTER.lat,
+    lng: row.longitude ?? CARACAS_CENTER.lng,
+  };
+}
 
 // Marker styling per verdict (circle bg, ring icon color, legend dot).
 export const VERDICT_MARKER: Record<
