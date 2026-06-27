@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, Camera, CheckCircle2, Images, Info, X } from "lucide-react";
@@ -17,6 +17,12 @@ export default function EvaluatePage() {
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const { photos, previews, error, loading, addPhotos, removePhoto, setError } = useAssessment();
+
+  // Navigations into this page use `scroll: false`, so the previous route's
+  // scroll position carries over. Reset to the top on mount.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
