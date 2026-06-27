@@ -5,23 +5,14 @@ import {
   Building2,
   Camera,
   CheckCircle2,
-  ChevronRight,
   DoorOpen,
   Eye,
-  Globe,
   HardHat,
-  Info,
-  Images,
-  Loader2,
   Maximize2,
-  Phone,
   PhoneCall,
-  Search,
-  Share2,
   ShieldCheck,
   Sparkles,
   Sun,
-  Upload,
   UserX,
   XCircle,
 } from "lucide-react";
@@ -260,4 +251,3 @@ export function verdictBadgeClass(verdict: VerdictLevel) {
   if (verdict === "PRECAUCION") return "bg-tertiary text-white";
   return "bg-destructive text-white";
 }
-

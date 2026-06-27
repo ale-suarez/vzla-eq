@@ -1,13 +1,8 @@
-import { Hono } from "hono";
-import { handle } from "hono/vercel";
 import OpenAI from "openai";
 import sharp from "sharp";
+import type { Context } from "hono";
 
 import { MAX_PHOTOS, type AnalysisResult, type PhotoResult, type VerdictLevel } from "@/lib/assessment";
-
-export const runtime = "nodejs";
-
-const app = new Hono().basePath("/api");
 
 const MODEL_FAST = "gpt-4.1-mini";
 const MODEL_STRONG = "gpt-4.1";
@@ -45,7 +40,7 @@ El campo "finding" debe ser una oración corta describiendo lo observado. Sé co
 async function analyzeImage(
   client: OpenAI,
   base64: string,
-  model: string
+  model: string,
 ): Promise<{ verdict: VerdictLevel; confidence: number; finding: string }> {
   const response = await client.chat.completions.create({
     model,
@@ -85,7 +80,7 @@ async function analyzeImage(
   return { verdict, confidence, finding };
 }
 
-app.post("/analizar", async (c) => {
+export async function analyzePost(c: Context) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return c.json({ error: "Servicio no configurado correctamente." }, 500);
@@ -119,7 +114,6 @@ app.post("/analizar", async (c) => {
     try {
       base64 = await resizeImage(original);
     } catch {
-      // If sharp fails (e.g. unsupported format), send original capped at 1MB
       base64 = original.slice(0, 1_000_000).toString("base64");
     }
 
@@ -134,17 +128,13 @@ app.post("/analizar", async (c) => {
     photoResults.push({ index: i, ...result, escalated });
   }
 
-  // Worst-case aggregation across all photos
   const worstPhoto = photoResults.reduce((worst, current) =>
-    verdictSeverity(current.verdict) > verdictSeverity(worst.verdict)
-      ? current
-      : worst
+    verdictSeverity(current.verdict) > verdictSeverity(worst.verdict) ? current : worst,
   );
 
   const overallVerdict = worstPhoto.verdict;
   const overallConfidence = worstPhoto.confidence;
 
-  // Aggregate finding: if multiple photos, summarise; else use the single finding
   const overallFinding =
     photoResults.length === 1
       ? worstPhoto.finding
@@ -159,6 +149,5 @@ app.post("/analizar", async (c) => {
   };
 
   return c.json(result);
-});
+}
 
-export const POST = handle(app);

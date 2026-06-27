@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useState, useTransition } from "react";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, Camera, ChevronRight, Globe, Phone, Search, Share2 } from "lucide-react";
@@ -23,6 +24,8 @@ import { cn } from "@/lib/utils";
 export default function ResultPage() {
   const router = useRouter();
   const { result, previews, error, selectedPhotoIndex, setError, clearEvaluation, selectPhotoIndex } = useAssessment();
+  const [saving, startSaving] = useTransition();
+  const [incidentId, setIncidentId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!result) {
@@ -59,7 +62,47 @@ export default function ResultPage() {
 
   const resetForm = () => {
     clearEvaluation();
+    setIncidentId(null);
     router.push("/evaluar", { scroll: false, transitionTypes: ["nav-back"] });
+  };
+
+  const saveIncident = () => {
+    if (!result) {
+      return;
+    }
+
+    setError(null);
+    setIncidentId(null);
+
+    startSaving(async () => {
+      try {
+        const response = await fetch("/api/incidents", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            analysis: {
+              verdict: result.verdict,
+              confidence: result.confidence,
+              finding: result.finding,
+            },
+            raw_ai: result,
+            analysis_status: "complete",
+            state: "pending",
+          }),
+        });
+
+        const body = (await response.json()) as { data?: { id?: string }; error?: string };
+
+        if (!response.ok) {
+          setError(body.error ?? "No se pudo registrar el incidente.");
+          return;
+        }
+
+        setIncidentId(body.data?.id ?? null);
+      } catch {
+        setError("Error de conexión. No se pudo registrar el incidente.");
+      }
+    });
   };
 
   return (
@@ -288,6 +331,19 @@ export default function ResultPage() {
         </AnimatePresence>
 
         <div className="mx-auto flex w-full max-w-sm flex-col gap-3 pb-6">
+          <Button
+            type="button"
+            onClick={saveIncident}
+            disabled={saving}
+            className="h-14 w-full rounded-[18px] bg-secondary text-base font-bold text-white hover:bg-secondary/90"
+          >
+            {saving ? "Guardando..." : incidentId ? "Incidente guardado" : "Registrar incidente"}
+          </Button>
+          {incidentId && (
+            <p className="rounded-[16px] border border-secondary/20 bg-secondary-container px-4 py-3 text-sm text-on-secondary-container">
+              Incidente registrado. Token: <span className="font-semibold">{incidentId}</span>
+            </p>
+          )}
           <Button onClick={resetForm} className="h-14 w-full rounded-[18px] bg-primary text-base font-bold text-white hover:bg-primary-container">
             <Camera className="h-4 w-4" />
             Analizar otra estructura
