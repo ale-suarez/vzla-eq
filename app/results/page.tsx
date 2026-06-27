@@ -15,6 +15,7 @@ import {
   OVERALL_RESULT_COPY,
   RECOMMENDED_ACTIONS,
   VERDICT_CONFIG,
+  formToIncidentFields,
   verdictBadgeClass,
   verdictShortLabel,
 } from "@/lib/assessment";
@@ -22,7 +23,7 @@ import { cn } from "@/lib/utils";
 
 export default function ResultPage() {
   const router = useRouter();
-  const { result, previews, error, selectedPhotoIndex, setError, clearEvaluation, selectPhotoIndex } = useAssessment();
+  const { result, form, previews, error, selectedPhotoIndex, setError, clearEvaluation, selectPhotoIndex } = useAssessment();
   const [inspectionRequested, setInspectionRequested] = useState(false);
   const [saving, startSaving] = useTransition();
   const [incidentId, setIncidentId] = useState<string | null>(null);
@@ -95,6 +96,8 @@ export default function ResultPage() {
             raw_ai: result,
             analysis_status: "complete",
             state: "pending",
+            // Citizen questionnaire answers mapped onto incident columns.
+            ...formToIncidentFields(form),
           }),
         });
 

@@ -132,6 +132,75 @@ export function isFormComplete(answers: FormAnswers): boolean {
   return FORM_QUESTIONS.every((q) => Boolean(answers.questions[q.id]));
 }
 
+// ---------------------------------------------------------------------------
+// Form answers -> incidents table mapping. The questionnaire collects
+// human-friendly option strings ("5 o más", "1970–2000"); the DB wants typed
+// columns. This converts one into the other for the POST /api/incidents body.
+// ---------------------------------------------------------------------------
+
+/** Subset of incidents columns derivable from the citizen questionnaire. */
+export interface IncidentFields {
+  contact?: string;
+  building_use?: string;
+  build_year?: number;
+  levels?: number;
+  basements?: number;
+  material?: string;
+  terrain_type?: string;
+}
+
+// Representative year per construction-era bucket (FORM_QUESTIONS id "anio").
+const BUILD_YEAR_BY_ERA: Record<string, number> = {
+  "Antes de 1970": 1965,
+  "1970–2000": 1985,
+  "Después del 2000": 2010,
+};
+
+// Basement count per option (FORM_QUESTIONS id "sotano").
+const BASEMENTS_BY_OPTION: Record<string, number> = {
+  No: 0,
+  "Sí: 1 nivel": 1,
+  "Sí: 2 o más niveles": 2,
+};
+
+function parseLevels(value: string | undefined): number | undefined {
+  if (!value) return undefined;
+  // "5 o más" -> 5; "3" -> 3.
+  const match = value.match(/\d+/);
+  return match ? Number(match[0]) : undefined;
+}
+
+/**
+ * Maps the citizen questionnaire answers onto incidents-table columns. Only
+ * answered fields are included, so the result is safe to spread into the
+ * incident create payload. Address is intentionally not mapped here — turning
+ * it into latitude/longitude requires geocoding (see results page).
+ */
+export function formToIncidentFields(answers: FormAnswers): IncidentFields {
+  const q = answers.questions;
+  const fields: IncidentFields = {};
+
+  const contact = answers.phone.trim();
+  if (contact) fields.contact = contact;
+
+  if (q.uso) fields.building_use = q.uso;
+  if (q.material) fields.material = q.material;
+  if (q.terreno) fields.terrain_type = q.terreno;
+
+  if (q.anio && BUILD_YEAR_BY_ERA[q.anio] !== undefined) {
+    fields.build_year = BUILD_YEAR_BY_ERA[q.anio];
+  }
+
+  const levels = parseLevels(q.pisos);
+  if (levels !== undefined) fields.levels = levels;
+
+  if (q.sotano && BASEMENTS_BY_OPTION[q.sotano] !== undefined) {
+    fields.basements = BASEMENTS_BY_OPTION[q.sotano];
+  }
+
+  return fields;
+}
+
 export interface ActionStep {
   title: string;
   text: string;
