@@ -50,6 +50,13 @@ export function SiteHeader() {
 
   return (
     <header style={{ viewTransitionName: "site-header" }} className="fixed left-0 right-0 top-0 z-50 bg-surface/90 backdrop-blur-md">
+      {/* Venezuelan flag stripe across the viewport: yellow / blue / red,
+          three equal horizontal bands matching the flag's band order. */}
+      <div
+        aria-hidden
+        className="h-[18px] w-full"
+        style={{ background: "linear-gradient(to bottom, #FCD116 0 33.333%, #00247D 33.333% 66.666%, #CF142B 66.666% 100%)" }}
+      />
       <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between px-5">
         <Link href="/" transitionTypes={["nav-back"]} className="flex items-center gap-2">
           <ShieldCheck className="h-7 w-7 text-primary" />
