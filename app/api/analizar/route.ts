@@ -1,7 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
+import { Hono } from "hono";
+import { handle } from "hono/vercel";
 import OpenAI from "openai";
 import sharp from "sharp";
 
+export const runtime = "nodejs";
+
+const app = new Hono().basePath("/api");
+
+const MAX_PHOTOS = 10;
 const MODEL_FAST = "gpt-4.1-mini";
 const MODEL_STRONG = "gpt-4.1";
 const ESCALATION_CONFIDENCE_THRESHOLD = 70;
@@ -96,30 +102,27 @@ async function analyzeImage(
   return { verdict, confidence, finding };
 }
 
-export async function POST(req: NextRequest) {
+app.post("/analizar", async (c) => {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    return NextResponse.json(
-      { error: "Servicio no configurado correctamente." },
-      { status: 500 }
-    );
+    return c.json({ error: "Servicio no configurado correctamente." }, 500);
   }
 
   const client = new OpenAI({ apiKey });
 
   let files: File[];
   try {
-    const formData = await req.formData();
+    const formData = await c.req.raw.formData();
     files = formData.getAll("fotos") as File[];
   } catch {
-    return NextResponse.json({ error: "Error al leer el formulario." }, { status: 400 });
+    return c.json({ error: "Error al leer el formulario." }, 400);
   }
 
   if (!files || files.length === 0) {
-    return NextResponse.json({ error: "No se recibieron imágenes." }, { status: 400 });
+    return c.json({ error: "No se recibieron imágenes." }, 400);
   }
-  if (files.length > 10) {
-    return NextResponse.json({ error: "Máximo 10 fotos por análisis." }, { status: 400 });
+  if (files.length > MAX_PHOTOS) {
+    return c.json({ error: `Máximo ${MAX_PHOTOS} fotos por análisis.` }, 400);
   }
 
   const photoResults: PhotoResult[] = [];
@@ -172,5 +175,7 @@ export async function POST(req: NextRequest) {
     showAuthorities: overallVerdict !== "SEGURO",
   };
 
-  return NextResponse.json(result);
-}
+  return c.json(result);
+});
+
+export const POST = handle(app);
