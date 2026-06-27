@@ -191,7 +191,7 @@ export default function HomePage() {
             <div className="space-y-1">
               <h4 className="text-xs font-semibold uppercase tracking-[0.12em] text-on-surface-variant">AVISO LEGAL IMPORTANTE</h4>
               <p className="text-sm leading-5 text-on-surface-variant">
-                SafeStructure proporciona una evaluación preliminar únicamente con fines informativos. No sustituye una inspección
+                Chequeo Estructural proporciona una evaluación preliminar únicamente con fines informativos. No sustituye una inspección
                 profesional de ingeniería estructural. Si sospecha un peligro inmediato, evacúe y contacte a los servicios de emergencia.
               </p>
             </div>
