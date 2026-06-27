@@ -26,7 +26,7 @@ export default function EvaluatePage() {
       return;
     }
 
-    router.push("/evaluar/analizando", { scroll: false, transitionTypes: ["nav-forward"] });
+    router.push("/analyzing", { scroll: false, transitionTypes: ["nav-forward"] });
   };
 
   const openCamera = () => {

@@ -1,10 +1,10 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
-import type { AnalysisResult } from "@/lib/assessment";
-import { ASSESSMENT_STORAGE_KEY, MAX_FILE_SIZE_MB, MAX_PHOTOS } from "@/lib/assessment";
+import type { AnalysisResult, FormAnswers } from "@/lib/assessment";
+import { ASSESSMENT_STORAGE_KEY, EMPTY_FORM_ANSWERS, MAX_FILE_SIZE_MB, MAX_PHOTOS } from "@/lib/assessment";
 
 type AssessmentState = {
   photos: File[];
@@ -13,62 +13,89 @@ type AssessmentState = {
   result: AnalysisResult | null;
   error: string | null;
   selectedPhotoIndex: number;
+  form: FormAnswers;
 };
 
 type AssessmentContextValue = AssessmentState & {
+  /** True once the client has mounted and rehydrated from sessionStorage. */
+  hydrated: boolean;
   addPhotos: (files: FileList | File[] | null) => void;
   removePhoto: (index: number) => void;
   clearEvaluation: () => void;
   selectPhotoIndex: (index: number) => void;
   setError: (value: string | null) => void;
   runAnalysis: () => Promise<AnalysisResult | null>;
+  setFormField: (field: "phone" | "address", value: string) => void;
+  setFormQuestion: (questionId: string, value: string) => void;
 };
 
 const AssessmentContext = createContext<AssessmentContextValue | null>(null);
 
-function readStoredState(): Pick<AssessmentState, "result" | "error" | "selectedPhotoIndex"> {
+// Hydration-safe "has the client mounted?" signal. The server snapshot is
+// false and the client snapshot is true, so storage-derived UI can be gated
+// without a setState-in-effect.
+const noopSubscribe = () => () => {};
+function useHydrated(): boolean {
+  return useSyncExternalStore(
+    noopSubscribe,
+    () => true,
+    () => false
+  );
+}
+
+type StoredState = Pick<AssessmentState, "result" | "error" | "selectedPhotoIndex" | "form">;
+
+const EMPTY_STORED_STATE: StoredState = {
+  result: null,
+  error: null,
+  selectedPhotoIndex: 0,
+  form: EMPTY_FORM_ANSWERS,
+};
+
+function readStoredState(): StoredState {
   if (typeof window === "undefined") {
-    return {
-      result: null,
-      error: null,
-      selectedPhotoIndex: 0,
-    };
+    return EMPTY_STORED_STATE;
   }
 
   try {
     const raw = window.sessionStorage.getItem(ASSESSMENT_STORAGE_KEY);
     if (!raw) {
-      return {
-        result: null,
-        error: null,
-        selectedPhotoIndex: 0,
-      };
+      return EMPTY_STORED_STATE;
     }
 
-    const parsed = JSON.parse(raw) as Partial<Pick<AssessmentState, "result" | "error" | "selectedPhotoIndex">>;
+    const parsed = JSON.parse(raw) as Partial<StoredState>;
     return {
       result: parsed.result ?? null,
       error: typeof parsed.error === "string" ? parsed.error : null,
       selectedPhotoIndex: typeof parsed.selectedPhotoIndex === "number" ? parsed.selectedPhotoIndex : 0,
+      form: parsed.form ?? EMPTY_FORM_ANSWERS,
     };
   } catch {
-    return {
-      result: null,
-      error: null,
-      selectedPhotoIndex: 0,
-    };
+    return EMPTY_STORED_STATE;
   }
 }
 
 export function AssessmentProvider({ children }: { children: ReactNode }) {
-  const storedState = useMemo(() => readStoredState(), []);
   const [photos, setPhotos] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<AnalysisResult | null>(storedState.result);
-  const [error, setError] = useState<string | null>(storedState.error);
-  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(storedState.selectedPhotoIndex);
+  // Lazy initializers read sessionStorage exactly once on the client (and
+  // return empty on the server). Consumers that render storage-derived UI gate
+  // on `hydrated` so the first client paint matches the server HTML.
+  const [result, setResult] = useState<AnalysisResult | null>(() => readStoredState().result);
+  const [error, setError] = useState<string | null>(() => readStoredState().error);
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(() => readStoredState().selectedPhotoIndex);
+  const [form, setForm] = useState<FormAnswers>(() => readStoredState().form);
+  const hydrated = useHydrated();
   const inFlightRef = useRef<Promise<AnalysisResult | null> | null>(null);
+
+  const setFormField = useCallback((field: "phone" | "address", value: string) => {
+    setForm((current) => ({ ...current, [field]: value }));
+  }, []);
+
+  const setFormQuestion = useCallback((questionId: string, value: string) => {
+    setForm((current) => ({ ...current, questions: { ...current.questions, [questionId]: value } }));
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -81,15 +108,19 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    // Cache the citizen's form answers alongside the result so they survive a
+    // refresh. Phone/address are held here for the future DB step; only the
+    // questionnaire answers are sent to the LLM (see runAnalysis).
     window.sessionStorage.setItem(
       ASSESSMENT_STORAGE_KEY,
       JSON.stringify({
         result,
         error,
         selectedPhotoIndex,
+        form,
       })
     );
-  }, [error, result, selectedPhotoIndex]);
+  }, [error, form, result, selectedPhotoIndex]);
 
   const clearPhotos = useCallback(() => {
     setPhotos([]);
@@ -151,6 +182,7 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
     setResult(null);
     setError(null);
     setLoading(false);
+    setForm(EMPTY_FORM_ANSWERS);
     inFlightRef.current = null;
   }, [clearPhotos]);
 
@@ -171,26 +203,24 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
       try {
         const formData = new FormData();
         photos.forEach((photo) => formData.append("fotos", photo));
+        // Only the questionnaire answers go to the LLM (no phone/address).
+        formData.append("form", JSON.stringify({ questions: form.questions }));
 
-        const response = await fetch("/api/analizar", {
-          method: "POST",
-          body: formData,
-        });
-
-        const data = (await response.json()) as AnalysisResult & { error?: string };
+        const response = await fetch("/api/analizar", { method: "POST", body: formData });
+        const payload = await response.json();
 
         if (!response.ok) {
-          const message = typeof data.error === "string" ? data.error : "Error al analizar. Intente de nuevo.";
-          setError(message);
+          setError(typeof payload?.error === "string" ? payload.error : "Error al analizar. Intente de nuevo.");
           setResult(null);
           return null;
         }
 
+        const data = payload as AnalysisResult;
         setSelectedPhotoIndex(0);
         setResult(data);
         return data;
       } catch {
-        setError("Error de conexión. Verifique su internet e intente de nuevo.");
+        setError("Error al analizar. Intente de nuevo.");
         setResult(null);
         return null;
       } finally {
@@ -201,7 +231,7 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
 
     inFlightRef.current = request;
     return request;
-  }, [photos]);
+  }, [form, photos]);
 
   const value = useMemo<AssessmentContextValue>(
     () => ({
@@ -211,14 +241,33 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
       result,
       error,
       selectedPhotoIndex,
+      form,
+      hydrated,
       addPhotos,
       removePhoto,
       clearEvaluation,
       selectPhotoIndex: setSelectedPhotoIndex,
       setError,
       runAnalysis,
+      setFormField,
+      setFormQuestion,
     }),
-    [addPhotos, clearEvaluation, error, loading, photos, previews, removePhoto, result, runAnalysis, selectedPhotoIndex]
+    [
+      addPhotos,
+      clearEvaluation,
+      error,
+      form,
+      hydrated,
+      loading,
+      photos,
+      previews,
+      removePhoto,
+      result,
+      runAnalysis,
+      selectedPhotoIndex,
+      setFormField,
+      setFormQuestion,
+    ]
   );
 
   return <AssessmentContext.Provider value={value}>{children}</AssessmentContext.Provider>;

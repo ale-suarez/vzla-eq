@@ -2,18 +2,20 @@ import OpenAI from "openai";
 import sharp from "sharp";
 import type { Context } from "hono";
 
-import { MAX_PHOTOS, type AnalysisResult, type PhotoResult, type VerdictLevel } from "@/lib/assessment";
+import { FORM_QUESTIONS, MAX_PHOTOS, type AnalysisResult, type PhotoResult, type VerdictLevel } from "@/lib/assessment";
 
 const MODEL_FAST = "gpt-4.1-mini";
 const MODEL_STRONG = "gpt-4.1";
 const ESCALATION_CONFIDENCE_THRESHOLD = 70;
 
+const VERDICT_SEVERITY: Record<VerdictLevel, number> = { low: 0, moderate: 1, severe: 2, critical: 3 };
+
 function verdictSeverity(v: VerdictLevel): number {
-  return v === "PELIGRO" ? 2 : v === "PRECAUCION" ? 1 : 0;
+  return VERDICT_SEVERITY[v];
 }
 
 function shouldEscalate(verdict: VerdictLevel, confidence: number): boolean {
-  return verdict === "PELIGRO" || confidence < ESCALATION_CONFIDENCE_THRESHOLD;
+  return verdictSeverity(verdict) >= VERDICT_SEVERITY.severe || confidence < ESCALATION_CONFIDENCE_THRESHOLD;
 }
 
 async function resizeImage(buffer: Buffer): Promise<string> {
@@ -28,19 +30,41 @@ const SYSTEM_PROMPT = `Eres un asistente experto en evaluación de daños estruc
 Analiza la imagen de una estructura y responde ÚNICAMENTE con JSON compacto, sin texto adicional.
 
 Esquema de respuesta:
-{"verdict":"SEGURO"|"PRECAUCION"|"PELIGRO","confidence":0-100,"finding":"texto breve en español"}
+{"verdict":"low"|"moderate"|"severe"|"critical","confidence":0-100,"finding":"texto breve en español"}
 
 Criterios:
-- SEGURO: Sin daños estructurales visibles
-- PRECAUCION: Grietas menores, daños superficiales, requiere inspección
-- PELIGRO: Grietas graves en elementos portantes, colapso parcial, deformación estructural, riesgo inminente
+- low (Leve): Sin daños estructurales visibles o daños cosméticos
+- moderate (Moderado): Grietas menores, daños superficiales, requiere inspección
+- severe (Grave): Daños significativos en elementos portantes; el edificio debe ser evacuado hasta su reparación
+- critical (Severo): Colapso parcial o inminente, deformación estructural, riesgo inmediato para la vida
 
 El campo "finding" debe ser una oración corta describiendo lo observado. Sé conservador: ante la duda, escala el nivel.`;
+
+// Builds a citizen-reported context block from the questionnaire answers.
+// Blank answers are skipped, so an empty form yields an empty string (no
+// context is added to the prompt). Phone/address are intentionally excluded.
+function buildContextBlock(questions: Record<string, string>): string {
+  const lines = FORM_QUESTIONS.flatMap((q) => {
+    const answer = questions[q.id]?.trim();
+    return answer ? [`- ${q.question} ${answer}`] : [];
+  });
+
+  if (lines.length === 0) {
+    return "";
+  }
+
+  return [
+    "",
+    "Contexto reportado por el ciudadano (puede ser impreciso; prioriza la evidencia visual):",
+    ...lines,
+  ].join("\n");
+}
 
 async function analyzeImage(
   client: OpenAI,
   base64: string,
   model: string,
+  contextBlock: string,
 ): Promise<{ verdict: VerdictLevel; confidence: number; finding: string }> {
   const response = await client.chat.completions.create({
     model,
@@ -57,7 +81,7 @@ async function analyzeImage(
           },
           {
             type: "text",
-            text: "Evalúa los daños estructurales de esta imagen.",
+            text: `Evalúa los daños estructurales de esta imagen.${contextBlock}`,
           },
         ],
       },
@@ -70,9 +94,9 @@ async function analyzeImage(
 
   const parsed = JSON.parse(jsonMatch[0]);
 
-  const verdict = (["SEGURO", "PRECAUCION", "PELIGRO"].includes(parsed.verdict)
+  const verdict = (["low", "moderate", "severe", "critical"].includes(parsed.verdict)
     ? parsed.verdict
-    : "PRECAUCION") as VerdictLevel;
+    : "moderate") as VerdictLevel;
 
   const confidence = Math.min(100, Math.max(0, Number(parsed.confidence) || 50));
   const finding = String(parsed.finding || "Sin descripción disponible.");
@@ -89,9 +113,16 @@ export async function analyzePost(c: Context) {
   const client = new OpenAI({ apiKey });
 
   let files: File[];
+  let contextBlock = "";
   try {
     const formData = await c.req.raw.formData();
     files = formData.getAll("fotos") as File[];
+
+    const rawForm = formData.get("form");
+    if (typeof rawForm === "string" && rawForm.length > 0) {
+      const parsed = JSON.parse(rawForm) as { questions?: Record<string, string> };
+      contextBlock = buildContextBlock(parsed.questions ?? {});
+    }
   } catch {
     return c.json({ error: "Error al leer el formulario." }, 400);
   }
@@ -117,12 +148,12 @@ export async function analyzePost(c: Context) {
       base64 = original.slice(0, 1_000_000).toString("base64");
     }
 
-    let result = await analyzeImage(client, base64, MODEL_FAST);
+    let result = await analyzeImage(client, base64, MODEL_FAST, contextBlock);
     let escalated = false;
 
     if (shouldEscalate(result.verdict, result.confidence)) {
       escalated = true;
-      result = await analyzeImage(client, base64, MODEL_STRONG);
+      result = await analyzeImage(client, base64, MODEL_STRONG, contextBlock);
     }
 
     photoResults.push({ index: i, ...result, escalated });
@@ -145,7 +176,7 @@ export async function analyzePost(c: Context) {
     confidence: overallConfidence,
     finding: overallFinding,
     perPhoto: photoResults,
-    showAuthorities: overallVerdict !== "SEGURO",
+    showAuthorities: overallVerdict !== "low",
   };
 
   return c.json(result);

@@ -1,10 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useTransition } from "react";
-import { useEffect } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, Camera, ChevronRight, Globe, Phone, Search, Share2 } from "lucide-react";
+import { AlertTriangle, Camera, CheckCircle2, ChevronRight, Globe, HardHat, Phone, Search, Share2 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
@@ -16,6 +15,7 @@ import {
   OVERALL_RESULT_COPY,
   RECOMMENDED_ACTIONS,
   VERDICT_CONFIG,
+  formToIncidentFields,
   verdictBadgeClass,
   verdictShortLabel,
 } from "@/lib/assessment";
@@ -23,13 +23,20 @@ import { cn } from "@/lib/utils";
 
 export default function ResultPage() {
   const router = useRouter();
-  const { result, previews, error, selectedPhotoIndex, setError, clearEvaluation, selectPhotoIndex } = useAssessment();
+  const { result, form, previews, error, selectedPhotoIndex, setError, clearEvaluation, selectPhotoIndex } = useAssessment();
+  const [inspectionRequested, setInspectionRequested] = useState(false);
   const [saving, startSaving] = useTransition();
   const [incidentId, setIncidentId] = useState<string | null>(null);
 
+  // TODO(backend): wire this to the DB once the inspection-request endpoint
+  // exists. For now it only shows a client-side confirmation.
+  const requestInspection = () => {
+    setInspectionRequested(true);
+  };
+
   useEffect(() => {
     if (!result) {
-      router.replace("/evaluar", { scroll: false, transitionTypes: ["nav-back"] });
+      router.replace("/upload", { scroll: false, transitionTypes: ["nav-back"] });
     }
   }, [result, router]);
 
@@ -63,7 +70,8 @@ export default function ResultPage() {
   const resetForm = () => {
     clearEvaluation();
     setIncidentId(null);
-    router.push("/evaluar", { scroll: false, transitionTypes: ["nav-back"] });
+    setInspectionRequested(false);
+    router.push("/upload", { scroll: false, transitionTypes: ["nav-back"] });
   };
 
   const saveIncident = () => {
@@ -88,6 +96,8 @@ export default function ResultPage() {
             raw_ai: result,
             analysis_status: "complete",
             state: "pending",
+            // Citizen questionnaire answers mapped onto incident columns.
+            ...formToIncidentFields(form),
           }),
         });
 
@@ -334,7 +344,7 @@ export default function ResultPage() {
           <Button
             type="button"
             onClick={saveIncident}
-            disabled={saving}
+            disabled={saving || Boolean(incidentId)}
             className="h-14 w-full rounded-[18px] bg-secondary text-base font-bold text-white hover:bg-secondary/90"
           >
             {saving ? "Guardando..." : incidentId ? "Incidente guardado" : "Registrar incidente"}
@@ -344,7 +354,26 @@ export default function ResultPage() {
               Incidente registrado. Token: <span className="font-semibold">{incidentId}</span>
             </p>
           )}
-          <Button onClick={resetForm} className="h-14 w-full rounded-[18px] bg-primary text-base font-bold text-white hover:bg-primary-container">
+          {inspectionRequested ? (
+            <div className="flex items-start gap-3 rounded-[18px] border border-secondary/20 bg-secondary-container px-4 py-4 text-sm font-medium text-on-secondary-container">
+              <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
+              Solicitud recibida. Te contactaremos para coordinar la inspección.
+            </div>
+          ) : (
+            <Button
+              onClick={requestInspection}
+              className="h-14 w-full rounded-[18px] bg-primary text-base font-bold text-white hover:bg-primary-container"
+            >
+              <HardHat className="h-4 w-4" />
+              Solicitar Inspección
+            </Button>
+          )}
+          <Button
+            type="button"
+            variant="outline"
+            onClick={resetForm}
+            className="h-14 rounded-[18px] border-outline-variant bg-surface-container-lowest text-base font-semibold text-on-surface hover:bg-surface-container"
+          >
             <Camera className="h-4 w-4" />
             Analizar otra estructura
           </Button>

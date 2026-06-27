@@ -2,8 +2,9 @@ import { z } from "@hono/zod-openapi";
 
 export const appRoleSchema = z.enum(["anonymous", "engineer", "admin"]).openapi("AppRole");
 
-export const analysisVerdictSchema = z.enum(["SEGURO", "PRECAUCION", "PELIGRO"]).openapi("AnalysisVerdict");
 export const verdictLevelSchema = z.enum(["low", "moderate", "severe", "critical"]).openapi("VerdictLevel");
+// The analysis pipeline emits the same verdict vocabulary as the DB enum.
+export const analysisVerdictSchema = verdictLevelSchema;
 export const incidentStateSchema = z.enum(["pending", "in_review", "resolved", "archived"]).openapi("IncidentState");
 export const analysisStatusSchema = z.enum(["pending", "complete", "failed"]).openapi("AnalysisStatus");
 
@@ -45,7 +46,7 @@ export const authMagicLinkRequestSchema = z
 export const photoResultSchema = z
   .object({
     index: z.number().int().openapi({ example: 0 }),
-    verdict: analysisVerdictSchema.openapi({ example: "PELIGRO" }),
+    verdict: analysisVerdictSchema.openapi({ example: "severe" }),
     confidence: z.number().int().min(0).max(100).openapi({ example: 88 }),
     finding: z.string().openapi({ example: "Grieta severa en elemento portante." }),
     escalated: z.boolean().openapi({ example: true }),
@@ -54,7 +55,7 @@ export const photoResultSchema = z
 
 export const analysisResultSchema = z
   .object({
-    verdict: analysisVerdictSchema.openapi({ example: "PELIGRO" }),
+    verdict: analysisVerdictSchema.openapi({ example: "severe" }),
     confidence: z.number().int().min(0).max(100).openapi({ example: 88 }),
     finding: z.string().openapi({ example: "Grieta severa en elemento portante." }),
     perPhoto: z.array(photoResultSchema).openapi({ example: [] }),

@@ -14,12 +14,12 @@ export default function AnalyzingPage() {
 
   useEffect(() => {
     if (photos.length === 0) {
-      router.replace("/evaluar", { scroll: false, transitionTypes: ["nav-back"] });
+      router.replace("/upload", { scroll: false, transitionTypes: ["nav-back"] });
       return;
     }
 
     if (result) {
-      router.replace("/resultado", { scroll: false, transitionTypes: ["nav-forward"] });
+      router.replace("/results", { scroll: false, transitionTypes: ["nav-forward"] });
       return;
     }
 
@@ -43,7 +43,7 @@ export default function AnalyzingPage() {
               <Button
                 type="button"
                 className="h-12 flex-1 rounded-[18px] bg-primary text-white hover:bg-primary-container"
-                onClick={() => router.replace("/evaluar", { scroll: false, transitionTypes: ["nav-back"] })}
+                onClick={() => router.replace("/upload", { scroll: false, transitionTypes: ["nav-back"] })}
               >
                 <Camera className="h-4 w-4" />
                 Volver a subir fotos
@@ -54,7 +54,7 @@ export default function AnalyzingPage() {
                 className="h-12 flex-1 rounded-[18px] border-outline-variant bg-surface-container-lowest text-on-surface hover:bg-surface-container"
                 onClick={() => {
                   clearEvaluation();
-                  router.replace("/evaluar", { scroll: false, transitionTypes: ["nav-back"] });
+                  router.replace("/upload", { scroll: false, transitionTypes: ["nav-back"] });
                 }}
               >
                 Intentar de nuevo

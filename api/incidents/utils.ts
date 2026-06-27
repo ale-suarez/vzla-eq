@@ -13,25 +13,12 @@ export function optionalNumber(value: unknown) {
   return null;
 }
 
-export function mapAnalysisVerdictToDb(verdict: unknown) {
-  if (verdict === "SEGURO") return "low";
-  if (verdict === "PRECAUCION") return "moderate";
-  if (verdict === "PELIGRO") return "critical";
-  return null;
-}
-
+// The analysis pipeline and the DB enum share one verdict vocabulary
+// (`low | moderate | severe | critical`), so this is now a pure validator:
+// it returns the verdict unchanged when valid, otherwise null.
 export function normalizeDbVerdict(verdict: unknown) {
-  const mapped = mapAnalysisVerdictToDb(verdict);
-  if (mapped) return mapped;
   if (verdict === "low" || verdict === "moderate" || verdict === "severe" || verdict === "critical") {
     return verdict;
   }
   return null;
-}
-
-export function mapDbVerdictToUi(verdict: unknown) {
-  if (verdict === "low") return "SEGURO";
-  if (verdict === "moderate") return "PRECAUCION";
-  if (verdict === "critical") return "PELIGRO";
-  return "PRECAUCION";
 }
