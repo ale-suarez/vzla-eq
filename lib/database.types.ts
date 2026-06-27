@@ -100,6 +100,7 @@ export type Database = {
       };
       incidents: {
         Row: {
+          address: string | null;
           ai_verdict: Database["public"]["Enums"]["verdict_level"] | null;
           analysis_status: Database["public"]["Enums"]["analysis_status"];
           assigned_to: string | null;
@@ -123,6 +124,7 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          address?: string | null;
           ai_verdict?: Database["public"]["Enums"]["verdict_level"] | null;
           analysis_status?: Database["public"]["Enums"]["analysis_status"];
           assigned_to?: string | null;
@@ -146,6 +148,7 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          address?: string | null;
           ai_verdict?: Database["public"]["Enums"]["verdict_level"] | null;
           analysis_status?: Database["public"]["Enums"]["analysis_status"];
           assigned_to?: string | null;
