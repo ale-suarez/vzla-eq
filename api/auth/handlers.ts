@@ -69,7 +69,7 @@ export async function authMagicLinkPost(c: Context) {
   const { error } = await supabase.auth.signInWithOtp({
     email,
     options: {
-      emailRedirectTo: `${origin}/api/auth/callback?next=/dashboard`,
+      emailRedirectTo: `${origin}/auth/callback?next=/dashboard`,
     },
   });
 
@@ -78,6 +78,56 @@ export async function authMagicLinkPost(c: Context) {
   }
 
   return c.json({ message: "Te enviamos un enlace de acceso. Revisa tu correo." });
+}
+
+export async function authSessionPost(c: Context) {
+  if (!supabaseUrl || !supabasePublishableKey) {
+    return c.json({ error: "Servicio no configurado correctamente." }, 500);
+  }
+
+  let body: { access_token?: string; refresh_token?: string; next?: string };
+  try {
+    body = (await c.req.json()) as { access_token?: string; refresh_token?: string; next?: string };
+  } catch {
+    return c.json({ error: "Cuerpo inválido." }, 400);
+  }
+
+  const accessToken = String(body.access_token ?? "").trim();
+  const refreshToken = String(body.refresh_token ?? "").trim();
+  const next = String(body.next ?? "/dashboard").trim() || "/dashboard";
+
+  if (!accessToken || !refreshToken) {
+    return c.json({ error: "Sesión inválida." }, 400);
+  }
+
+  const headers = new Headers();
+  const supabase = createServerClient(supabaseUrl, supabasePublishableKey, {
+    cookies: {
+      getAll() {
+        return Object.entries(getCookie(c)).map(([name, value]) => ({ name, value }));
+      },
+      setAll(cookiesToSet, headersToSet) {
+        for (const [name, value] of Object.entries(headersToSet)) {
+          headers.set(name, value);
+        }
+
+        cookiesToSet.forEach(({ name, value, options }) => {
+          headers.append("Set-Cookie", generateCookie(name, value, options as never));
+        });
+      },
+    },
+  });
+
+  const { error } = await supabase.auth.setSession({
+    access_token: accessToken,
+    refresh_token: refreshToken,
+  });
+
+  if (error) {
+    return c.json({ error: error.message }, 400);
+  }
+
+  return c.json({ data: { authenticated: true, next } }, 200, Object.fromEntries(headers.entries()));
 }
 
 export async function authMeGet(c: Context) {
