@@ -1,8 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
+import { Hono } from "hono";
+import { handle } from "hono/vercel";
 import OpenAI from "openai";
 import sharp from "sharp";
 
 import { MAX_PHOTOS, type AnalysisResult, type PhotoResult, type VerdictLevel } from "@/lib/assessment";
+
+export const runtime = "nodejs";
+
+const app = new Hono().basePath("/api");
 
 const MODEL_FAST = "gpt-4.1-mini";
 const MODEL_STRONG = "gpt-4.1";
@@ -80,30 +85,27 @@ async function analyzeImage(
   return { verdict, confidence, finding };
 }
 
-export async function POST(req: NextRequest) {
+app.post("/analizar", async (c) => {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    return NextResponse.json(
-      { error: "Servicio no configurado correctamente." },
-      { status: 500 }
-    );
+    return c.json({ error: "Servicio no configurado correctamente." }, 500);
   }
 
   const client = new OpenAI({ apiKey });
 
   let files: File[];
   try {
-    const formData = await req.formData();
+    const formData = await c.req.raw.formData();
     files = formData.getAll("fotos") as File[];
   } catch {
-    return NextResponse.json({ error: "Error al leer el formulario." }, { status: 400 });
+    return c.json({ error: "Error al leer el formulario." }, 400);
   }
 
   if (!files || files.length === 0) {
-    return NextResponse.json({ error: "No se recibieron imágenes." }, { status: 400 });
+    return c.json({ error: "No se recibieron imágenes." }, 400);
   }
   if (files.length > MAX_PHOTOS) {
-    return NextResponse.json({ error: "Máximo 10 fotos por análisis." }, { status: 400 });
+    return c.json({ error: `Máximo ${MAX_PHOTOS} fotos por análisis.` }, 400);
   }
 
   const photoResults: PhotoResult[] = [];
@@ -117,6 +119,7 @@ export async function POST(req: NextRequest) {
     try {
       base64 = await resizeImage(original);
     } catch {
+      // If sharp fails (e.g. unsupported format), send original capped at 1MB
       base64 = original.slice(0, 1_000_000).toString("base64");
     }
 
@@ -131,6 +134,7 @@ export async function POST(req: NextRequest) {
     photoResults.push({ index: i, ...result, escalated });
   }
 
+  // Worst-case aggregation across all photos
   const worstPhoto = photoResults.reduce((worst, current) =>
     verdictSeverity(current.verdict) > verdictSeverity(worst.verdict)
       ? current
@@ -140,6 +144,7 @@ export async function POST(req: NextRequest) {
   const overallVerdict = worstPhoto.verdict;
   const overallConfidence = worstPhoto.confidence;
 
+  // Aggregate finding: if multiple photos, summarise; else use the single finding
   const overallFinding =
     photoResults.length === 1
       ? worstPhoto.finding
@@ -153,5 +158,7 @@ export async function POST(req: NextRequest) {
     showAuthorities: overallVerdict !== "SEGURO",
   };
 
-  return NextResponse.json(result);
-}
+  return c.json(result);
+});
+
+export const POST = handle(app);
