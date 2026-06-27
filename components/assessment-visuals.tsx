@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
-import { ViewTransition } from "react";
+import { ViewTransition, useSyncExternalStore } from "react";
 import type { ReactNode } from "react";
 
 import { RING_CIRCUMFERENCE } from "@/lib/assessment";
@@ -71,7 +71,29 @@ export function LoadingView() {
   );
 }
 
+// Hydration-safe "has the client mounted?" signal. Server snapshot is false,
+// client snapshot is true, so we can gate the experimental ViewTransition
+// without a setState-in-effect.
+const noopSubscribe = () => () => {};
+function useHydrated(): boolean {
+  return useSyncExternalStore(
+    noopSubscribe,
+    () => true,
+    () => false
+  );
+}
+
 export function RouteTransition({ children, className }: { children: ReactNode; className?: string }) {
+  const hydrated = useHydrated();
+
+  // React's experimental ViewTransition renders a Suspense boundary on the
+  // server but a plain wrapper on the client, which trips a hydration mismatch.
+  // Render a matching plain <div> on the server and first client paint, then
+  // swap in ViewTransition after mount so subsequent navigations animate.
+  if (!hydrated) {
+    return <div className={className}>{children}</div>;
+  }
+
   return (
     <ViewTransition
       enter={{
