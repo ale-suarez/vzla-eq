@@ -2,27 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import sharp from "sharp";
 
+import { MAX_PHOTOS, type AnalysisResult, type PhotoResult, type VerdictLevel } from "@/lib/assessment";
+
 const MODEL_FAST = "gpt-4.1-mini";
 const MODEL_STRONG = "gpt-4.1";
 const ESCALATION_CONFIDENCE_THRESHOLD = 70;
-
-type VerdictLevel = "SEGURO" | "PRECAUCION" | "PELIGRO";
-
-interface PhotoResult {
-  index: number;
-  verdict: VerdictLevel;
-  confidence: number;
-  finding: string;
-  escalated: boolean;
-}
-
-interface AnalysisResult {
-  verdict: VerdictLevel;
-  confidence: number;
-  finding: string;
-  perPhoto: PhotoResult[];
-  showAuthorities: boolean;
-}
 
 function verdictSeverity(v: VerdictLevel): number {
   return v === "PELIGRO" ? 2 : v === "PRECAUCION" ? 1 : 0;
@@ -118,7 +102,7 @@ export async function POST(req: NextRequest) {
   if (!files || files.length === 0) {
     return NextResponse.json({ error: "No se recibieron imágenes." }, { status: 400 });
   }
-  if (files.length > 10) {
+  if (files.length > MAX_PHOTOS) {
     return NextResponse.json({ error: "Máximo 10 fotos por análisis." }, { status: 400 });
   }
 
@@ -133,7 +117,6 @@ export async function POST(req: NextRequest) {
     try {
       base64 = await resizeImage(original);
     } catch {
-      // If sharp fails (e.g. unsupported format), send original capped at 1MB
       base64 = original.slice(0, 1_000_000).toString("base64");
     }
 
@@ -148,7 +131,6 @@ export async function POST(req: NextRequest) {
     photoResults.push({ index: i, ...result, escalated });
   }
 
-  // Worst-case aggregation across all photos
   const worstPhoto = photoResults.reduce((worst, current) =>
     verdictSeverity(current.verdict) > verdictSeverity(worst.verdict)
       ? current
@@ -158,7 +140,6 @@ export async function POST(req: NextRequest) {
   const overallVerdict = worstPhoto.verdict;
   const overallConfidence = worstPhoto.confidence;
 
-  // Aggregate finding: if multiple photos, summarise; else use the single finding
   const overallFinding =
     photoResults.length === 1
       ? worstPhoto.finding
