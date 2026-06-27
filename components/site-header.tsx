@@ -1,38 +1,40 @@
-import Link from "next/link";
-import { Building2, ChevronRight } from "lucide-react";
+"use client";
 
-import { cn } from "@/lib/utils";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Bell, ShieldCheck, UserCircle2 } from "lucide-react";
+
+// Routes that render their own bespoke header (the questionnaire and the
+// engineer backoffice). The shared citizen header is hidden on these.
+// Home (`/`) renders this same header, so it is intentionally not headerless.
+const HEADERLESS_ROUTES = ["/form", "/backoffice"];
 
 export function SiteHeader() {
+  const pathname = usePathname();
+
+  if (HEADERLESS_ROUTES.includes(pathname)) {
+    return null;
+  }
+
   return (
     <header style={{ viewTransitionName: "site-header" }} className="fixed left-0 right-0 top-0 z-50 bg-surface/90 backdrop-blur-md">
       <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between px-5">
-        <Link href="/" transitionTypes={["nav-back"]} className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-fixed text-primary">
-            <Building2 className="h-4 w-4" />
-          </div>
-          <div>
-            <h1 className="font-heading text-[15px] font-bold leading-none tracking-tight text-primary">Evaluación Estructural</h1>
-            <p className="mt-1 text-[11px] text-on-surface-variant">Venezuela · Respuesta al sismo</p>
-          </div>
+        <Link href="/" transitionTypes={["nav-back"]} className="flex items-center gap-2">
+          <ShieldCheck className="h-7 w-7 text-primary" />
+          <h1 className="font-heading text-[22px] font-bold tracking-tight text-primary">SafeStructure</h1>
         </Link>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          {/* TODO: wire to a notifications surface when one exists. */}
+          <button className="text-on-surface-variant transition-opacity hover:opacity-80" aria-label="Notificaciones">
+            <Bell className="h-6 w-6" />
+          </button>
           <Link
-            href="/"
-            transitionTypes={["nav-back"]}
-            className={cn(
-              "hidden h-9 items-center rounded-full border border-outline-variant bg-surface-container-lowest px-3 text-sm font-semibold text-on-surface transition-colors hover:bg-surface-container sm:inline-flex"
-            )}
-          >
-            Inicio
-          </Link>
-          <Link
-            href="/evaluar"
+            href="/backoffice"
             transitionTypes={["nav-forward"]}
-            className="inline-flex h-9 items-center gap-1 rounded-full bg-primary px-3 text-sm font-semibold text-white transition-colors hover:bg-primary-container"
+            className="text-on-surface-variant transition-opacity hover:opacity-80"
+            aria-label="Acceso profesional"
           >
-            Evaluar
-            <ChevronRight className="h-3.5 w-3.5" />
+            <UserCircle2 className="h-6 w-6" />
           </Link>
         </div>
       </div>

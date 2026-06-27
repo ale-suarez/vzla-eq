@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>Incident Monitor - Mobile Backoffice</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Inter:wght@400;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-fixed-dim": "#ffb95f",
+                    "primary-fixed-dim": "#b4c5ff",
+                    "on-surface": "#191b23",
+                    "inverse-primary": "#b4c5ff",
+                    "tertiary": "#784b00",
+                    "secondary-fixed": "#7ffc97",
+                    "secondary-container": "#7cf994",
+                    "on-tertiary": "#ffffff",
+                    "surface-container-lowest": "#ffffff",
+                    "error": "#ba1a1a",
+                    "surface-container-high": "#e7e7f3",
+                    "surface-variant": "#e1e2ed",
+                    "primary": "#004ac6",
+                    "primary-container": "#2563eb",
+                    "on-error": "#ffffff",
+                    "on-error-container": "#93000a",
+                    "on-primary": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "on-secondary-fixed-variant": "#005320",
+                    "on-primary-container": "#eeefff",
+                    "surface-bright": "#faf8ff",
+                    "secondary": "#006e2d",
+                    "surface-dim": "#d9d9e5",
+                    "on-tertiary-container": "#ffeedd",
+                    "surface": "#faf8ff",
+                    "on-secondary": "#ffffff",
+                    "surface-container-highest": "#e1e2ed",
+                    "on-tertiary-fixed": "#2a1700",
+                    "secondary-fixed-dim": "#62df7d",
+                    "on-primary-fixed-variant": "#003ea8",
+                    "surface-tint": "#0053db",
+                    "tertiary-fixed": "#ffddb8",
+                    "on-tertiary-fixed-variant": "#653e00",
+                    "on-secondary-container": "#007230",
+                    "surface-container-low": "#f3f3fe",
+                    "background": "#faf8ff",
+                    "on-primary-fixed": "#00174b",
+                    "outline-variant": "#c3c6d7",
+                    "primary-fixed": "#dbe1ff",
+                    "inverse-surface": "#2e3039",
+                    "tertiary-container": "#996100",
+                    "on-surface-variant": "#434655",
+                    "outline": "#737686",
+                    "inverse-on-surface": "#f0f0fb",
+                    "on-background": "#191b23",
+                    "surface-container": "#ededf9",
+                    "on-secondary-fixed": "#002109"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px",
+                    "assessment": "18px"
+            },
+            "spacing": {
+                    "margin-mobile": "20px",
+                    "stack-md": "16px",
+                    "stack-lg": "24px",
+                    "gutter": "16px",
+                    "stack-sm": "8px",
+                    "section-gap": "32px",
+                    "base": "4px"
+            },
+            "fontFamily": {
+                    "headline-sm": ["Plus Jakarta Sans"],
+                    "headline-md": ["Plus Jakarta Sans"],
+                    "body-md": ["Inter"],
+                    "display-lg": ["Plus Jakarta Sans"],
+                    "display-lg-mobile": ["Plus Jakarta Sans"],
+                    "label-caps": ["Inter"],
+                    "body-lg": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+                    "headline-md": ["22px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "display-lg": ["30px", {"lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "display-lg-mobile": ["26px", {"lineHeight": "32px", "fontWeight": "700"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .soft-shadow {
+            box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.05);
+        }
+        .active-tab-indicator {
+            position: relative;
+        }
+        .active-tab-indicator::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 4px;
+            background-color: #004ac6;
+            border-radius: 50%;
+        }
+        .view-transition {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body-md min-h-screen pb-24 overflow-x-hidden">
+<!-- Top AppBar (JSON Defined) -->
+<header class="w-full top-0 sticky z-50 bg-surface flex items-center justify-between px-margin-mobile h-[64px] border-b border-outline-variant">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-[28px]">analytics</span>
+<h1 class="font-headline-md text-headline-md font-bold text-primary">Incident Monitor</h1>
+</div>
+<div class="flex items-center">
+<div class="w-10 h-10 rounded-full border-2 border-primary overflow-hidden cursor-pointer active:opacity-80 transition-colors hover:bg-surface-container-high">
+<img class="w-full h-full object-cover" data-alt="A professional headshot of a female structural safety engineer wearing a smart white collared shirt, set against a blurred modern architectural office background with soft daylight. The lighting is crisp and professional, reflecting a high-end corporate light-mode design aesthetic with a palette of soft whites and blues." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9yo4c9bN5WzQeyWVAdQcmJPDbVa7TBjKqdX2YOYX1Uwiqsc_AA0amflu3RgIPwVICuIewDT26MX7KQ0CjkjCzByf7pKGlCDhgFP9Ie6JCJudbWRD1yq_rORRJkm-TDMNBX3olm13oQcL-6ZMRg7Wsuublx1KEC5mcBWU0HtD0GhCcNr6o0JpcIh0aTjyhWNQOate8JWXD0UKWO0lmE_WodJaxSRnkJGjfEk0cjZicXvAE3DrLON9dKg20_iUq3LuX8IEZGRfsxVo"/>
+</div>
+</div>
+</header>
+<!-- View Switcher & Filter -->
+<section class="px-margin-mobile pt-stack-lg pb-stack-md bg-surface">
+<div class="flex flex-col gap-stack-md">
+<!-- Segmented Control -->
+<div class="bg-surface-container-low p-1 rounded-full flex w-full border border-outline-variant">
+<button class="flex-1 py-3 px-4 rounded-full font-label-caps text-label-caps transition-all flex items-center justify-center gap-2 bg-primary text-on-primary" id="btn-map" onclick="toggleView('map')">
+<span class="material-symbols-outlined text-[18px]">map</span>
+                    MAP
+                </button>
+<button class="flex-1 py-3 px-4 rounded-full font-label-caps text-label-caps transition-all flex items-center justify-center gap-2 text-on-surface-variant hover:bg-surface-container-high" id="btn-list" onclick="toggleView('list')">
+<span class="material-symbols-outlined text-[18px]">format_list_bulleted</span>
+                    LIST
+                </button>
+</div>
+<!-- Quick Stats/Search -->
+<div class="flex items-center justify-between">
+<span class="font-headline-sm text-headline-sm text-on-surface">Active Incidents</span>
+<div class="flex gap-2">
+<button class="w-10 h-10 flex items-center justify-center rounded-full border border-outline-variant text-on-surface-variant active:bg-surface-container-high">
+<span class="material-symbols-outlined">filter_list</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full border border-outline-variant text-on-surface-variant active:bg-surface-container-high">
+<span class="material-symbols-outlined">search</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Main Content Area -->
+<main class="relative h-[calc(100vh-240px)] min-h-[500px]">
+<!-- MAP VIEW -->
+<div class="absolute inset-0 w-full h-full view-transition opacity-100 scale-100 z-10" id="view-map">
+<!-- Simulated Map Canvas -->
+<div class="w-full h-full relative overflow-hidden bg-surface-container-high">
+<!-- Map Background Image -->
+<div class="w-full h-full bg-cover bg-center opacity-80 filter brightness-105" data-location="Madrid" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuArfwK0KtZGTYxtVuodr92ac0aRUsDWvsR8MsroMdOQVzP2AjftxgVXZyHDJGgkAfbkxxOBwk9JyO-v89L6AS3YhF6RD7xmXWyhMm_56UuHPFCWcxEvCPoUUu5HhP7-g5dzeA4n9HhaJJi6ku6dZZ9hHkr4OBKqNqK8qOnGrwPjJ5eoAfPCMz1Q3uDHsNjnGySqHIp82Ec6InmE1LunOEdhomLZaCVw3JNqvsWUurW5DXvrvev8h2rxOBpQKjHym0uxh9UMd1kKPh4')"></div>
+<!-- Markers -->
+<!-- High Priority Marker -->
+<div class="absolute top-[30%] left-[25%] flex flex-col items-center group cursor-pointer animate-bounce" style="animation-duration: 2s;">
+<div class="bg-error-container text-on-error-container px-3 py-1 rounded-full text-[10px] font-bold mb-1 soft-shadow border border-error/20">
+                        URGENT
+                    </div>
+<div class="w-10 h-10 bg-error rounded-full flex items-center justify-center text-white soft-shadow border-4 border-white">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">warning</span>
+</div>
+</div>
+<!-- Cluster Marker -->
+<div class="absolute top-[55%] left-[60%] flex flex-col items-center">
+<div class="w-14 h-14 bg-primary rounded-full flex items-center justify-center text-on-primary font-bold text-lg soft-shadow border-4 border-white/50 backdrop-blur-sm">
+                        24
+                    </div>
+</div>
+<!-- Moderate Marker -->
+<div class="absolute top-[20%] left-[70%] flex flex-col items-center">
+<div class="bg-tertiary-fixed text-on-tertiary-fixed px-3 py-1 rounded-full text-[10px] font-bold mb-1 soft-shadow">
+                        STABLE
+                    </div>
+<div class="w-8 h-8 bg-tertiary-container rounded-full flex items-center justify-center text-white soft-shadow border-4 border-white">
+<span class="material-symbols-outlined text-[16px]">apartment</span>
+</div>
+</div>
+<!-- Floating Zoom Controls -->
+<div class="absolute bottom-6 right-6 flex flex-col gap-2">
+<button class="w-12 h-12 bg-white rounded-xl soft-shadow flex items-center justify-center text-primary active:bg-surface-container-high">
+<span class="material-symbols-outlined">add</span>
+</button>
+<button class="w-12 h-12 bg-white rounded-xl soft-shadow flex items-center justify-center text-primary active:bg-surface-container-high">
+<span class="material-symbols-outlined">remove</span>
+</button>
+</div>
+<!-- Current Location Marker -->
+<div class="absolute bottom-10 left-10 w-12 h-12 bg-primary-container rounded-full soft-shadow flex items-center justify-center text-white active:scale-95 transition-transform">
+<span class="material-symbols-outlined">my_location</span>
+</div>
+</div>
+</div>
+<!-- LIST VIEW -->
+<div class="absolute inset-0 w-full h-full view-transition opacity-0 pointer-events-none translate-y-8 px-margin-mobile overflow-y-auto bg-surface" id="view-list">
+<div class="flex flex-col gap-stack-lg py-stack-md">
+<!-- Assessment Card 1 -->
+<div class="bg-white rounded-assessment soft-shadow p-stack-md border border-error-container/30 flex flex-col gap-3 relative overflow-hidden">
+<div class="absolute top-0 right-0 w-24 h-24 bg-error/5 rounded-full -mr-8 -mt-8"></div>
+<div class="flex justify-between items-start relative">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-error-container rounded-lg flex items-center justify-center text-error">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">report_problem</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface leading-tight">Retiro North Wing</h3>
+<p class="text-on-surface-variant text-[12px]">Updated 12m ago • ID: 89021</p>
+</div>
+</div>
+<span class="bg-error text-on-error px-3 py-1 rounded-full text-[10px] font-bold">URGENT</span>
+</div>
+<p class="text-body-md text-on-surface-variant">Visible stress fractures in support columns B4-B7. Immediate evacuation recommended for sector 3.</p>
+<div class="flex items-center justify-between pt-2 border-t border-outline-variant">
+<div class="flex -space-x-2">
+<div class="w-8 h-8 rounded-full border-2 border-white bg-primary-fixed flex items-center justify-center text-[10px] font-bold">JD</div>
+<div class="w-8 h-8 rounded-full border-2 border-white bg-tertiary-fixed flex items-center justify-center text-[10px] font-bold">SK</div>
+</div>
+<button class="text-primary font-label-caps text-label-caps flex items-center gap-1">VIEW DETAILS <span class="material-symbols-outlined text-[16px]">chevron_right</span></button>
+</div>
+</div>
+<!-- Assessment Card 2 -->
+<div class="bg-white rounded-assessment soft-shadow p-stack-md border border-outline-variant/30 flex flex-col gap-3">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-surface-container-high rounded-lg flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">engineering</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface leading-tight">Plaza Major Vaults</h3>
+<p class="text-on-surface-variant text-[12px]">Updated 2h ago • ID: 88912</p>
+</div>
+</div>
+<span class="bg-surface-container-high text-on-surface-variant px-3 py-1 rounded-full text-[10px] font-bold">MONITORING</span>
+</div>
+<p class="text-body-md text-on-surface-variant">Moisture sensors triggered in subterranean storage areas. Level 2 moisture ingress detected.</p>
+<div class="flex items-center justify-between pt-2 border-t border-outline-variant">
+<div class="flex items-center gap-1 text-on-tertiary-fixed-variant">
+<span class="material-symbols-outlined text-[14px]">history</span>
+<span class="text-[10px] font-bold">RE-ASSESS IN 4H</span>
+</div>
+<button class="text-primary font-label-caps text-label-caps flex items-center gap-1">VIEW DETAILS <span class="material-symbols-outlined text-[16px]">chevron_right</span></button>
+</div>
+</div>
+<!-- Assessment Card 3 -->
+<div class="bg-secondary-container/10 rounded-assessment soft-shadow p-stack-md border border-secondary-container/30 flex flex-col gap-3">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-secondary-container rounded-lg flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined">check_circle</span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface leading-tight">Bernabéu Structural</h3>
+<p class="text-on-surface-variant text-[12px]">Updated 5h ago • ID: 88764</p>
+</div>
+</div>
+<span class="bg-secondary text-on-secondary px-3 py-1 rounded-full text-[10px] font-bold">SECURE</span>
+</div>
+<p class="text-body-md text-on-surface-variant">Annual safety review completed. All stress tolerances within nominal limits. Confidence 98%.</p>
+<div class="flex items-center justify-between pt-2 border-t border-outline-variant">
+<div class="flex items-center gap-2">
+<div class="w-5 h-5 rounded-full border-2 border-secondary border-t-transparent animate-spin"></div>
+<span class="text-[10px] text-on-surface-variant">Generating Report</span>
+</div>
+<button class="text-primary font-label-caps text-label-caps flex items-center gap-1">VIEW DETAILS <span class="material-symbols-outlined text-[16px]">chevron_right</span></button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- FAB: Create New Incident -->
+<button class="fixed bottom-[100px] right-margin-mobile w-14 h-14 bg-primary text-on-primary rounded-full soft-shadow flex items-center justify-center z-40 active:scale-90 transition-transform active:bg-primary-container">
+<span class="material-symbols-outlined text-[32px]">add</span>
+</button>
+<!-- Bottom Navigation Shell (JSON Mapping) -->
+<nav class="fixed bottom-0 w-full h-[84px] bg-surface flex justify-around items-center px-4 pb-safe border-t border-outline-variant shadow-sm z-50">
+<!-- Home -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant scale-95 active:scale-100 transition-transform">
+<span class="material-symbols-outlined text-[24px]">home</span>
+<span class="font-label-caps text-[10px] mt-1">HOME</span>
+</button>
+<!-- New (Active for map view context) -->
+<button class="flex flex-col items-center justify-center text-primary relative after:content-[''] after:absolute after:bottom-[-4px] after:w-1 after:h-1 after:bg-primary after:rounded-full scale-95 active:scale-100 transition-transform" id="nav-new">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">list_alt</span>
+<span class="font-label-caps text-[10px] mt-1">NEW</span>
+</button>
+<!-- Assigned -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant scale-95 active:scale-100 transition-transform">
+<span class="material-symbols-outlined text-[24px]">person_check</span>
+<span class="font-label-caps text-[10px] mt-1">ASSIGNED</span>
+</button>
+<!-- Stats -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-surface-variant scale-95 active:scale-100 transition-transform">
+<span class="material-symbols-outlined text-[24px]">bar_chart</span>
+<span class="font-label-caps text-[10px] mt-1">STATS</span>
+</button>
+</nav>
+<!-- UI Logic Scripts -->
+<script>
+        function toggleView(view) {
+            const mapView = document.getElementById('view-map');
+            const listView = document.getElementById('view-list');
+            const btnMap = document.getElementById('btn-map');
+            const btnList = document.getElementById('btn-list');
+
+            if (view === 'map') {
+                // Map Active State
+                mapView.classList.remove('opacity-0', 'pointer-events-none', 'scale-105');
+                mapView.classList.add('opacity-100', 'scale-100');
+                
+                listView.classList.remove('opacity-100', 'translate-y-0');
+                listView.classList.add('opacity-0', 'pointer-events-none', 'translate-y-8');
+                
+                btnMap.classList.add('bg-primary', 'text-on-primary');
+                btnMap.classList.remove('text-on-surface-variant');
+                btnList.classList.remove('bg-primary', 'text-on-primary');
+                btnList.classList.add('text-on-surface-variant');
+            } else {
+                // List Active State
+                listView.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-8');
+                listView.classList.add('opacity-100', 'translate-y-0');
+                
+                mapView.classList.remove('opacity-100', 'scale-100');
+                mapView.classList.add('opacity-0', 'pointer-events-none', 'scale-105');
+                
+                btnList.classList.add('bg-primary', 'text-on-primary');
+                btnList.classList.remove('text-on-surface-variant');
+                btnMap.classList.remove('bg-primary', 'text-on-primary');
+                btnMap.classList.add('text-on-surface-variant');
+            }
+        }
+
+        // Haptic-like micro-interaction
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (window.navigator.vibrate) window.navigator.vibrate(5);
+            });
+        });
+    </script>
+</body></html>

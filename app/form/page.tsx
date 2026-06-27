@@ -1,0 +1,198 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, ArrowRight, MapPin, Phone, TriangleAlert } from "lucide-react";
+import { motion } from "framer-motion";
+
+import { Button } from "@/components/ui/button";
+import { useAssessment } from "@/components/assessment-provider";
+import { RouteTransition } from "@/components/assessment-visuals";
+import { EMPTY_FORM_ANSWERS, FORM_QUESTIONS, isFormComplete, type FormQuestion } from "@/lib/assessment";
+import { cn } from "@/lib/utils";
+
+function OptionChip({
+  selected,
+  variant,
+  children,
+  onClick,
+}: {
+  selected: boolean;
+  variant: FormQuestion["variant"];
+  children: React.ReactNode;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "cursor-pointer border text-sm transition-all active:scale-95",
+        variant === "compact"
+          ? "flex h-10 min-w-10 items-center justify-center rounded-full px-3"
+          : variant === "stacked"
+            ? "w-full rounded-[12px] px-4 py-3 text-left"
+            : "rounded-full px-4 py-2",
+        selected
+          ? "border-primary-container bg-primary-container text-white"
+          : "border-outline-variant bg-surface-container-lowest text-on-surface hover:bg-surface-container-low"
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+export default function FormPage() {
+  const router = useRouter();
+  const { form, hydrated, setFormField, setFormQuestion } = useAssessment();
+
+  // Until the client has rehydrated cached answers from sessionStorage, render
+  // the empty form so the first paint matches the server HTML (no hydration
+  // mismatch). After mount, `form` carries any restored answers.
+  const displayForm = hydrated ? form : EMPTY_FORM_ANSWERS;
+  const complete = isFormComplete(displayForm);
+
+  const handleContinue = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    if (!complete) {
+      return;
+    }
+    router.push("/upload", { scroll: false, transitionTypes: ["nav-forward"] });
+  };
+
+  return (
+    <RouteTransition className="pt-14">
+      <header className="fixed left-0 right-0 top-0 z-50 bg-surface/90 backdrop-blur-md">
+        <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between px-5">
+          <Link
+            href="/"
+            transitionTypes={["nav-back"]}
+            className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container"
+            aria-label="Volver"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+          <h1 className="font-heading text-[18px] font-semibold tracking-tight text-primary">Nueva Evaluación</h1>
+          <div className="w-10" />
+        </div>
+      </header>
+
+      <motion.form
+        key="form"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -12 }}
+        transition={{ duration: 0.25, ease: "easeOut" }}
+        onSubmit={handleContinue}
+        className="mx-auto w-full max-w-2xl px-5 pb-40 pt-6"
+      >
+        <section className="mb-8 text-center">
+          <h2 className="font-heading text-[22px] font-semibold leading-7 text-on-surface">Cuéntanos un poco sobre el lugar</h2>
+          <p className="mt-1 text-sm leading-5 text-on-surface-variant">Tus respuestas nos ayudan a darte una mejor recomendación.</p>
+        </section>
+
+        <div className="space-y-6">
+          {/* Contacto y ubicación */}
+          <div className="soft-card space-y-4 rounded-[18px] p-4">
+            <div className="flex items-center gap-2">
+              <MapPin className="h-5 w-5 text-primary" />
+              <p className="font-heading text-base font-semibold text-on-surface">Contacto y ubicación</p>
+            </div>
+
+            <label className="block space-y-1.5">
+              <span className="text-sm font-medium text-on-surface-variant">Teléfono</span>
+              <div className="flex items-center gap-2 rounded-[12px] border border-outline-variant bg-surface-container-lowest px-3 focus-within:border-primary">
+                <Phone className="h-4 w-4 text-on-surface-variant" />
+                <input
+                  type="tel"
+                  inputMode="tel"
+                  value={displayForm.phone}
+                  onChange={(e) => setFormField("phone", e.target.value)}
+                  placeholder="0414 123 4567"
+                  className="h-11 w-full bg-transparent text-sm text-on-surface outline-none placeholder:text-outline"
+                />
+              </div>
+            </label>
+
+            <label className="block space-y-1.5">
+              <span className="text-sm font-medium text-on-surface-variant">Dirección</span>
+              <input
+                type="text"
+                value={displayForm.address}
+                onChange={(e) => setFormField("address", e.target.value)}
+                placeholder="Calle, sector, ciudad"
+                className="h-11 w-full rounded-[12px] border border-outline-variant bg-surface-container-lowest px-3 text-sm text-on-surface outline-none placeholder:text-outline focus:border-primary"
+              />
+            </label>
+          </div>
+
+          {/* Sección: sobre el edificio */}
+          {FORM_QUESTIONS.slice(0, 3).map((q) => (
+            <QuestionCard key={q.id} question={q} value={displayForm.questions[q.id]} onSelect={(v) => setFormQuestion(q.id, v)} />
+          ))}
+
+          {/* OJO warning */}
+          <div className="flex gap-4 rounded-[18px] border border-error-container bg-[#FEF2F2] p-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-destructive text-white">
+              <TriangleAlert className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="font-heading text-base font-semibold text-destructive">¡OJO!</h3>
+              <p className="text-sm leading-snug text-on-error-container">
+                Si el edificio está inclinado, tiene pisos aplastados o paredes caídas, <strong>no entres</strong>. Escríbenos de inmediato.
+              </p>
+            </div>
+          </div>
+
+          {FORM_QUESTIONS.slice(3).map((q) => (
+            <QuestionCard key={q.id} question={q} value={displayForm.questions[q.id]} onSelect={(v) => setFormQuestion(q.id, v)} />
+          ))}
+        </div>
+      </motion.form>
+
+      {/* Sticky footer */}
+      <div className="fixed bottom-0 left-0 z-40 w-full bg-surface px-5 pb-8 pt-4 shadow-[0px_-4px_20px_rgba(0,0,0,0.05)]">
+        <div className="mx-auto w-full max-w-2xl">
+          <Button
+            type="button"
+            onClick={handleContinue}
+            disabled={!complete}
+            className={cn(
+              "h-14 w-full rounded-[18px] text-base font-bold transition-all",
+              complete
+                ? "bg-primary text-white shadow-[0px_4px_20px_rgba(37,99,235,0.24)] hover:bg-primary-container"
+                : "bg-outline text-on-primary-fixed-variant opacity-50"
+            )}
+          >
+            Continuar
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    </RouteTransition>
+  );
+}
+
+function QuestionCard({
+  question,
+  value,
+  onSelect,
+}: {
+  question: FormQuestion;
+  value: string | undefined;
+  onSelect: (value: string) => void;
+}) {
+  return (
+    <div className="soft-card rounded-[18px] p-4">
+      <p className="mb-3 font-heading text-base font-semibold text-on-surface">{question.question}</p>
+      <div className={cn(question.variant === "stacked" ? "flex flex-col gap-2" : "flex flex-wrap gap-2")}>
+        {question.options.map((option) => (
+          <OptionChip key={option} selected={value === option} variant={question.variant} onClick={() => onSelect(option)}>
+            {option}
+          </OptionChip>
+        ))}
+      </div>
+    </div>
+  );
+}

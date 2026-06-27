@@ -59,6 +59,7 @@
   --color-tertiary-container: var(--tertiary-container);
   --color-tertiary-fixed: var(--tertiary-fixed);
   --color-on-tertiary-container: var(--on-tertiary-container);
+  --color-error: var(--error);
   --color-error-container: var(--error-container);
   --color-on-error-container: var(--on-error-container);
   --radius-sm: calc(var(--radius) * 0.6);
@@ -186,6 +187,11 @@
     background: var(--surface-container-lowest);
     border: 1px solid color-mix(in srgb, var(--surface-container) 70%, white);
     box-shadow: 0 4px 20px rgb(0 0 0 / 0.05);
+  }
+
+  .map-grid {
+    background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+    background-size: 24px 24px;
   }
 
   .upload-dashed {
