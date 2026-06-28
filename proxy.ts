@@ -49,7 +49,7 @@ async function resolveRole(request: NextRequest, response: NextResponse) {
     return { role: "admin" as const };
   }
 
-  const { data: reviewer } = await adminClient.from("reviewer_users").select("user_id").eq("user_id", user.id).maybeSingle();
+  const { data: reviewer } = await adminClient.from("reviewer_users").select("id").eq("id", user.id).maybeSingle();
 
   if (reviewer) {
     return { role: "reviewer" as const };

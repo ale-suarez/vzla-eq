@@ -46,8 +46,8 @@ export async function getSessionContext(): Promise<SessionContext> {
 
   const { data: reviewer } = await adminSupabase
     .from("reviewer_users")
-    .select("user_id")
-    .eq("user_id", user.id)
+    .select("id")
+    .eq("id", user.id)
     .maybeSingle();
 
   if (reviewer) {

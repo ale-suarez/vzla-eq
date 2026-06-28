@@ -62,7 +62,7 @@ export async function authCallbackGet(c: Context) {
     const adminSupabase = createSupabaseAdminClient();
 
     const { data: admin } = await adminSupabase.from("admin_users").select("id").eq("id", user.id).maybeSingle();
-    const { data: reviewer } = await adminSupabase.from("reviewer_users").select("user_id").eq("user_id", user.id).maybeSingle();
+    const { data: reviewer } = await adminSupabase.from("reviewer_users").select("id").eq("id", user.id).maybeSingle();
     const { data: engineerByUserId } = await adminSupabase
       .from("engineers")
       .select("id, is_certified, user_id, email")
