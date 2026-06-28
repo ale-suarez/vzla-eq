@@ -3,12 +3,27 @@
 import type { ReactNode } from "react";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
-import type { AnalysisResult, FormAnswers } from "@/lib/assessment";
-import { ASSESSMENT_STORAGE_KEY, EMPTY_FORM_ANSWERS, MAX_FILE_SIZE_MB, MAX_PHOTOS } from "@/lib/assessment";
+import type { AnalysisResult, FormAnswers, GuideType, PhotoMeta, ViewType } from "@/lib/assessment";
+import {
+  ASSESSMENT_STORAGE_KEY,
+  EMPTY_FORM_ANSWERS,
+  MAX_FILE_SIZE_MB,
+  MAX_SUPPLEMENTARY,
+  TRIAD_SLOTS,
+} from "@/lib/assessment";
+
+/** One captured photo: the file, its meta (tier/type), and a preview URL. */
+export type PhotoEntry = {
+  file: File;
+  meta: PhotoMeta;
+  preview: string;
+};
 
 type AssessmentState = {
-  photos: File[];
-  previews: string[];
+  /** Triad photos keyed by view type; a slot is empty until filled. */
+  triad: Partial<Record<ViewType, PhotoEntry>>;
+  /** Optional supplementary photos, in capture order. */
+  supplementary: PhotoEntry[];
   loading: boolean;
   result: AnalysisResult | null;
   error: string | null;
@@ -19,8 +34,13 @@ type AssessmentState = {
 type AssessmentContextValue = AssessmentState & {
   /** True once the client has mounted and rehydrated from sessionStorage. */
   hydrated: boolean;
-  addPhotos: (files: FileList | File[] | null) => void;
-  removePhoto: (index: number) => void;
+  /** Ordered list of every photo (triad first, then supplementary). */
+  allPhotos: PhotoEntry[];
+  /** True when all three triad slots are filled (required to submit). */
+  triadComplete: boolean;
+  setTriadPhoto: (view: ViewType, file: File | null) => void;
+  addSupplementary: (type: GuideType, file: File | null) => void;
+  removeSupplementary: (index: number) => void;
   clearEvaluation: () => void;
   selectPhotoIndex: (index: number) => void;
   setError: (value: string | null) => void;
@@ -76,9 +96,13 @@ function readStoredState(): StoredState {
   }
 }
 
+function isAcceptableImage(file: File): boolean {
+  return file.type.startsWith("image/") && file.size <= MAX_FILE_SIZE_MB * 1024 * 1024;
+}
+
 export function AssessmentProvider({ children }: { children: ReactNode }) {
-  const [photos, setPhotos] = useState<File[]>([]);
-  const [previews, setPreviews] = useState<string[]>([]);
+  const [triad, setTriad] = useState<Partial<Record<ViewType, PhotoEntry>>>({});
+  const [supplementary, setSupplementary] = useState<PhotoEntry[]>([]);
   const [loading, setLoading] = useState(false);
   // Lazy initializers read sessionStorage exactly once on the client (and
   // return empty on the server). Consumers that render storage-derived UI gate
@@ -102,11 +126,25 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
     setForm((current) => ({ ...current, questions: { ...current.questions, [questionId]: value } }));
   }, []);
 
+  // Revoke every object URL on unmount. Mutating callbacks revoke replaced/
+  // removed previews individually as they go.
+  const allPhotos = useMemo<PhotoEntry[]>(() => {
+    const triadEntries = TRIAD_SLOTS.flatMap((slot) => {
+      const entry = triad[slot.type];
+      return entry ? [entry] : [];
+    });
+    return [...triadEntries, ...supplementary];
+  }, [triad, supplementary]);
+
+  const allPhotosRef = useRef(allPhotos);
+  useEffect(() => {
+    allPhotosRef.current = allPhotos;
+  }, [allPhotos]);
   useEffect(() => {
     return () => {
-      previews.forEach((preview) => URL.revokeObjectURL(preview));
+      allPhotosRef.current.forEach((entry) => URL.revokeObjectURL(entry.preview));
     };
-  }, [previews]);
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -129,57 +167,66 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
   }, [error, form, result, selectedPhotoIndex]);
 
   const clearPhotos = useCallback(() => {
-    setPhotos([]);
-    setPreviews((current) => {
-      current.forEach((preview) => URL.revokeObjectURL(preview));
+    setTriad((current) => {
+      Object.values(current).forEach((entry) => entry && URL.revokeObjectURL(entry.preview));
+      return {};
+    });
+    setSupplementary((current) => {
+      current.forEach((entry) => URL.revokeObjectURL(entry.preview));
       return [];
     });
     setSelectedPhotoIndex(0);
   }, []);
 
-  const addPhotos = useCallback((files: FileList | File[] | null) => {
-    if (!files) {
-      return;
-    }
-
-    const validFiles: File[] = [];
-    const newPreviews: string[] = [];
-
-    Array.from(files).forEach((file) => {
-      if (!file.type.startsWith("image/")) {
-        return;
-      }
-
-      if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-        return;
-      }
-
-      validFiles.push(file);
-      newPreviews.push(URL.createObjectURL(file));
-    });
-
-    if (validFiles.length === 0) {
+  // Sets (or clears, when file is null) the photo for a triad slot. Replacing a
+  // slot revokes the old preview.
+  const setTriadPhoto = useCallback((view: ViewType, file: File | null) => {
+    if (file && !isAcceptableImage(file)) {
+      setError(`La imagen debe ser válida y pesar menos de ${MAX_FILE_SIZE_MB} MB.`);
       return;
     }
 
     setError(null);
     setResult(null);
     setSelectedPhotoIndex(0);
-    setPhotos((current) => [...current, ...validFiles].slice(0, MAX_PHOTOS));
-    setPreviews((current) => [...current, ...newPreviews].slice(0, MAX_PHOTOS));
-  }, []);
-
-  const removePhoto = useCallback((index: number) => {
-    setPhotos((current) => current.filter((_, currentIndex) => currentIndex !== index));
-    setPreviews((current) => {
-      const next = current.filter((preview, currentIndex) => {
-        if (currentIndex === index) {
-          URL.revokeObjectURL(preview);
-        }
-        return currentIndex !== index;
-      });
+    setTriad((current) => {
+      const previous = current[view];
+      if (previous) URL.revokeObjectURL(previous.preview);
+      const next = { ...current };
+      if (file) {
+        next[view] = { file, meta: { tier: "triad", type: view }, preview: URL.createObjectURL(file) };
+      } else {
+        delete next[view];
+      }
       return next;
     });
+  }, []);
+
+  const addSupplementary = useCallback((type: GuideType, file: File | null) => {
+    if (!file) return;
+    if (!isAcceptableImage(file)) {
+      setError(`La imagen debe ser válida y pesar menos de ${MAX_FILE_SIZE_MB} MB.`);
+      return;
+    }
+
+    setError(null);
+    setResult(null);
+    setSupplementary((current) => {
+      if (current.length >= MAX_SUPPLEMENTARY) return current;
+      return [
+        ...current,
+        { file, meta: { tier: "supplementary", type }, preview: URL.createObjectURL(file) },
+      ];
+    });
+  }, []);
+
+  const removeSupplementary = useCallback((index: number) => {
+    setSupplementary((current) =>
+      current.filter((entry, currentIndex) => {
+        if (currentIndex === index) URL.revokeObjectURL(entry.preview);
+        return currentIndex !== index;
+      }),
+    );
     setSelectedPhotoIndex((current) => (current > 0 ? current - 1 : 0));
   }, []);
 
@@ -192,15 +239,22 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
     inFlightRef.current = null;
   }, [clearPhotos]);
 
+  const triadComplete = useMemo(
+    () => TRIAD_SLOTS.every((slot) => Boolean(triad[slot.type])),
+    [triad],
+  );
+
   const runAnalysis = useCallback(async () => {
     if (inFlightRef.current) {
       return inFlightRef.current;
     }
 
-    if (photos.length === 0) {
-      setError("Por favor suba al menos una foto.");
+    if (!triadComplete) {
+      setError("Sube las tres vistas requeridas antes de analizar.");
       return null;
     }
+
+    const photos = allPhotos;
 
     const request = (async () => {
       setLoading(true);
@@ -208,7 +262,8 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
 
       try {
         const formData = new FormData();
-        photos.forEach((photo) => formData.append("fotos", photo));
+        photos.forEach((entry) => formData.append("fotos", entry.file));
+        formData.append("photo_meta", JSON.stringify(photos.map((entry) => entry.meta)));
         // Only the questionnaire answers go to the LLM (no phone/address).
         formData.append("form", JSON.stringify({ questions: form.questions }));
 
@@ -237,20 +292,23 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
 
     inFlightRef.current = request;
     return request;
-  }, [form, photos]);
+  }, [allPhotos, form, triadComplete]);
 
   const value = useMemo<AssessmentContextValue>(
     () => ({
-      photos,
-      previews,
+      triad,
+      supplementary,
+      allPhotos,
+      triadComplete,
       loading,
       result,
       error,
       selectedPhotoIndex,
       form,
       hydrated,
-      addPhotos,
-      removePhoto,
+      setTriadPhoto,
+      addSupplementary,
+      removeSupplementary,
       clearEvaluation,
       selectPhotoIndex: setSelectedPhotoIndex,
       setError,
@@ -260,21 +318,24 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
       setFormQuestion,
     }),
     [
-      addPhotos,
+      addSupplementary,
+      allPhotos,
       clearEvaluation,
       error,
       form,
       hydrated,
       loading,
-      photos,
-      previews,
-      removePhoto,
+      removeSupplementary,
       result,
       runAnalysis,
       selectedPhotoIndex,
       setFormField,
       setFormLocation,
       setFormQuestion,
+      setTriadPhoto,
+      supplementary,
+      triad,
+      triadComplete,
     ]
   );
 

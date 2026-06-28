@@ -96,22 +96,52 @@ export const engineerApplicationsResponseSchema = z
   })
   .openapi("EngineerApplicationsEnvelope");
 
-export const photoResultSchema = z
+// Typed photo evidence (see docs/ai-analysis-flow.md). The triad is required;
+// supplementary photos are optional extra evidence.
+export const photoTierSchema = z.enum(["triad", "supplementary"]).openapi("PhotoTier");
+export const viewTypeSchema = z.enum(["general", "intermedia", "acercamiento"]).openapi("ViewType");
+export const guideTypeSchema = z.enum(["exterior", "columna", "puerta-ventana", "otro"]).openapi("GuideType");
+export const photoTypeSchema = z.union([viewTypeSchema, guideTypeSchema]).openapi("PhotoType");
+export const photoIssueSchema = z
+  .enum(["blurry", "dark", "wrong_distance", "irrelevant", "inappropriate"])
+  .nullable()
+  .openapi("PhotoIssue");
+
+// Per-photo descriptor uploaded alongside each file, index-aligned with fotos[].
+export const photoMetaSchema = z
+  .object({
+    tier: photoTierSchema,
+    type: photoTypeSchema,
+  })
+  .openapi("PhotoMeta");
+
+// Per-photo quality/relevance gating returned by the analysis call.
+export const photoGatingSchema = z
   .object({
     index: z.number().int().openapi({ example: 0 }),
-    verdict: analysisVerdictSchema.openapi({ example: "severe" }),
-    confidence: z.number().int().min(0).max(100).openapi({ example: 88 }),
-    finding: z.string().openapi({ example: "Grieta severa en elemento portante." }),
-    escalated: z.boolean().openapi({ example: true }),
+    tier: photoTierSchema,
+    viewType: photoTypeSchema,
+    usable: z.boolean().openapi({ example: true }),
+    issue: photoIssueSchema,
   })
-  .openapi("PhotoResult");
+  .openapi("PhotoGating");
+
+export const observationSchema = z
+  .object({
+    viewType: photoTypeSchema,
+    seen: z.string().openapi({ example: "Sala con grieta diagonal en muro norte." }),
+  })
+  .openapi("Observation");
 
 export const analysisResultSchema = z
   .object({
-    verdict: analysisVerdictSchema.openapi({ example: "severe" }),
-    confidence: z.number().int().min(0).max(100).openapi({ example: 88 }),
-    finding: z.string().openapi({ example: "Grieta severa en elemento portante." }),
-    perPhoto: z.array(photoResultSchema).openapi({ example: [] }),
+    verdict: analysisVerdictSchema.nullable().openapi({ example: "severe" }),
+    confidence: z.number().int().min(0).max(100).openapi({ example: 72 }),
+    finding: z.string().openapi({ example: "Grieta estructural en muro portante." }),
+    observations: z.array(observationSchema).openapi({ example: [] }),
+    paintingVsStructural: z.string().nullable().openapi({ example: "La grieta atraviesa el sustrato." }),
+    photos: z.array(photoGatingSchema).openapi({ example: [] }),
+    validTriadViews: z.number().int().min(0).max(3).openapi({ example: 2 }),
     showAuthorities: z.boolean().openapi({ example: true }),
   })
   .openapi("AnalysisResult");
@@ -119,6 +149,7 @@ export const analysisResultSchema = z
 export const analysisUploadSchema = z
   .object({
     fotos: z.array(z.instanceof(File)).min(1).max(10).openapi({ example: [] }),
+    photo_meta: z.array(photoMetaSchema).min(1).max(10).openapi({ example: [] }),
   })
   .openapi("AnalysisUpload");
 
@@ -128,6 +159,8 @@ export const incidentPhotoSchema = z
     incident_id: z.string().uuid().openapi({ example: "a2e4fce1-9a14-4df2-bf1b-4d6c4b4b5d41" }),
     storage_path: z.string().openapi({ example: "incidents/abc/photo-1.jpg" }),
     position: z.number().int().openapi({ example: 0 }),
+    tier: photoTierSchema.nullable().optional(),
+    view_type: photoTypeSchema.nullable().optional(),
     quality: z.string().nullable().optional().openapi({ example: "usable" }),
     verdict: verdictLevelSchema.nullable().optional(),
     confidence: z.number().int().min(0).max(100).nullable().optional(),

@@ -10,10 +10,10 @@ import { useAssessment } from "@/components/assessment-provider";
 
 export default function AnalyzingPage() {
   const router = useRouter();
-  const { photos, loading, result, error, runAnalysis, clearEvaluation } = useAssessment();
+  const { triadComplete, loading, result, error, runAnalysis, clearEvaluation } = useAssessment();
 
   useEffect(() => {
-    if (photos.length === 0) {
+    if (!triadComplete) {
       router.replace("/upload", { scroll: false, transitionTypes: ["nav-back"] });
       return;
     }
@@ -26,7 +26,7 @@ export default function AnalyzingPage() {
     if (!loading) {
       void runAnalysis();
     }
-  }, [loading, photos.length, result, router, runAnalysis]);
+  }, [loading, triadComplete, result, router, runAnalysis]);
 
   return (
     <RouteTransition className="pt-14">
