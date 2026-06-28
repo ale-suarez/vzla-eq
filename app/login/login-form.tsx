@@ -104,7 +104,7 @@ export function LoginForm({ reason, next }: { reason?: string | null; next?: str
 
         <div className="mt-6 flex items-center justify-between gap-3 text-sm text-on-surface-variant">
           <span>¿Eres ingeniero voluntario?</span>
-          <Link href="/registro-ingenieros-voluntarios" className="font-medium text-primary hover:underline">
+          <Link href="/register" className="font-medium text-primary hover:underline">
             Completar solicitud
           </Link>
         </div>

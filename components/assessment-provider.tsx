@@ -45,7 +45,7 @@ type AssessmentContextValue = AssessmentState & {
   selectPhotoIndex: (index: number) => void;
   setError: (value: string | null) => void;
   runAnalysis: () => Promise<AnalysisResult | null>;
-  setFormField: (field: "phone" | "address", value: string) => void;
+  setFormField: (field: "phone" | "address" | "feedback", value: string) => void;
   setFormLocation: (location: { latitude: number; longitude: number; address: string }) => void;
   setFormQuestion: (questionId: string, value: string) => void;
 };
@@ -114,7 +114,7 @@ export function AssessmentProvider({ children }: { children: ReactNode }) {
   const hydrated = useHydrated();
   const inFlightRef = useRef<Promise<AnalysisResult | null> | null>(null);
 
-  const setFormField = useCallback((field: "phone" | "address", value: string) => {
+  const setFormField = useCallback((field: "phone" | "address" | "feedback", value: string) => {
     setForm((current) => ({ ...current, [field]: value }));
   }, []);
 

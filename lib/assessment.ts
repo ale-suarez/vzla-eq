@@ -220,6 +220,8 @@ export interface FormAnswers {
   longitude: number | null;
   /** Keyed by FormQuestion.id; value is the selected option string. */
   questions: Record<string, string>;
+  /** Free-text observations from the reporter (incidents.feedback column). */
+  feedback: string;
 }
 
 export const EMPTY_FORM_ANSWERS: FormAnswers = {
@@ -228,6 +230,7 @@ export const EMPTY_FORM_ANSWERS: FormAnswers = {
   latitude: null,
   longitude: null,
   questions: {},
+  feedback: "",
 };
 
 /**
@@ -263,6 +266,7 @@ export interface IncidentFields {
   latitude?: number;
   longitude?: number;
   address?: string;
+  feedback?: string;
 }
 
 // Representative year per construction-era bucket (FORM_QUESTIONS id "anio").
@@ -298,6 +302,9 @@ export function formToIncidentFields(answers: FormAnswers): IncidentFields {
 
   const contact = answers.phone.trim();
   if (contact) fields.contact = contact;
+
+  const feedback = answers.feedback.trim();
+  if (feedback) fields.feedback = feedback;
 
   if (answers.latitude !== null) fields.latitude = answers.latitude;
   if (answers.longitude !== null) fields.longitude = answers.longitude;

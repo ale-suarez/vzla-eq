@@ -35,8 +35,9 @@ type EngineerRow = {
   license_number: string | null;
   specialty: string | null;
   camera_affiliation: string | null;
-  city: string | null;
-  country: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  address: string | null;
   years_experience: number | null;
   motivation: string | null;
   documents_summary: string | null;
@@ -112,6 +113,22 @@ function normalizeYears(value: FormDataEntryValue | null) {
   return parsed;
 }
 
+// Parses a coordinate field. Returns null for missing/invalid values so the
+// caller can decide whether a pin is required.
+function normalizeCoordinate(value: FormDataEntryValue | null, min: number, max: number) {
+  const text = normalizeText(value);
+  if (!text) {
+    return null;
+  }
+
+  const parsed = Number(text);
+  if (!Number.isFinite(parsed) || parsed < min || parsed > max) {
+    return null;
+  }
+
+  return parsed;
+}
+
 function sanitizeFilename(name: string) {
   return name
     .normalize("NFKD")
@@ -178,8 +195,9 @@ function validateSubmission(formData: FormData) {
   const explicitCollegiateStatus = readTextField(formData, "collegiateStatus");
   const collegiateStatus = deriveCollegiateStatus(documentNumber, explicitCollegiateStatus);
   const licenseNumber = normalizeOptionalText(formData.get("license_number")) ?? normalizeOptionalText(formData.get("licenseNumber"));
-  const city = readTextField(formData, "city");
-  const country = readTextField(formData, "country");
+  const latitude = normalizeCoordinate(formData.get("latitude"), -90, 90);
+  const longitude = normalizeCoordinate(formData.get("longitude"), -180, 180);
+  const address = normalizeOptionalText(formData.get("address"));
   const yearsExperience = normalizeYears(formData.get("years_experience")) ?? normalizeYears(formData.get("yearsExperience"));
   const organization = normalizeOptionalText(formData.get("camera_affiliation")) ?? normalizeOptionalText(formData.get("organization"));
   const linkedinUrl = normalizeUrl(formData.get("profile_url")) ?? normalizeUrl(formData.get("linkedinUrl"));
@@ -219,12 +237,10 @@ function validateSubmission(formData: FormData) {
     errors.collegiateStatus = "Selecciona una situación de colegiatura.";
   }
 
-  if (city.length < 2) {
-    errors.city = "Indica tu ciudad.";
-  }
-
-  if (country.length < 2) {
-    errors.country = "Indica tu país.";
+  // A pin (coordinates) is required, mirroring the citizen incident form. The
+  // geocoded address label is best-effort: kept when present, never gating.
+  if (latitude === null || longitude === null) {
+    errors.location = "Marca tu ubicación en el mapa.";
   }
 
   if (yearsExperience === null && normalizeText(formData.get("yearsExperience")) !== "") {
@@ -264,8 +280,9 @@ function validateSubmission(formData: FormData) {
             fullName,
             licenseNumber: documentNumber,
             specialty,
-            city,
-            country,
+            latitude,
+            longitude,
+            address,
             yearsExperience,
             cameraAffiliation: organization,
             profileUrl: linkedinUrl,
@@ -359,7 +376,7 @@ export async function ingenierosSolicitudesGet(c: Context) {
   const { data, error } = await supabase
     .from("engineers")
     .select(
-      "id,email,full_name,license_number,specialty,camera_affiliation,city,country,years_experience,motivation,documents_summary,documents_storage_paths,profile_url,application_status,is_certified,review_notes,reviewed_by,reviewed_at,created_at,updated_at"
+      "id,email,full_name,license_number,specialty,camera_affiliation,latitude,longitude,address,years_experience,motivation,documents_summary,documents_storage_paths,profile_url,application_status,is_certified,review_notes,reviewed_by,reviewed_at,created_at,updated_at"
     )
     .order("created_at", { ascending: false })
     .limit(200);
@@ -396,8 +413,9 @@ export async function ingenierosSolicitudesPost(c: Context) {
     license_number: validation.value.licenseNumber,
     specialty: validation.value.specialty,
     camera_affiliation: validation.value.cameraAffiliation,
-    city: validation.value.city,
-    country: validation.value.country,
+    latitude: validation.value.latitude,
+    longitude: validation.value.longitude,
+    address: validation.value.address,
     years_experience: validation.value.yearsExperience,
     motivation: validation.value.motivation,
     documents_summary: supportingDocuments.map((document) => document.name).join(" · "),
@@ -410,7 +428,7 @@ export async function ingenierosSolicitudesPost(c: Context) {
     reviewed_at: null,
   };
   const selectColumns =
-    "id,email,full_name,license_number,specialty,camera_affiliation,city,country,years_experience,motivation,documents_summary,documents_storage_paths,profile_url,application_status,is_certified,review_notes,reviewed_by,reviewed_at,created_at,updated_at";
+    "id,email,full_name,license_number,specialty,camera_affiliation,latitude,longitude,address,years_experience,motivation,documents_summary,documents_storage_paths,profile_url,application_status,is_certified,review_notes,reviewed_by,reviewed_at,created_at,updated_at";
 
   const { data: existing, error: existingError } = await supabase
     .from("engineers")
@@ -485,7 +503,7 @@ export async function engineerSolicitudByIdPatch(c: Context) {
     })
     .eq("id", id)
     .select(
-      "id,email,full_name,license_number,specialty,camera_affiliation,city,country,years_experience,motivation,documents_summary,documents_storage_paths,profile_url,application_status,is_certified,review_notes,reviewed_by,reviewed_at,created_at,updated_at"
+      "id,email,full_name,license_number,specialty,camera_affiliation,latitude,longitude,address,years_experience,motivation,documents_summary,documents_storage_paths,profile_url,application_status,is_certified,review_notes,reviewed_by,reviewed_at,created_at,updated_at"
     )
     .maybeSingle();
 

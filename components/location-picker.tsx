@@ -46,7 +46,9 @@ export default function LocationPicker({
   };
 
   // The input shows the live query while focused, otherwise the settled address.
-  const fieldValue = focused ? query : value.address;
+  // Always coalesce to a string so the input stays controlled even when a caller
+  // passes an undefined address.
+  const fieldValue = focused ? query : value.address ?? "";
 
   // Reverse-geocode a pinned point into a human-readable label.
   const resolveAddress = useCallback(
