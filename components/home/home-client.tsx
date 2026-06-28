@@ -102,7 +102,7 @@ const ACCESS_LINKS = [
   {
     title: "Unirse como ingeniero",
     description: "Registro de voluntarios.",
-    href: "/registro-ingenieros-voluntarios",
+    href: "/register",
     icon: HeartHandshake,
   },
   {
@@ -188,7 +188,7 @@ export default function HomeClient() {
                 Empezar
               </Link>
               <Link
-                href="/registro-ingenieros-voluntarios"
+                href="/register"
                 transitionTypes={["nav-forward"]}
                 className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-[18px] border border-outline-variant/30 bg-surface-container-low text-base font-bold text-on-surface shadow-[0px_4px_20px_rgba(15,23,42,0.06)] transition-colors hover:bg-surface-container"
               >

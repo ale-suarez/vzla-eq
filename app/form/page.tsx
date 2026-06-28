@@ -2,54 +2,15 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, MapPin, Phone, ShieldCheck, TriangleAlert } from "lucide-react";
+import { ArrowLeft, ArrowRight, ShieldCheck, TriangleAlert } from "lucide-react";
 import { motion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
 import { useAssessment } from "@/components/assessment-provider";
 import { RouteTransition } from "@/components/assessment-visuals";
-import LocationPicker from "@/components/location-picker";
-import {
-  EMPTY_FORM_ANSWERS,
-  FORM_QUESTIONS,
-  isFormComplete,
-  parseMultiSelect,
-  toggleMultiSelect,
-  type FormQuestion,
-} from "@/lib/assessment";
+import IncidentFields from "@/components/incident-fields";
+import { EMPTY_FORM_ANSWERS, isFormComplete } from "@/lib/assessment";
 import { cn } from "@/lib/utils";
-
-function OptionChip({
-  selected,
-  variant,
-  children,
-  onClick,
-}: {
-  selected: boolean;
-  variant: FormQuestion["variant"];
-  children: React.ReactNode;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "cursor-pointer border text-sm transition-all active:scale-95",
-        variant === "compact"
-          ? "flex h-10 min-w-10 items-center justify-center rounded-full px-3"
-          : variant === "stacked"
-            ? "w-full rounded-[12px] px-4 py-3 text-left"
-            : "rounded-full px-4 py-2",
-        selected
-          ? "border-primary-container bg-primary-container text-white"
-          : "border-outline-variant bg-surface-container-lowest text-on-surface hover:bg-surface-container-low"
-      )}
-    >
-      {children}
-    </button>
-  );
-}
 
 export default function FormPage() {
   const router = useRouter();
@@ -113,69 +74,25 @@ export default function FormPage() {
           <p className="mt-1 text-sm leading-5 text-on-surface-variant">Tus respuestas nos ayudan a darte una mejor recomendación.</p>
         </section>
 
-        <div className="space-y-6">
-          {/* Contacto y ubicación */}
-          <div className="soft-card space-y-4 rounded-[18px] p-4">
-            <div className="flex items-start gap-2">
-              <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-              <div className="space-y-0.5">
-                <p className="font-heading text-base font-semibold text-on-surface">Contacto y ubicación</p>
-                <p className="text-xs leading-snug text-on-surface-variant">
-                  Tu número de teléfono no se comparte públicamente. Lo usamos solo internamente para conectarte con un ingeniero certificado.
-                </p>
-              </div>
-            </div>
-
-            <label className="block space-y-1.5">
-              <span className="text-sm font-medium text-on-surface-variant">Teléfono</span>
-              <div className="flex items-center gap-2 rounded-[12px] border border-outline-variant bg-surface-container-lowest px-3 focus-within:border-primary">
-                <Phone className="h-4 w-4 text-on-surface-variant" />
-                <input
-                  type="tel"
-                  inputMode="tel"
-                  value={displayForm.phone}
-                  onChange={(e) => setFormField("phone", e.target.value)}
-                  placeholder="0414 123 4567"
-                  className="h-11 w-full bg-transparent text-sm text-on-surface outline-none placeholder:text-outline"
-                />
-              </div>
-            </label>
-
-            <div className="block space-y-1.5">
-              <span className="text-sm font-medium text-on-surface-variant">Ubicación</span>
-              <LocationPicker
-                value={{
-                  latitude: displayForm.latitude,
-                  longitude: displayForm.longitude,
-                  address: displayForm.address,
-                }}
-                onChange={setFormLocation}
-              />
-            </div>
+        {/* OJO warning — citizen-safety message specific to this flow. */}
+        <div className="mb-6 flex gap-4 rounded-[18px] border border-error-container bg-[#FEF2F2] p-4">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-destructive text-white">
+            <TriangleAlert className="h-5 w-5" />
           </div>
-
-          {/* Sección: sobre el edificio */}
-          {FORM_QUESTIONS.slice(0, 3).map((q) => (
-            <QuestionCard key={q.id} question={q} value={displayForm.questions[q.id]} onSelect={(v) => setFormQuestion(q.id, v)} />
-          ))}
-
-          {/* OJO warning */}
-          <div className="flex gap-4 rounded-[18px] border border-error-container bg-[#FEF2F2] p-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-destructive text-white">
-              <TriangleAlert className="h-5 w-5" />
-            </div>
-            <div>
-              <h3 className="font-heading text-base font-semibold text-destructive">¡OJO!</h3>
-              <p className="text-sm leading-snug text-on-error-container">
-                Si el edificio está inclinado, tiene pisos aplastados o paredes caídas, <strong>no entres</strong>. Escríbenos de inmediato.
-              </p>
-            </div>
+          <div>
+            <h3 className="font-heading text-base font-semibold text-destructive">¡OJO!</h3>
+            <p className="text-sm leading-snug text-on-error-container">
+              Si el edificio está inclinado, tiene pisos aplastados o paredes caídas, <strong>no entres</strong>. Escríbenos de inmediato.
+            </p>
           </div>
-
-          {FORM_QUESTIONS.slice(3).map((q) => (
-            <QuestionCard key={q.id} question={q} value={displayForm.questions[q.id]} onSelect={(v) => setFormQuestion(q.id, v)} />
-          ))}
         </div>
+
+        <IncidentFields
+          value={displayForm}
+          onFieldChange={setFormField}
+          onLocationChange={setFormLocation}
+          onQuestionChange={setFormQuestion}
+        />
       </motion.form>
 
       {/* Sticky footer */}
@@ -198,46 +115,5 @@ export default function FormPage() {
         </div>
       </div>
     </RouteTransition>
-  );
-}
-
-function QuestionCard({
-  question,
-  value,
-  onSelect,
-}: {
-  question: FormQuestion;
-  value: string | undefined;
-  onSelect: (value: string) => void;
-}) {
-  const selectedOptions = question.multiSelect ? parseMultiSelect(value) : value ? [value] : [];
-
-  const handleSelect = (option: string) => {
-    if (question.multiSelect) {
-      onSelect(toggleMultiSelect(value, option, question.exclusiveOptions));
-    } else {
-      onSelect(option);
-    }
-  };
-
-  return (
-    <div className="soft-card rounded-[18px] p-4">
-      <p className="mb-3 font-heading text-base font-semibold text-on-surface">{question.question}</p>
-      {question.multiSelect ? (
-        <p className="mb-3 -mt-2 text-xs text-on-surface-variant">Puedes elegir varias opciones.</p>
-      ) : null}
-      <div className={cn(question.variant === "stacked" ? "flex flex-col gap-2" : "flex flex-wrap gap-2")}>
-        {question.options.map((option) => (
-          <OptionChip
-            key={option}
-            selected={selectedOptions.includes(option)}
-            variant={question.variant}
-            onClick={() => handleSelect(option)}
-          >
-            {option}
-          </OptionChip>
-        ))}
-      </div>
-    </div>
   );
 }

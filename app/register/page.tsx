@@ -9,7 +9,6 @@ import {
   CheckCircle2,
   FileText,
   Mail,
-  MapPin,
   ShieldCheck,
   Upload,
   UserRound,
@@ -18,6 +17,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
+import LocationPicker, { type PickedLocation } from "@/components/location-picker";
 import { cn } from "@/lib/utils";
 
 type Specialty = "Ingeniería Civil" | "Ingeniería Estructural" | "Arquitectura" | "Otra";
@@ -27,23 +27,25 @@ type ApplicationDraft = {
   full_name: string;
   license_number: string;
   specialty: Specialty | "";
-  city: string;
-  country: string;
+  latitude: number | null;
+  longitude: number | null;
+  address: string;
   years_experience: string;
   camera_affiliation: string;
   motivation: string;
   profile_url: string;
 };
 
-type ValidationErrors = Partial<Record<keyof ApplicationDraft | "documents", string>>;
+type ValidationErrors = Partial<Record<keyof ApplicationDraft | "documents" | "location", string>>;
 
 const INITIAL_DRAFT: ApplicationDraft = {
   email: "",
   full_name: "",
   license_number: "",
   specialty: "",
-  city: "",
-  country: "Venezuela",
+  latitude: null,
+  longitude: null,
+  address: "",
   years_experience: "",
   camera_affiliation: "Cámara de Ingenieros Civiles de Venezuela",
   motivation: "",
@@ -92,6 +94,11 @@ export default function VolunteerEngineerRegistrationPage() {
     setFieldErrors((current) => ({ ...current, [key]: undefined }));
   };
 
+  const setLocation = (location: PickedLocation) => {
+    setDraft((current) => ({ ...current, ...location }));
+    setFieldErrors((current) => ({ ...current, location: undefined }));
+  };
+
   const addDocuments = (files: FileList | File[] | null | undefined) => {
     if (!files || files.length === 0) {
       return;
@@ -124,7 +131,6 @@ export default function VolunteerEngineerRegistrationPage() {
     const email = draft.email.trim();
     const fullName = draft.full_name.trim();
     const specialty = draft.specialty;
-    const city = draft.city.trim();
     const licenseNumber = normalizeLicenseNumber(draft.license_number);
     const yearsExperience = draft.years_experience.trim();
     const profileUrl = draft.profile_url.trim();
@@ -149,8 +155,10 @@ export default function VolunteerEngineerRegistrationPage() {
       errors.specialty = "Selecciona una especialidad.";
     }
 
-    if (!city) {
-      errors.city = "Indica la ciudad desde la que participas.";
+    // A pin is required so we can later match engineers to nearby incidents; the
+    // geocoded address label is best-effort (mirrors the citizen incident form).
+    if (draft.latitude === null || draft.longitude === null) {
+      errors.location = "Marca tu ubicación en el mapa.";
     }
 
     if (yearsExperience) {
@@ -336,21 +344,6 @@ export default function VolunteerEngineerRegistrationPage() {
                       placeholder="V-12345678 / CVI-12345"
                       error={fieldErrors.license_number}
                     />
-                    <Field
-                      label="Ciudad *"
-                      icon={MapPin}
-                      value={draft.city}
-                      onChange={(value) => setField("city", value)}
-                      placeholder="Caracas"
-                      error={fieldErrors.city}
-                    />
-                    <Field
-                      label="País"
-                      icon={Building2}
-                      value={draft.country}
-                      onChange={(value) => setField("country", value)}
-                      placeholder="Venezuela"
-                    />
                     <SelectField
                       label="Especialidad *"
                       value={draft.specialty}
@@ -358,6 +351,18 @@ export default function VolunteerEngineerRegistrationPage() {
                       options={SPECIALTY_OPTIONS}
                       error={fieldErrors.specialty}
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <span className="text-sm font-medium text-on-surface-variant">Ubicación *</span>
+                    <p className="text-xs leading-5 text-on-surface-variant">
+                      Marca el punto desde donde participas. Lo usamos para conectarte con incidencias cercanas.
+                    </p>
+                    <LocationPicker
+                      value={{ latitude: draft.latitude, longitude: draft.longitude, address: draft.address }}
+                      onChange={setLocation}
+                    />
+                    {fieldErrors.location ? <p className="text-xs text-error">{fieldErrors.location}</p> : null}
                   </div>
 
                   <div className="grid gap-4">
@@ -426,8 +431,16 @@ export default function VolunteerEngineerRegistrationPage() {
                     <SummaryRow label="Nombre" value={draft.full_name} />
                     <SummaryRow label="Cédula / colegiado" value={summaryValue(draft.license_number)} />
                     <SummaryRow label="Especialidad" value={draft.specialty || "No indicado"} />
-                    <SummaryRow label="Ciudad" value={draft.city} />
-                    <SummaryRow label="País" value={summaryValue(draft.country)} />
+                    <SummaryRow
+                      label="Ubicación"
+                      value={
+                        draft.address.trim()
+                          ? draft.address.trim()
+                          : draft.latitude !== null && draft.longitude !== null
+                            ? `${draft.latitude.toFixed(5)}, ${draft.longitude.toFixed(5)}`
+                            : "No indicado"
+                      }
+                    />
                     <SummaryRow label="Años de experiencia" value={summaryNumber(draft.years_experience)} />
                     <SummaryRow label="Cámara / afiliación" value={summaryValue(draft.camera_affiliation)} />
                     <SummaryRow label="Motivación" value={summaryValue(draft.motivation)} />
@@ -791,10 +804,16 @@ function buildFormData(draft: ApplicationDraft, files: File[]) {
     formData.append("specialty", draft.specialty);
   }
 
-  formData.append("city", draft.city.trim());
+  if (draft.latitude !== null) {
+    formData.append("latitude", String(draft.latitude));
+  }
 
-  if (draft.country.trim()) {
-    formData.append("country", draft.country.trim());
+  if (draft.longitude !== null) {
+    formData.append("longitude", String(draft.longitude));
+  }
+
+  if (draft.address.trim()) {
+    formData.append("address", draft.address.trim());
   }
 
   if (draft.years_experience.trim()) {

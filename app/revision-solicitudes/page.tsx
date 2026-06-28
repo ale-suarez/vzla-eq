@@ -38,8 +38,9 @@ type EngineerApplication = {
   full_name: string | null;
   license_number: string | null;
   specialty: string | null;
-  city: string | null;
-  country: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  address: string | null;
   years_experience: number | null;
   camera_affiliation: string | null;
   motivation: string | null;
@@ -384,7 +385,7 @@ export default function RevisionSolicitudesPage() {
                     <tr>
                       <th className="sticky left-0 z-10 border-b border-outline-variant/70 bg-surface-container-low/70 px-4 py-3">Estado</th>
                       <th className="border-b border-outline-variant/70 px-4 py-3">Nombre</th>
-                      <th className="border-b border-outline-variant/70 px-4 py-3">Ciudad</th>
+                      <th className="border-b border-outline-variant/70 px-4 py-3">Ubicación</th>
                       <th className="border-b border-outline-variant/70 px-4 py-3">Colegiado</th>
                       <th className="border-b border-outline-variant/70 px-4 py-3">Especialidad</th>
                       <th className="border-b border-outline-variant/70 px-4 py-3">Documentos</th>
@@ -424,7 +425,7 @@ export default function RevisionSolicitudesPage() {
                                 <p className="text-xs text-on-surface-variant">{application.email ?? "Sin correo"}</p>
                               </div>
                             </td>
-                            <td className="border-b border-outline-variant/70 px-4 py-4 text-sm text-on-surface">{application.city ?? "No indicado"}</td>
+                            <td className="border-b border-outline-variant/70 px-4 py-4 text-sm text-on-surface">{application.address ?? "No indicado"}</td>
                             <td className="border-b border-outline-variant/70 px-4 py-4 text-sm text-on-surface">
                               {application.license_number ?? "No indicado"}
                             </td>
@@ -452,7 +453,14 @@ export default function RevisionSolicitudesPage() {
                                 <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
                                   <div className="space-y-4">
                                     <div className="grid gap-3 rounded-[18px] border border-outline-variant/70 bg-white p-4 text-sm text-on-surface sm:grid-cols-2">
-                                      <Info label="País" value={application.country ?? "No indicado"} />
+                                      <Info
+                                        label="Coordenadas"
+                                        value={
+                                          application.latitude !== null && application.longitude !== null
+                                            ? `${application.latitude.toFixed(5)}, ${application.longitude.toFixed(5)}`
+                                            : "No indicado"
+                                        }
+                                      />
                                       <Info label="Experiencia" value={application.years_experience === null ? "No indicado" : `${application.years_experience} años`} />
                                       <Info label="Cámara" value={application.camera_affiliation ?? "No indicado"} />
                                       <Info label="Perfil" value={application.profile_url ?? "No indicado"} />

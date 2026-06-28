@@ -31,10 +31,9 @@ export type Database = {
       }
       engineers: {
         Row: {
+          address: string | null
           application_status: Database["public"]["Enums"]["engineer_application_status"]
           camera_affiliation: string | null
-          city: string | null
-          country: string | null
           created_at: string
           documents_storage_paths: string[]
           documents_summary: string | null
@@ -42,7 +41,9 @@ export type Database = {
           full_name: string | null
           id: string
           is_certified: boolean
+          latitude: number | null
           license_number: string | null
+          longitude: number | null
           motivation: string | null
           profile_url: string | null
           review_notes: string | null
@@ -54,10 +55,9 @@ export type Database = {
           years_experience: number | null
         }
         Insert: {
+          address?: string | null
           application_status?: Database["public"]["Enums"]["engineer_application_status"]
           camera_affiliation?: string | null
-          city?: string | null
-          country?: string | null
           created_at?: string
           documents_storage_paths?: string[]
           documents_summary?: string | null
@@ -65,7 +65,9 @@ export type Database = {
           full_name?: string | null
           id?: string
           is_certified?: boolean
+          latitude?: number | null
           license_number?: string | null
+          longitude?: number | null
           motivation?: string | null
           profile_url?: string | null
           review_notes?: string | null
@@ -77,10 +79,9 @@ export type Database = {
           years_experience?: number | null
         }
         Update: {
+          address?: string | null
           application_status?: Database["public"]["Enums"]["engineer_application_status"]
           camera_affiliation?: string | null
-          city?: string | null
-          country?: string | null
           created_at?: string
           documents_storage_paths?: string[]
           documents_summary?: string | null
@@ -88,7 +89,9 @@ export type Database = {
           full_name?: string | null
           id?: string
           is_certified?: boolean
+          latitude?: number | null
           license_number?: string | null
+          longitude?: number | null
           motivation?: string | null
           profile_url?: string | null
           review_notes?: string | null
