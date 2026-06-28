@@ -7,8 +7,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import IncidentFields from "@/components/incident-fields";
 import type { PickedLocation } from "@/components/location-picker";
-import { EMPTY_FORM_ANSWERS, formToIncidentFields, type FormAnswers } from "@/lib/assessment";
+import {
+  EMPTY_FORM_ANSWERS,
+  formToIncidentFields,
+  VERDICT_LABELS,
+  type FormAnswers,
+  type VerdictLevel,
+} from "@/lib/assessment";
 import type { DbIncident } from "@/lib/incidents";
+import { cn } from "@/lib/utils";
+
+// Engineer-graded severity scale, ordered least to most serious.
+const SEVERITY_OPTIONS: VerdictLevel[] = ["low", "moderate", "severe", "critical"];
 
 export function NewIncidentForm({
   onCreated,
@@ -21,6 +31,8 @@ export function NewIncidentForm({
   // Same controlled answers shape as the citizen /form, so both write the
   // identical (latitude, longitude, address) triple and questionnaire columns.
   const [answers, setAnswers] = useState<FormAnswers>(EMPTY_FORM_ANSWERS);
+  // Unlike the citizen flow (graded by AI), the engineer determines severity.
+  const [severity, setSeverity] = useState<VerdictLevel | null>(null);
 
   const setField = (field: "phone" | "feedback", value: string) => {
     setAnswers((current) => ({ ...current, [field]: value }));
@@ -46,11 +58,17 @@ export function NewIncidentForm({
       return;
     }
 
+    // The engineer grades severity directly (no AI analysis on this path).
+    if (severity === null) {
+      setError("Selecciona la severidad del incidente.");
+      return;
+    }
+
     startTransition(async () => {
       const response = await fetch("/api/incidents", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formToIncidentFields(answers)),
+        body: JSON.stringify({ ...formToIncidentFields(answers), severity }),
       });
 
       const body = (await response.json()) as { error?: string; data?: unknown };
@@ -65,6 +83,7 @@ export function NewIncidentForm({
       }
 
       setAnswers(EMPTY_FORM_ANSWERS);
+      setSeverity(null);
       setMessage("Incidente creado.");
     });
   };
@@ -82,6 +101,30 @@ export function NewIncidentForm({
             onLocationChange={setLocation}
             onQuestionChange={setQuestion}
           />
+
+          <div className="soft-card rounded-[18px] p-4">
+            <p className="mb-1 font-heading text-base font-semibold text-on-surface">Severidad</p>
+            <p className="mb-3 text-xs text-on-surface-variant">
+              Como ingeniero, determina la severidad del incidente.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {SEVERITY_OPTIONS.map((level) => (
+                <button
+                  key={level}
+                  type="button"
+                  onClick={() => setSeverity(level)}
+                  className={cn(
+                    "cursor-pointer rounded-full border px-4 py-2 text-sm transition-all active:scale-95",
+                    severity === level
+                      ? "border-primary-container bg-primary-container text-white"
+                      : "border-outline-variant bg-surface-container-lowest text-on-surface hover:bg-surface-container-low"
+                  )}
+                >
+                  {VERDICT_LABELS[level]}
+                </button>
+              ))}
+            </div>
+          </div>
 
           {error && (
             <p className="rounded-[16px] border border-destructive/20 bg-error-container px-4 py-3 text-sm text-on-error-container">
