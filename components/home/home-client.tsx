@@ -242,6 +242,19 @@ export default function HomeClient() {
           </div>
         </section>
 
+        <section className="px-5 py-8">
+          <div className="flex gap-4 rounded-[18px] border-2 border-outline-variant/30 bg-surface-container-low p-6">
+            <Info className="mt-0.5 h-6 w-6 shrink-0 text-on-surface-variant" />
+            <div className="space-y-1">
+              <h4 className="text-xs font-semibold uppercase tracking-[0.12em] text-on-surface-variant">AVISO LEGAL IMPORTANTE</h4>
+              <p className="text-sm leading-5 text-on-surface-variant">
+                Chequeo Estructural proporciona una evaluación preliminar únicamente con fines informativos. No sustituye una inspección
+                profesional de ingeniería estructural. Si sospecha un peligro inmediato, evacúe y contacte a los servicios de emergencia.
+              </p>
+            </div>
+          </div>
+        </section>
+
         <section id="incidentes" className="px-5 py-8">
           <div className="space-y-1">
             <h3 className="font-heading text-lg font-semibold text-on-surface">Mapa en vivo</h3>
@@ -302,19 +315,6 @@ export default function HomeClient() {
                   )}
                 </div>
               </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="px-5 py-8">
-          <div className="flex gap-4 rounded-[18px] border-2 border-outline-variant/30 bg-surface-container-low p-6">
-            <Info className="mt-0.5 h-6 w-6 shrink-0 text-on-surface-variant" />
-            <div className="space-y-1">
-              <h4 className="text-xs font-semibold uppercase tracking-[0.12em] text-on-surface-variant">AVISO LEGAL IMPORTANTE</h4>
-              <p className="text-sm leading-5 text-on-surface-variant">
-                Chequeo Estructural proporciona una evaluación preliminar únicamente con fines informativos. No sustituye una inspección
-                profesional de ingeniería estructural. Si sospecha un peligro inmediato, evacúe y contacte a los servicios de emergencia.
-              </p>
             </div>
           </div>
         </section>
