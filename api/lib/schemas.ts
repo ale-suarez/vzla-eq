@@ -100,7 +100,7 @@ export const engineerApplicationsResponseSchema = z
 // supplementary photos are optional extra evidence.
 export const photoTierSchema = z.enum(["triad", "supplementary"]).openapi("PhotoTier");
 export const viewTypeSchema = z.enum(["general", "intermedia", "acercamiento"]).openapi("ViewType");
-export const guideTypeSchema = z.enum(["exterior", "columna", "puerta-ventana", "otro"]).openapi("GuideType");
+export const guideTypeSchema = z.enum(["exterior", "columna", "puerta-ventana", "viga", "escaleras", "otro"]).openapi("GuideType");
 export const photoTypeSchema = z.union([viewTypeSchema, guideTypeSchema]).openapi("PhotoType");
 export const photoIssueSchema = z
   .enum(["blurry", "dark", "wrong_distance", "irrelevant", "inappropriate"])

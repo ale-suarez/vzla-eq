@@ -51,7 +51,7 @@ export type PhotoTier = "triad" | "supplementary";
 export type ViewType = "general" | "intermedia" | "acercamiento";
 
 /** Supplementary photo categories (optional extra evidence). */
-export type GuideType = "exterior" | "columna" | "puerta-ventana" | "otro";
+export type GuideType = "exterior" | "columna" | "puerta-ventana" | "viga" | "escaleras" | "otro";
 
 export type PhotoType = ViewType | GuideType;
 
@@ -376,6 +376,8 @@ export const SUPPLEMENTARY_OPTIONS: SupplementaryOption[] = [
   { type: "exterior", label: "Exterior del edificio" },
   { type: "columna", label: "Columna" },
   { type: "puerta-ventana", label: "Puerta o ventana" },
+  { type: "viga", label: "Viga" },
+  { type: "escaleras", label: "Escaleras" },
   { type: "otro", label: "Otro" },
 ];
 
