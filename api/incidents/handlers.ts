@@ -9,10 +9,13 @@ import { normalizeDbVerdict, optionalNumber, optionalText } from "@/api/incident
 type IncidentInsert = Database["public"]["Tables"]["incidents"]["Insert"];
 type IncidentUpdate = Database["public"]["Tables"]["incidents"]["Update"];
 
+// `source:sources(...)` embeds the feed's attribution metadata via the
+// source_id FK; null for native rows that predate provenance.
+const SOURCE_EMBED = "source:sources(code, name, license, url, attribution)";
 const PUBLIC_INCIDENT_SELECT =
-  "id, state, severity, analysis_status, ai_verdict, confidence, finding, building_use, build_year, levels, basements, material, terrain_type, latitude, longitude, address, created_at, updated_at";
+  `id, state, severity, analysis_status, ai_verdict, confidence, finding, building_use, build_year, levels, basements, material, terrain_type, latitude, longitude, address, created_at, updated_at, source_ref, synced_at, ${SOURCE_EMBED}`;
 const BACKOFFICE_INCIDENT_SELECT =
-  "id, state, severity, analysis_status, ai_verdict, confidence, finding, assigned_to, created_at, updated_at, contact, building_use, build_year, levels, basements, material, terrain_type, latitude, longitude, address, feedback";
+  `id, state, severity, analysis_status, ai_verdict, confidence, finding, assigned_to, created_at, updated_at, contact, building_use, build_year, levels, basements, material, terrain_type, latitude, longitude, address, feedback, source_ref, synced_at, ${SOURCE_EMBED}`;
 
 function buildIncidentPayload(input: Record<string, unknown>): IncidentInsert {
   const analysis = typeof input.analysis === "object" && input.analysis !== null ? (input.analysis as Record<string, unknown>) : null;
@@ -83,6 +86,15 @@ function buildPublicIncidentPayload(input: Record<string, unknown>): IncidentIns
   };
 }
 
+// Resolve a source's uuid by its stable `code`. Uses the admin client because
+// provenance is stamped server-side and sources reads are not client-driven.
+async function resolveSourceId(code: string): Promise<string | null> {
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase.from("sources").select("id").eq("code", code).maybeSingle();
+  if (error || !data) return null;
+  return data.id;
+}
+
 function buildUpdatePayload(input: Record<string, unknown>): IncidentUpdate {
   const payload: IncidentUpdate = {};
   const maybeSet = (key: string, value: unknown) => {
@@ -151,8 +163,14 @@ export async function incidentsPost(c: Context) {
 
   if (!hasBackoffice) {
     const incidentId = randomUUID();
+    // Stamp provenance server-side: clients can't set source (no spoofing), but
+    // native reports belong to the 'citizen' feed. Resolve via the admin client
+    // since sources is read server-side here.
+    const citizenSourceId = await resolveSourceId("citizen");
     const supabase = await createSupabaseServerClient();
-    const { error } = await supabase.from("incidents").insert({ id: incidentId, ...payload });
+    const { error } = await supabase
+      .from("incidents")
+      .insert({ id: incidentId, source_id: citizenSourceId, ...payload });
 
     if (error) {
       return c.json({ error: error.message }, 403);
