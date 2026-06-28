@@ -1,8 +1,10 @@
 import type { User } from "@supabase/supabase-js";
 
-import { createSupabaseServerClient } from "@/api/lib/supabase";
+import { createSupabaseAdminClient, createSupabaseServerClient } from "@/api/lib/supabase";
 
 export type AppRole = "anonymous" | "engineer" | "reviewer" | "admin";
+
+const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 export interface SessionContext {
   user: User | null;
@@ -26,7 +28,13 @@ export async function getSessionContext(): Promise<SessionContext> {
     return { user: null, role: "anonymous" };
   }
 
-  const { data: admin } = await supabase
+  if (!supabaseSecretKey) {
+    return { user, role: "anonymous" };
+  }
+
+  const adminSupabase = createSupabaseAdminClient();
+
+  const { data: admin } = await adminSupabase
     .from("admin_users")
     .select("id")
     .eq("id", user.id)
@@ -36,7 +44,7 @@ export async function getSessionContext(): Promise<SessionContext> {
     return { user, role: "admin" };
   }
 
-  const { data: reviewer } = await supabase
+  const { data: reviewer } = await adminSupabase
     .from("reviewer_users")
     .select("user_id")
     .eq("user_id", user.id)
@@ -46,7 +54,7 @@ export async function getSessionContext(): Promise<SessionContext> {
     return { user, role: "reviewer" };
   }
 
-  const { data: engineerByUserId } = await supabase
+  const { data: engineerByUserId } = await adminSupabase
     .from("engineers")
     .select("is_certified")
     .eq("user_id", user.id)
@@ -56,18 +64,23 @@ export async function getSessionContext(): Promise<SessionContext> {
     return { user, role: "engineer" };
   }
 
-  let engineerByEmail = null as { is_certified: boolean } | null;
+  let engineerByEmail: { id: string; is_certified: boolean; user_id: string | null } | null = null;
   if (user.email) {
-    const { data } = await supabase
+    const { data } = await adminSupabase
       .from("engineers")
-      .select("is_certified")
+      .select("id, is_certified, user_id")
       .eq("email", user.email.toLowerCase())
       .maybeSingle();
-    engineerByEmail = data ?? null;
-  }
 
-  if (engineerByEmail?.is_certified) {
-    return { user, role: "engineer" };
+    engineerByEmail = data ?? null;
+
+    if (engineerByEmail?.is_certified) {
+      if (!engineerByEmail.user_id) {
+        await adminSupabase.from("engineers").update({ user_id: user.id }).eq("id", engineerByEmail.id);
+      }
+
+      return { user, role: "engineer" };
+    }
   }
 
   return { user, role: "anonymous" };

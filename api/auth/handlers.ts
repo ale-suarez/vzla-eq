@@ -4,6 +4,7 @@ import { generateCookie, getCookie } from "hono/cookie";
 import type { Context } from "hono";
 
 import { getSessionContext, hasBackofficeAccess, hasReviewAccess } from "@/api/lib/auth";
+import { createSupabaseAdminClient } from "@/api/lib/supabase";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabasePublishableKey =
@@ -22,6 +23,7 @@ export async function authCallbackGet(c: Context) {
   const requestUrl = new URL(c.req.url);
   const code = requestUrl.searchParams.get("code");
   const next = normalizeNextPath(requestUrl.searchParams.get("next"), "/dashboard");
+  const safeNext = next.startsWith("/") ? next : "/dashboard";
 
   if (!supabaseUrl || !supabasePublishableKey || !code) {
     return c.redirect("/login?reason=auth");
@@ -51,7 +53,47 @@ export async function authCallbackGet(c: Context) {
     return c.redirect(`/login?error=${encodeURIComponent(error.message)}`);
   }
 
-  headers.set("Location", new URL(next, requestUrl.origin).toString());
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let destination = safeNext;
+  if (user && (process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY)) {
+    const adminSupabase = createSupabaseAdminClient();
+
+    const { data: admin } = await adminSupabase.from("admin_users").select("id").eq("id", user.id).maybeSingle();
+    const { data: reviewer } = await adminSupabase.from("reviewer_users").select("user_id").eq("user_id", user.id).maybeSingle();
+    const { data: engineerByUserId } = await adminSupabase
+      .from("engineers")
+      .select("id, is_certified, user_id, email")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    const engineerByEmail =
+      !engineerByUserId && user.email
+        ? (
+            await adminSupabase
+              .from("engineers")
+              .select("id, is_certified, user_id, email")
+              .eq("email", user.email.toLowerCase())
+              .maybeSingle()
+          ).data
+        : null;
+    const engineer = engineerByUserId ?? engineerByEmail;
+
+    if (admin) {
+      destination = "/dashboard";
+    } else if (reviewer) {
+      destination = "/revision-solicitudes";
+    } else if (engineer?.is_certified) {
+      if (engineer.email && !engineer.user_id) {
+        await adminSupabase.from("engineers").update({ user_id: user.id }).eq("id", engineer.id);
+      }
+
+      destination = "/dashboard";
+    }
+  }
+
+  headers.set("Location", new URL(destination, requestUrl.origin).toString());
   return new Response(null, { status: 302, headers });
 }
 

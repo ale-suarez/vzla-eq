@@ -1,9 +1,11 @@
 import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabasePublishableKey =
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 function isBackofficePath(pathname: string) {
   return pathname === "/dashboard" || pathname.startsWith("/dashboard/");
@@ -18,7 +20,7 @@ async function resolveRole(request: NextRequest, response: NextResponse) {
     return { role: "anonymous" as const };
   }
 
-  const supabase = createServerClient(supabaseUrl, supabasePublishableKey, {
+  const sessionClient = createServerClient(supabaseUrl, supabasePublishableKey, {
     cookies: {
       getAll() {
         return request.cookies.getAll();
@@ -33,50 +35,48 @@ async function resolveRole(request: NextRequest, response: NextResponse) {
 
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await sessionClient.auth.getUser();
 
-  if (!user) {
+  if (!user || !supabaseSecretKey) {
     return { role: "anonymous" as const };
   }
 
-  const { data: admin } = await supabase
-    .from("admin_users")
-    .select("id")
-    .eq("id", user.id)
-    .maybeSingle();
+  const adminClient = createClient(supabaseUrl, supabaseSecretKey);
+
+  const { data: admin } = await adminClient.from("admin_users").select("id").eq("id", user.id).maybeSingle();
 
   if (admin) {
     return { role: "admin" as const };
   }
 
-  const { data: reviewer } = await supabase
-    .from("reviewer_users")
-    .select("user_id")
-    .eq("user_id", user.id)
-    .maybeSingle();
+  const { data: reviewer } = await adminClient.from("reviewer_users").select("user_id").eq("user_id", user.id).maybeSingle();
 
   if (reviewer) {
     return { role: "reviewer" as const };
   }
 
-  const { data: engineer } = await supabase
+  const { data: engineerByUserId } = await adminClient
     .from("engineers")
     .select("is_certified")
     .eq("user_id", user.id)
     .maybeSingle();
 
-  if (engineer?.is_certified) {
+  if (engineerByUserId?.is_certified) {
     return { role: "engineer" as const };
   }
 
   if (user.email) {
-    const { data: engineerByEmail } = await supabase
+    const { data: engineerByEmail } = await adminClient
       .from("engineers")
-      .select("is_certified")
+      .select("id, is_certified, user_id")
       .eq("email", user.email.toLowerCase())
       .maybeSingle();
 
     if (engineerByEmail?.is_certified) {
+      if (!engineerByEmail.user_id) {
+        await adminClient.from("engineers").update({ user_id: user.id }).eq("id", engineerByEmail.id);
+      }
+
       return { role: "engineer" as const };
     }
   }

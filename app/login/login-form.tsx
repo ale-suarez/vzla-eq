@@ -85,9 +85,10 @@ export function LoginForm({ reason, next }: { reason?: string | null; next?: str
           )}
 
           {error && (
-            <p className="rounded-[16px] border border-destructive/20 bg-error-container px-4 py-3 text-sm text-on-error-container">
-              {error}
-            </p>
+            <div className="rounded-[18px] border border-error/20 bg-error-container px-4 py-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.08em] text-on-error-container">Error del API</p>
+              <p className="mt-1 text-sm text-on-error-container">{error}</p>
+            </div>
           )}
 
           {message && (
