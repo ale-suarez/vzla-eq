@@ -170,6 +170,27 @@ export const incidentPhotoSchema = z
   })
   .openapi("IncidentPhoto");
 
+// Feed-level provenance, embedded on incident responses for attribution.
+// Aggregated rows carry a source; native citizen rows resolve to the 'citizen'
+// source. License/url/attribution drive public CC BY-style credits.
+export const sourceSchema = z
+  .object({
+    code: z.string().openapi({ example: "copernicus-emsr884" }),
+    name: z.string().openapi({ example: "Copernicus EMS — EMSR884 La Guaira" }),
+    license: z.string().nullable().optional().openapi({ example: "CC-BY-4.0" }),
+    url: z
+      .string()
+      .nullable()
+      .optional()
+      .openapi({ example: "https://emergency.copernicus.eu/mapping/list-of-components/EMSR884" }),
+    attribution: z
+      .string()
+      .nullable()
+      .optional()
+      .openapi({ example: "© Copernicus Emergency Management Service (EMSR884), CC BY 4.0" }),
+  })
+  .openapi("Source");
+
 export const incidentResponseSchema = z
   .object({
     id: z.string().uuid().openapi({ example: "a2e4fce1-9a14-4df2-bf1b-4d6c4b4b5d41" }),
@@ -194,6 +215,10 @@ export const incidentResponseSchema = z
     terrain_type: z.string().nullable().optional(),
     created_at: z.string().datetime().openapi({ example: "2026-06-27T12:00:00Z" }),
     updated_at: z.string().datetime().openapi({ example: "2026-06-27T12:00:00Z" }),
+    // Provenance (aggregator). `source` is null for legacy rows; ingest/server set it.
+    source: sourceSchema.nullable().optional(),
+    source_ref: z.string().nullable().optional().openapi({ example: "42" }),
+    synced_at: z.string().datetime().nullable().optional(),
     photos: z.array(incidentPhotoSchema).optional(),
   })
   .openapi("Incident");
@@ -212,6 +237,7 @@ export const incidentListItemSchema = incidentResponseSchema
     updated_at: true,
     contact: true,
     building_use: true,
+    source: true,
   })
   .openapi("IncidentListItem");
 

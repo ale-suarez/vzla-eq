@@ -20,6 +20,7 @@ export type Incident = {
   iconWrap: string; // icon chip styles for list cards
   lat: number;
   lng: number;
+  attribution: string | null; // source credit line (CC BY etc.); null for native rows
 };
 
 // Map centered on Caracas. Used as the default view + fallback for incidents
@@ -61,6 +62,9 @@ export type DbIncident = {
   longitude: number | null;
   created_at: string | null;
   updated_at: string | null;
+  // Embedded source feed (see api/incidents handlers' source:sources(...) join).
+  // Optional: not every query embeds it. null/absent for native rows.
+  source?: { attribution: string | null } | null;
 };
 
 function relativeTime(iso: string | null): string {
@@ -94,6 +98,7 @@ export function fromDbIncident(row: DbIncident): Incident {
     iconWrap: presentation.iconWrap,
     lat: row.latitude ?? CARACAS_CENTER.lat,
     lng: row.longitude ?? CARACAS_CENTER.lng,
+    attribution: row.source?.attribution ?? null,
   };
 }
 

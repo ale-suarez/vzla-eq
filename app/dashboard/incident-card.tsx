@@ -56,6 +56,10 @@ export function IncidentCard({
             {INCIDENT_STATE_LABELS[incident.state]}
           </span>
         </div>
+        {incident.attribution ? (
+          // Source credit for aggregated rows (e.g. CC BY 4.0 requires it where shown).
+          <p className="mt-2 text-[10px] leading-tight text-on-surface-variant">{incident.attribution}</p>
+        ) : null}
       </div>
       <div className="mt-3 flex items-center justify-between border-t border-outline-variant pt-3">
         {showAssignee ? (

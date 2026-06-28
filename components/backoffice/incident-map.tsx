@@ -15,14 +15,19 @@ const MAP_STYLE = "https://tiles.openfreemap.org/styles/positron";
 
 const LEGEND: VerdictLevel[] = ["critical", "severe", "moderate", "low"];
 
+// Geographic bounds reported to the parent so the list can mirror the viewport.
+export type MapBounds = { minLng: number; minLat: number; maxLng: number; maxLat: number };
+
 export default function IncidentMap({
   incidents,
   selectedId,
   onSelect,
+  onBoundsChange,
 }: {
   incidents: Incident[];
   selectedId: string | null;
   onSelect: (id: string) => void;
+  onBoundsChange?: (bounds: MapBounds) => void;
 }) {
   const mapRef = useRef<MapRef | null>(null);
   const hasFitInitialBounds = useRef(false);
@@ -84,6 +89,19 @@ export default function IncidentMap({
     hasFitInitialBounds.current = true;
   }, [incidents, mapLoaded, selectedId]);
 
+  // Report the current viewport bounds so the parent list can mirror it.
+  const emitBounds = () => {
+    const map = mapRef.current;
+    if (!map || !onBoundsChange) return;
+    const b = map.getBounds();
+    onBoundsChange({
+      minLng: b.getWest(),
+      minLat: b.getSouth(),
+      maxLng: b.getEast(),
+      maxLat: b.getNorth(),
+    });
+  };
+
   const handleLocateMe = () => {
     startLocating(async () => {
       try {
@@ -105,7 +123,9 @@ export default function IncidentMap({
         style={{ width: "100%", height: "100%" }}
         onLoad={() => {
           setMapLoaded(true);
+          emitBounds();
         }}
+        onMoveEnd={emitBounds}
         onError={(e) => {
           // MapLibre aborts in-flight tile fetches while panning/zooming (and on
           // StrictMode remounts in dev), surfacing as "Failed to fetch" / status 0.

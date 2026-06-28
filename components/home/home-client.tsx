@@ -23,6 +23,7 @@ import { useAssessment } from "@/components/assessment-provider";
 import { RouteTransition } from "@/components/assessment-visuals";
 import { IncidentCard, IncidentCardSkeleton } from "@/app/dashboard/incident-card";
 import { fromDbIncident, type DbIncident } from "@/lib/incidents";
+import type { MapBounds } from "@/components/backoffice/incident-map";
 import { HOW_IT_WORKS } from "@/lib/assessment";
 import { cn } from "@/lib/utils";
 
@@ -118,6 +119,7 @@ export default function HomeClient() {
   const [incidentLoading, setIncidentLoading] = useState(true);
   const [incidentError, setIncidentError] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [bounds, setBounds] = useState<MapBounds | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -147,6 +149,19 @@ export default function HomeClient() {
   }, []);
 
   const incidents = useMemo(() => incidentRows.map(fromDbIncident), [incidentRows]);
+
+  // The list mirrors the map viewport: show only incidents within the current
+  // bounds. Before the map reports bounds (initial load), show all.
+  const visibleIncidents = useMemo(() => {
+    if (!bounds) return incidents;
+    return incidents.filter(
+      (i) =>
+        i.lng >= bounds.minLng &&
+        i.lng <= bounds.maxLng &&
+        i.lat >= bounds.minLat &&
+        i.lat <= bounds.maxLat
+    );
+  }, [incidents, bounds]);
 
   return (
     <RouteTransition className="pt-14">
@@ -272,12 +287,21 @@ export default function HomeClient() {
 
           <div className="mt-5 grid gap-5 lg:grid-cols-[1.45fr_0.85fr] lg:items-start">
             <div className="soft-card overflow-hidden rounded-[28px]">
-              <div className="h-[420px] w-full">
-                {incidentLoading ? <div className="h-full animate-pulse bg-surface-container-low" /> : <IncidentMap incidents={incidents} selectedId={selectedId} onSelect={setSelectedId} />}
+              <div className="h-[560px] w-full">
+                {incidentLoading ? (
+                  <div className="h-full animate-pulse bg-surface-container-low" />
+                ) : (
+                  <IncidentMap
+                    incidents={incidents}
+                    selectedId={selectedId}
+                    onSelect={setSelectedId}
+                    onBoundsChange={setBounds}
+                  />
+                )}
               </div>
             </div>
 
-            <div className="flex h-[420px] flex-col gap-4">
+            <div className="flex h-[560px] flex-col gap-4">
               <div className="soft-card flex h-full flex-col rounded-[28px] p-5">
                 <div className="mb-4 flex items-center justify-between">
                   <div>
@@ -285,7 +309,7 @@ export default function HomeClient() {
                     <h3 className="font-heading text-lg font-semibold text-on-surface">Reportes recientes</h3>
                   </div>
                   <span className="rounded-full bg-surface-container-high px-3 py-1 text-xs font-semibold text-on-surface-variant">
-                    {incidentRows.length} items
+                    {visibleIncidents.length} en vista
                   </span>
                 </div>
 
@@ -300,13 +324,13 @@ export default function HomeClient() {
                     <div className="rounded-[20px] border border-outline-variant bg-surface-container-low px-4 py-4 text-sm text-on-surface-variant">
                       {incidentError}
                     </div>
-                  ) : incidents.length === 0 ? (
+                  ) : visibleIncidents.length === 0 ? (
                     <div className="rounded-[20px] border border-outline-variant bg-surface-container-low px-4 py-4 text-sm text-on-surface-variant">
-                      Todavía no hay incidentes públicos para mostrar.
+                      No hay reportes en esta zona del mapa. Aleja o mueve el mapa para ver más.
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      {incidents.slice(0, 3).map((incident) => (
+                      {visibleIncidents.map((incident) => (
                         <IncidentCard
                           key={incident.id}
                           incident={incident}
