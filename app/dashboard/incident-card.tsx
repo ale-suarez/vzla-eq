@@ -30,8 +30,6 @@ export function IncidentCard({
   eyebrow?: string;
   onClick?: () => void;
 }) {
-  const Icon = incident.icon;
-
   return (
     <div
       onClick={onClick}
@@ -44,24 +42,19 @@ export function IncidentCard({
       )}
     >
       {eyebrow ? <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-on-surface-variant">{eyebrow}</p> : null}
-      <div className="flex items-start gap-3">
-        <div className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px]", incident.iconWrap)}>
-          <Icon className="h-5 w-5" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <h3 className="font-heading text-base font-semibold leading-tight text-on-surface">{incident.title}</h3>
-          <p className="text-xs text-on-surface-variant">
-            {showId ? <>ID: {incident.id} • </> : null}
-            {incident.meta}
-          </p>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            <span className={cn("rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.05em]", verdictBadge(incident.verdict))}>
-              {VERDICT_LABELS[incident.verdict]}
-            </span>
-            <span className={cn("rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.05em]", stateBadge(incident.state))}>
-              {INCIDENT_STATE_LABELS[incident.state]}
-            </span>
-          </div>
+      <div className="min-w-0">
+        <h3 className="font-heading text-base font-semibold leading-tight text-on-surface">{incident.title}</h3>
+        <p className="text-xs text-on-surface-variant">
+          {showId ? <>ID: {incident.id} • </> : null}
+          {incident.meta}
+        </p>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <span className={cn("rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.05em]", verdictBadge(incident.verdict))}>
+            {VERDICT_LABELS[incident.verdict]}
+          </span>
+          <span className={cn("rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.05em]", stateBadge(incident.state))}>
+            {INCIDENT_STATE_LABELS[incident.state]}
+          </span>
         </div>
       </div>
       <div className="mt-3 flex items-center justify-between border-t border-outline-variant pt-3">

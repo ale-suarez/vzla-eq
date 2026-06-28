@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
-import { ShieldCheck, UserCircle2 } from "lucide-react";
+import { useEffect, useState, useTransition } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { Menu, ShieldCheck, X } from "lucide-react";
 
 // Routes that render their own bespoke header (the questionnaire, volunteer
 // registration and the engineer/reviewer consoles). The shared citizen header
@@ -21,7 +21,18 @@ type SessionData = {
 
 export function SiteHeader() {
   const pathname = usePathname();
+  const router = useRouter();
   const [session, setSession] = useState<SessionData | null>(null);
+  const [signingOut, startSignOut] = useTransition();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // Close the mobile menu whenever the route changes. Tracking the rendered
+  // pathname (rather than a route-change effect) avoids a setState-in-effect.
+  const [menuPathname, setMenuPathname] = useState(pathname);
+  if (pathname !== menuPathname) {
+    setMenuPathname(pathname);
+    setMenuOpen(false);
+  }
 
   useEffect(() => {
     let active = true;
@@ -45,13 +56,15 @@ export function SiteHeader() {
     return null;
   }
 
-  const role = session?.role ?? "anonymous";
-  const professionalHref =
-    role === "admin" || role === "engineer"
-      ? "/dashboard"
-      : role === "reviewer"
-        ? "/revision-solicitudes"
-        : "/login";
+  const authenticated = session?.authenticated === true;
+
+  const handleSignOut = () => {
+    startSignOut(async () => {
+      await fetch("/api/auth/signout", { method: "POST" });
+      router.push("/");
+      router.refresh();
+    });
+  };
 
   return (
     <header style={{ viewTransitionName: "site-header" }} className="fixed left-0 right-0 top-0 z-50 bg-surface/90 backdrop-blur-md">
@@ -67,17 +80,80 @@ export function SiteHeader() {
           <ShieldCheck className="h-7 w-7 text-primary" />
           <h1 className="font-heading text-[22px] font-bold tracking-tight text-primary">Chequeo Estructural</h1>
         </Link>
-        <div className="flex items-center gap-3">
+        {/* Inline nav on >= sm; collapses to a hamburger on mobile. */}
+        <div className="hidden items-center gap-3 sm:flex">
+          {/* Points to the public live map on the home page. */}
           <Link
-            href={professionalHref}
-            transitionTypes={["nav-forward"]}
-            className="text-on-surface-variant transition-opacity hover:opacity-80"
-            aria-label={role === "anonymous" ? "Acceso profesional" : "Panel profesional"}
+            href="/#incidentes"
+            className="whitespace-nowrap text-sm font-medium text-on-surface-variant transition-opacity hover:opacity-80"
           >
-            <UserCircle2 className="h-6 w-6" />
+            Incidentes Reportados
           </Link>
+          {authenticated ? (
+            <button
+              type="button"
+              onClick={handleSignOut}
+              disabled={signingOut}
+              className="whitespace-nowrap rounded-full border border-outline px-3 py-1.5 text-sm font-semibold text-on-surface transition-colors hover:bg-surface-container disabled:opacity-60"
+            >
+              {signingOut ? "Saliendo..." : "Cerrar sesión"}
+            </button>
+          ) : (
+            <Link
+              href="/login"
+              transitionTypes={["nav-forward"]}
+              className="whitespace-nowrap rounded-full border border-outline px-3 py-1.5 text-sm font-semibold text-on-surface transition-colors hover:bg-surface-container"
+            >
+              Acceso voluntarios
+            </Link>
+          )}
         </div>
+
+        {/* Mobile hamburger */}
+        <button
+          type="button"
+          onClick={() => setMenuOpen((open) => !open)}
+          aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
+          aria-expanded={menuOpen}
+          className="-mr-1 flex h-10 w-10 items-center justify-center rounded-full text-on-surface transition-colors hover:bg-surface-container sm:hidden"
+        >
+          {menuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </button>
       </div>
+
+      {/* Mobile dropdown menu */}
+      {menuOpen && (
+        <div className="border-t border-outline-variant bg-surface px-5 py-3 sm:hidden">
+          <nav className="flex flex-col gap-1">
+            <Link
+              href="/#incidentes"
+              onClick={() => setMenuOpen(false)}
+              className="rounded-[12px] px-3 py-3 text-sm font-medium text-on-surface transition-colors hover:bg-surface-container"
+            >
+              Incidentes Reportados
+            </Link>
+            {authenticated ? (
+              <button
+                type="button"
+                onClick={handleSignOut}
+                disabled={signingOut}
+                className="rounded-[12px] px-3 py-3 text-left text-sm font-semibold text-on-surface transition-colors hover:bg-surface-container disabled:opacity-60"
+              >
+                {signingOut ? "Saliendo..." : "Cerrar sesión"}
+              </button>
+            ) : (
+              <Link
+                href="/login"
+                transitionTypes={["nav-forward"]}
+                onClick={() => setMenuOpen(false)}
+                className="rounded-[12px] px-3 py-3 text-sm font-semibold text-on-surface transition-colors hover:bg-surface-container"
+              >
+                Acceso voluntarios
+              </Link>
+            )}
+          </nav>
+        </div>
+      )}
     </header>
   );
 }
