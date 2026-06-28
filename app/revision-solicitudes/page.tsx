@@ -19,9 +19,9 @@ type ApplicationRecord = {
   id: string;
   email: string | null;
   full_name: string | null;
-  document_number: string | null;
+  license_number: string | null;
   specialty: string | null;
-  collegiate_status: string | null;
+  camera_affiliation: string | null;
   license_number: string | null;
   city: string | null;
   country: string | null;
@@ -259,10 +259,11 @@ export default function ReviewApplicationsPage() {
                           </div>
                           <div className="grid gap-3 text-sm text-on-surface-variant sm:grid-cols-2 xl:grid-cols-3">
                             <p>
-                              <span className="font-semibold text-on-surface">Documento:</span> {application.document_number ?? "No indicado"}
+                              <span className="font-semibold text-on-surface">Documento:</span> {application.license_number ?? "No indicado"}
                             </p>
                             <p>
-                              <span className="font-semibold text-on-surface">Colegiatura:</span> {application.collegiate_status ?? "No indicado"}
+                              <span className="font-semibold text-on-surface">Cámara / afiliación:</span>{" "}
+                              {application.camera_affiliation ?? "No indicado"}
                             </p>
                             <p>
                               <span className="font-semibold text-on-surface">Ciudad:</span> {application.city ?? "No indicada"}

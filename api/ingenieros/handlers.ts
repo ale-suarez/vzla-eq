@@ -21,6 +21,29 @@ type SupportingDocumentRecord = {
   storage_path: string;
 };
 
+type EngineerRow = {
+  id: string;
+  email: string | null;
+  full_name: string | null;
+  license_number: string | null;
+  specialty: string | null;
+  camera_affiliation: string | null;
+  city: string | null;
+  country: string | null;
+  years_experience: number | null;
+  motivation: string | null;
+  documents_summary: string | null;
+  documents_storage_paths: string[] | null;
+  profile_url: string | null;
+  application_status: "pending" | "approved" | "rejected";
+  is_certified: boolean;
+  review_notes: string | null;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 function jsonError(
   c: Context,
   status: 400 | 401 | 404 | 500,
@@ -232,15 +255,13 @@ function validateSubmission(formData: FormData) {
         ? {
             email,
             fullName,
-            documentNumber,
+            licenseNumber: documentNumber,
             specialty,
-            collegiateStatus,
-            licenseNumber,
             city,
             country,
             yearsExperience,
-            organization,
-            linkedinUrl,
+            cameraAffiliation: organization,
+            profileUrl: linkedinUrl,
             motivation,
             consent,
             files,
@@ -279,6 +300,24 @@ async function uploadSupportingDocuments(email: string, files: File[]) {
   return records;
 }
 
+function mapEngineerRow(row: EngineerRow) {
+  return {
+    ...row,
+    organization: row.camera_affiliation,
+    linkedin_url: row.profile_url,
+    supporting_documents:
+      row.documents_storage_paths?.map((storagePath) => {
+        const filename = storagePath.split("/").pop() ?? storagePath;
+        return {
+          name: filename,
+          type: "application/octet-stream",
+          size: 0,
+          storage_path: storagePath,
+        };
+      }) ?? [],
+  };
+}
+
 export async function ingenierosSolicitudesGet(c: Context) {
   const { role } = await getSessionContext();
   if (!hasReviewAccess(role)) {
@@ -289,7 +328,7 @@ export async function ingenierosSolicitudesGet(c: Context) {
   const { data, error } = await supabase
     .from("engineers")
     .select(
-      "id,email,full_name,document_number,specialty,collegiate_status,license_number,city,country,years_experience,organization,linkedin_url,motivation,supporting_documents,application_status,is_certified,review_notes,reviewed_by,reviewed_at,created_at,updated_at"
+      "id,email,full_name,license_number,specialty,camera_affiliation,city,country,years_experience,motivation,documents_summary,documents_storage_paths,profile_url,application_status,is_certified,review_notes,reviewed_by,reviewed_at,created_at,updated_at"
     )
     .order("created_at", { ascending: false })
     .limit(200);
@@ -298,7 +337,7 @@ export async function ingenierosSolicitudesGet(c: Context) {
     return jsonError(c, 500, error.message);
   }
 
-  return c.json({ data: data ?? [] });
+  return c.json({ data: (data ?? []).map((row) => mapEngineerRow(row as EngineerRow)) });
 }
 
 export async function ingenierosSolicitudesPost(c: Context) {
@@ -316,22 +355,22 @@ export async function ingenierosSolicitudesPost(c: Context) {
   }
 
   const supportingDocuments = await uploadSupportingDocuments(validation.value.email, validation.value.files);
+  const supportingDocumentPaths = supportingDocuments.map((document) => document.storage_path);
 
   const supabase = createSupabaseAdminClient();
   const payload = {
     email: validation.value.email,
     full_name: validation.value.fullName,
-    document_number: validation.value.documentNumber,
-    specialty: validation.value.specialty,
-    collegiate_status: validation.value.collegiateStatus,
     license_number: validation.value.licenseNumber,
+    specialty: validation.value.specialty,
+    camera_affiliation: validation.value.cameraAffiliation,
     city: validation.value.city,
     country: validation.value.country,
     years_experience: validation.value.yearsExperience,
-    organization: validation.value.organization,
-    linkedin_url: validation.value.linkedinUrl,
     motivation: validation.value.motivation,
-    supporting_documents: supportingDocuments,
+    documents_summary: supportingDocuments.map((document) => document.name).join(" · "),
+    documents_storage_paths: supportingDocumentPaths,
+    profile_url: validation.value.profileUrl,
     application_status: "pending" as const,
     is_certified: false,
     review_notes: null,
@@ -343,7 +382,7 @@ export async function ingenierosSolicitudesPost(c: Context) {
     .from("engineers")
     .upsert(payload, { onConflict: "email" })
     .select(
-      "id,email,full_name,document_number,specialty,collegiate_status,license_number,city,country,years_experience,organization,linkedin_url,motivation,supporting_documents,application_status,is_certified,review_notes,reviewed_by,reviewed_at,created_at,updated_at"
+      "id,email,full_name,license_number,specialty,camera_affiliation,city,country,years_experience,motivation,documents_summary,documents_storage_paths,profile_url,application_status,is_certified,review_notes,reviewed_by,reviewed_at,created_at,updated_at"
     )
     .single();
 
@@ -351,7 +390,7 @@ export async function ingenierosSolicitudesPost(c: Context) {
     return jsonError(c, 400, error.message);
   }
 
-  return c.json({ data }, 201);
+  return c.json({ data: data ? mapEngineerRow(data as EngineerRow) : data }, 201);
 }
 
 export async function engineerSolicitudByIdPatch(c: Context) {
@@ -391,7 +430,7 @@ export async function engineerSolicitudByIdPatch(c: Context) {
     })
     .eq("id", id)
     .select(
-      "id,email,full_name,document_number,specialty,collegiate_status,license_number,city,country,years_experience,organization,linkedin_url,motivation,supporting_documents,application_status,is_certified,review_notes,reviewed_by,reviewed_at,created_at,updated_at"
+      "id,email,full_name,license_number,specialty,camera_affiliation,city,country,years_experience,motivation,documents_summary,documents_storage_paths,profile_url,application_status,is_certified,review_notes,reviewed_by,reviewed_at,created_at,updated_at"
     )
     .maybeSingle();
 
@@ -403,5 +442,5 @@ export async function engineerSolicitudByIdPatch(c: Context) {
     return jsonError(c, 404, "No encontramos esa solicitud.");
   }
 
-  return c.json({ data });
+  return c.json({ data: data ? mapEngineerRow(data as EngineerRow) : data });
 }
