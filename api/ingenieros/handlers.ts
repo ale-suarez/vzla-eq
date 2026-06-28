@@ -13,12 +13,19 @@ import {
 } from "@/lib/engineer-applications";
 
 const SUPPORT_BUCKET = "volunteer_application_docs";
+const DOCUMENT_SIGNED_URL_TTL_SECONDS = 60 * 10;
 
 type SupportingDocumentRecord = {
   name: string;
   type: string;
   size: number;
   storage_path: string;
+};
+
+type EngineerDocument = {
+  path: string;
+  filename: string;
+  signed_url: string | null;
 };
 
 type EngineerRow = {
@@ -300,21 +307,45 @@ async function uploadSupportingDocuments(email: string, files: File[]) {
   return records;
 }
 
-function mapEngineerRow(row: EngineerRow) {
+async function buildSignedDocumentMap(paths: string[]) {
+  const supabase = createSupabaseAdminClient();
+  const uniquePaths = Array.from(new Set(paths)).filter(Boolean);
+
+  if (uniquePaths.length === 0) {
+    return new Map<string, EngineerDocument>();
+  }
+
+  const { data, error } = await supabase.storage
+    .from(SUPPORT_BUCKET)
+    .createSignedUrls(uniquePaths, DOCUMENT_SIGNED_URL_TTL_SECONDS);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const map = new Map<string, EngineerDocument>();
+  for (const entry of data ?? []) {
+    if (!entry.path) {
+      continue;
+    }
+
+    map.set(entry.path, {
+      path: entry.path,
+      filename: entry.path.split("/").pop() ?? entry.path,
+      signed_url: entry.signedUrl ?? null,
+    });
+  }
+
+  return map;
+}
+
+async function mapEngineerRow(row: EngineerRow) {
+  const documentPaths = row.documents_storage_paths ?? [];
+  const documentMap = await buildSignedDocumentMap(documentPaths);
+
   return {
     ...row,
-    organization: row.camera_affiliation,
-    linkedin_url: row.profile_url,
-    supporting_documents:
-      row.documents_storage_paths?.map((storagePath) => {
-        const filename = storagePath.split("/").pop() ?? storagePath;
-        return {
-          name: filename,
-          type: "application/octet-stream",
-          size: 0,
-          storage_path: storagePath,
-        };
-      }) ?? [],
+    documents: documentPaths.map((path) => documentMap.get(path) ?? { path, filename: path.split("/").pop() ?? path, signed_url: null }),
   };
 }
 
@@ -337,7 +368,8 @@ export async function ingenierosSolicitudesGet(c: Context) {
     return jsonError(c, 500, error.message);
   }
 
-  return c.json({ data: (data ?? []).map((row) => mapEngineerRow(row as EngineerRow)) });
+  const mapped = await Promise.all((data ?? []).map((row) => mapEngineerRow(row as EngineerRow)));
+  return c.json({ data: mapped });
 }
 
 export async function ingenierosSolicitudesPost(c: Context) {
@@ -404,7 +436,7 @@ export async function ingenierosSolicitudesPost(c: Context) {
       return jsonError(c, 400, error.message);
     }
 
-    return c.json({ data: mapEngineerRow(data as EngineerRow) }, 200);
+    return c.json({ data: await mapEngineerRow(data as EngineerRow) }, 200);
   }
 
   const { data, error } = await supabase.from("engineers").insert(payload).select(selectColumns).single();
@@ -413,7 +445,7 @@ export async function ingenierosSolicitudesPost(c: Context) {
     return jsonError(c, 400, error.message);
   }
 
-  return c.json({ data: mapEngineerRow(data as EngineerRow) }, 201);
+  return c.json({ data: await mapEngineerRow(data as EngineerRow) }, 201);
 }
 
 export async function engineerSolicitudByIdPatch(c: Context) {
@@ -465,5 +497,5 @@ export async function engineerSolicitudByIdPatch(c: Context) {
     return jsonError(c, 404, "No encontramos esa solicitud.");
   }
 
-  return c.json({ data: data ? mapEngineerRow(data as EngineerRow) : data });
+  return c.json({ data: data ? await mapEngineerRow(data as EngineerRow) : data });
 }
