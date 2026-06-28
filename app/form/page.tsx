@@ -2,14 +2,21 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, MapPin, Phone, TriangleAlert } from "lucide-react";
+import { ArrowLeft, ArrowRight, MapPin, Phone, ShieldCheck, TriangleAlert } from "lucide-react";
 import { motion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
 import { useAssessment } from "@/components/assessment-provider";
 import { RouteTransition } from "@/components/assessment-visuals";
 import LocationPicker from "@/components/location-picker";
-import { EMPTY_FORM_ANSWERS, FORM_QUESTIONS, isFormComplete, type FormQuestion } from "@/lib/assessment";
+import {
+  EMPTY_FORM_ANSWERS,
+  FORM_QUESTIONS,
+  isFormComplete,
+  parseMultiSelect,
+  toggleMultiSelect,
+  type FormQuestion,
+} from "@/lib/assessment";
 import { cn } from "@/lib/utils";
 
 function OptionChip({
@@ -63,19 +70,32 @@ export default function FormPage() {
   };
 
   return (
-    <RouteTransition className="pt-14">
-      <header className="fixed left-0 right-0 top-0 z-50 bg-surface/90 backdrop-blur-md">
-        <div className="mx-auto flex h-14 w-full max-w-7xl items-center justify-between px-5">
-          <Link
-            href="/"
-            transitionTypes={["nav-back"]}
-            className="flex h-10 w-10 items-center justify-center rounded-full text-on-surface-variant transition-colors hover:bg-surface-container"
-            aria-label="Volver"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <h1 className="font-heading text-[18px] font-semibold tracking-tight text-primary">Nueva Evaluación</h1>
-          <div className="w-10" />
+    <RouteTransition>
+      <header className="sticky top-0 z-30">
+        <div
+          aria-hidden
+          className="h-[18px] w-full"
+          style={{ background: "linear-gradient(to bottom, #FCD116 0 33.333%, #00247D 33.333% 66.666%, #CF142B 66.666% 100%)" }}
+        />
+        <div className="border-b border-outline-variant bg-surface/95 backdrop-blur-md">
+          <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-5">
+            <Link
+              href="/"
+              transitionTypes={["nav-back"]}
+              className="inline-flex items-center gap-2 text-sm font-medium text-on-surface-variant hover:text-primary"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Volver al inicio
+            </Link>
+            <div className="inline-flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-primary" />
+              <div>
+                <h1 className="font-heading text-[22px] font-bold leading-none text-primary">Chequeo Estructural</h1>
+                <p className="mt-1 text-[11px] text-on-surface-variant">Registro de incidencias</p>
+              </div>
+            </div>
+            <div className="w-28" />
+          </div>
         </div>
       </header>
 
@@ -185,12 +205,30 @@ function QuestionCard({
   value: string | undefined;
   onSelect: (value: string) => void;
 }) {
+  const selectedOptions = question.multiSelect ? parseMultiSelect(value) : value ? [value] : [];
+
+  const handleSelect = (option: string) => {
+    if (question.multiSelect) {
+      onSelect(toggleMultiSelect(value, option, question.exclusiveOptions));
+    } else {
+      onSelect(option);
+    }
+  };
+
   return (
     <div className="soft-card rounded-[18px] p-4">
       <p className="mb-3 font-heading text-base font-semibold text-on-surface">{question.question}</p>
+      {question.multiSelect ? (
+        <p className="mb-3 -mt-2 text-xs text-on-surface-variant">Puedes elegir varias opciones.</p>
+      ) : null}
       <div className={cn(question.variant === "stacked" ? "flex flex-col gap-2" : "flex flex-wrap gap-2")}>
         {question.options.map((option) => (
-          <OptionChip key={option} selected={value === option} variant={question.variant} onClick={() => onSelect(option)}>
+          <OptionChip
+            key={option}
+            selected={selectedOptions.includes(option)}
+            variant={question.variant}
+            onClick={() => handleSelect(option)}
+          >
             {option}
           </OptionChip>
         ))}

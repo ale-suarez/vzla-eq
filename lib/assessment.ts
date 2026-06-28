@@ -72,6 +72,14 @@ export interface FormQuestion {
   options: string[];
   /** Render style for the option chips. */
   variant: "pill" | "compact" | "stacked";
+  /**
+   * When true, several options can be picked; the stored value is the selected
+   * options joined with ", ". Options listed in `exclusiveOptions` cannot be
+   * combined (selecting one clears the rest, and vice versa).
+   */
+  multiSelect?: boolean;
+  /** Options that must stand alone when `multiSelect` is enabled (e.g. "No lo sé"). */
+  exclusiveOptions?: string[];
 }
 
 export const FORM_QUESTIONS: FormQuestion[] = [
@@ -89,7 +97,14 @@ export const FORM_QUESTIONS: FormQuestion[] = [
     options: ["Sí", "No", "No sé"],
     variant: "pill",
   },
-  { id: "material", question: "¿De qué está construido?", options: ["Concreto", "Ladrillo", "Bloque", "Madera", "Metal"], variant: "pill" },
+  {
+    id: "material",
+    question: "¿De qué está construido?",
+    options: ["Concreto", "Ladrillo", "Bloque", "Madera", "Acero", "No lo sé"],
+    variant: "pill",
+    multiSelect: true,
+    exclusiveOptions: ["No lo sé"],
+  },
   {
     id: "anio",
     question: "¿Año aproximado de construcción?",
@@ -112,6 +127,48 @@ export const FORM_QUESTIONS: FormQuestion[] = [
 ];
 
 export const BUILDING_USE_OPTIONS = ["Residencial", "Comercial", "Mixto", "Otro"] as const;
+
+/** Stored multi-select values are option strings joined with this separator. */
+const MULTI_SELECT_SEPARATOR = ", ";
+
+/** Splits a stored multi-select answer back into its individual options. */
+export function parseMultiSelect(value: string | undefined): string[] {
+  if (!value) return [];
+  return value
+    .split(",")
+    .map((option) => option.trim())
+    .filter(Boolean);
+}
+
+/**
+ * Toggles `option` within a multi-select answer and returns the new stored
+ * value (options joined with ", "). Options in `exclusiveOptions` stand alone:
+ * selecting one clears every other selection, and selecting any non-exclusive
+ * option clears a currently-selected exclusive one.
+ */
+export function toggleMultiSelect(
+  current: string | undefined,
+  option: string,
+  exclusiveOptions: string[] = []
+): string {
+  const selected = parseMultiSelect(current);
+  const isExclusive = exclusiveOptions.includes(option);
+
+  // Toggling an exclusive option: select it alone, or clear it.
+  if (isExclusive) {
+    return selected.includes(option) ? "" : option;
+  }
+
+  let next: string[];
+  if (selected.includes(option)) {
+    next = selected.filter((value) => value !== option);
+  } else {
+    // Adding a normal option clears any exclusive selection, preserving order.
+    next = [...selected.filter((value) => !exclusiveOptions.includes(value)), option];
+  }
+
+  return next.join(MULTI_SELECT_SEPARATOR);
+}
 
 export interface FormAnswers {
   phone: string;
