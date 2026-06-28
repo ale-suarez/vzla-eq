@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Bell, ShieldCheck, UserCircle2 } from "lucide-react";
+import { ShieldCheck, UserCircle2 } from "lucide-react";
 
 // Routes that render their own bespoke header (the questionnaire and the
 // engineer console). The shared citizen header is hidden on these.
@@ -63,10 +63,6 @@ export function SiteHeader() {
           <h1 className="font-heading text-[22px] font-bold tracking-tight text-primary">Chequeo Estructural</h1>
         </Link>
         <div className="flex items-center gap-3">
-          {/* TODO: wire to a notifications surface when one exists. */}
-          <button className="text-on-surface-variant transition-opacity hover:opacity-80" aria-label="Notificaciones">
-            <Bell className="h-6 w-6" />
-          </button>
           <Link
             href={professionalHref}
             transitionTypes={["nav-forward"]}
