@@ -39,19 +39,60 @@ export const INCIDENT_STATE_LABELS: Record<IncidentState, string> = {
   archived: "Archivado",
 };
 
-export interface PhotoResult {
+// ---------------------------------------------------------------------------
+// Typed photo evidence. A submission describes ONE defect, evidenced by a
+// required triad (general / intermedia / acercamiento) plus optional
+// supplementary photos. See docs/ai-analysis-flow.md.
+// ---------------------------------------------------------------------------
+
+export type PhotoTier = "triad" | "supplementary";
+
+/** The three required views of the defect (the triad). */
+export type ViewType = "general" | "intermedia" | "acercamiento";
+
+/** Supplementary photo categories (optional extra evidence). */
+export type GuideType = "exterior" | "columna" | "puerta-ventana" | "otro";
+
+export type PhotoType = ViewType | GuideType;
+
+/** Per-photo descriptor sent alongside each uploaded file (index-aligned). */
+export interface PhotoMeta {
+  tier: PhotoTier;
+  type: PhotoType;
+}
+
+/** Why a photo was rejected or flagged. `null` when the photo is usable. */
+export type PhotoIssue = "blurry" | "dark" | "wrong_distance" | "irrelevant" | "inappropriate" | null;
+
+/** Per-photo gating outcome returned by the analysis call. */
+export interface PhotoGating {
   index: number;
-  verdict: VerdictLevel;
-  confidence: number;
-  finding: string;
-  escalated: boolean;
+  tier: PhotoTier;
+  viewType: PhotoType;
+  /** False => dropped (irrelevant/inappropriate) or unusable evidence. */
+  usable: boolean;
+  issue: PhotoIssue;
+}
+
+/** What the model saw in one valid view; feeds the verdict (not a verdict). */
+export interface Observation {
+  viewType: PhotoType;
+  seen: string;
 }
 
 export interface AnalysisResult {
-  verdict: VerdictLevel;
+  /** Null when no view was valid enough to issue a verdict (retake needed). */
+  verdict: VerdictLevel | null;
   confidence: number;
   finding: string;
-  perPhoto: PhotoResult[];
+  /** Cross-view descriptions backing the verdict. */
+  observations: Observation[];
+  /** Close-up judgment: crack through the substrate vs. paint layer only. */
+  paintingVsStructural: string | null;
+  /** Per-photo quality/relevance gating. */
+  photos: PhotoGating[];
+  /** Count of valid TRIAD views (drives the confidence cap, 0-3). */
+  validTriadViews: number;
   showAuthorities: boolean;
 }
 
@@ -304,6 +345,68 @@ export interface VerdictConfig {
 
 export const MAX_PHOTOS = 10;
 export const MAX_FILE_SIZE_MB = 10;
+
+// ---------------------------------------------------------------------------
+// Photo evidence model (see docs/ai-analysis-flow.md).
+// The triad is required; supplementary photos fill the rest up to MAX_PHOTOS.
+// ---------------------------------------------------------------------------
+
+/** The three required defect views, in capture order. */
+export interface TriadSlot {
+  type: ViewType;
+  title: string;
+  /** Parenthetical hint shown under the title. */
+  sub: string;
+  /** Example photo shown in the empty slot to guide the citizen's framing. */
+  example: string;
+}
+
+export const TRIAD_SLOTS: TriadSlot[] = [
+  { type: "general", title: "Vista general", sub: "(elemento completo)", example: "/examples/vista-general.png" },
+  { type: "intermedia", title: "Vista intermedia", sub: "(zona del daño)", example: "/examples/vista-intermedia.png" },
+  { type: "acercamiento", title: "Acercamiento", sub: "(con referencia de tamaño)", example: "/examples/acercamiento.png" },
+];
+
+export interface SupplementaryOption {
+  type: GuideType;
+  label: string;
+}
+
+export const SUPPLEMENTARY_OPTIONS: SupplementaryOption[] = [
+  { type: "exterior", label: "Exterior del edificio" },
+  { type: "columna", label: "Columna" },
+  { type: "puerta-ventana", label: "Puerta o ventana" },
+  { type: "otro", label: "Otro" },
+];
+
+/** Max supplementary photos: the overall ceiling minus the three triad slots. */
+export const MAX_SUPPLEMENTARY = MAX_PHOTOS - TRIAD_SLOTS.length;
+
+const VIEW_TYPE_SET = new Set<string>(TRIAD_SLOTS.map((s) => s.type));
+
+export function isViewType(type: string): type is ViewType {
+  return VIEW_TYPE_SET.has(type);
+}
+
+/** Spanish label for any photo type (triad or supplementary). */
+export function photoTypeLabel(type: PhotoType): string {
+  const triad = TRIAD_SLOTS.find((s) => s.type === type);
+  if (triad) return `${triad.title} ${triad.sub}`;
+  const sup = SUPPLEMENTARY_OPTIONS.find((o) => o.type === type);
+  return sup ? sup.label : type;
+}
+
+/**
+ * Confidence ceiling by the number of valid TRIAD views. A verdict from a
+ * single view can't be confident; only a complete triad lifts the cap.
+ * Supplementary photos strengthen confidence WITHIN this cap but never raise it.
+ */
+export function confidenceCapForTriadViews(validTriadViews: number): number {
+  if (validTriadViews >= 3) return 100;
+  if (validTriadViews === 2) return 75;
+  if (validTriadViews === 1) return 50;
+  return 0;
+}
 export const RING_CIRCUMFERENCE = 251.2;
 export const ASSESSMENT_STORAGE_KEY = "vzla-eq-assessment";
 

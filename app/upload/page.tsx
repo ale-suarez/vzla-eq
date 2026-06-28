@@ -1,22 +1,41 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, Camera, CheckCircle2, Images, Info, X } from "lucide-react";
+import { AlertTriangle, Camera, CheckCircle2, Info, Plus, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
 import { useAssessment } from "@/components/assessment-provider";
-import { PHOTO_TIPS, MAX_FILE_SIZE_MB, MAX_PHOTOS } from "@/lib/assessment";
+import {
+  MAX_SUPPLEMENTARY,
+  SUPPLEMENTARY_OPTIONS,
+  TRIAD_SLOTS,
+  type GuideType,
+  type ViewType,
+} from "@/lib/assessment";
 import { cn } from "@/lib/utils";
 import { RouteTransition } from "@/components/assessment-visuals";
 
 export default function EvaluatePage() {
   const router = useRouter();
-  const cameraInputRef = useRef<HTMLInputElement>(null);
-  const galleryInputRef = useRef<HTMLInputElement>(null);
-  const { photos, previews, error, loading, addPhotos, removePhoto, setError } = useAssessment();
+  const {
+    triad,
+    supplementary,
+    triadComplete,
+    error,
+    loading,
+    setTriadPhoto,
+    addSupplementary,
+    removeSupplementary,
+    setError,
+  } = useAssessment();
+
+  // One hidden input per triad slot, plus one for the active supplementary type.
+  const triadInputs = useRef<Partial<Record<ViewType, HTMLInputElement | null>>>({});
+  const supInputRef = useRef<HTMLInputElement>(null);
+  const [supType, setSupType] = useState<GuideType>(SUPPLEMENTARY_OPTIONS[0].type);
 
   // Navigations into this page use `scroll: false`, so the previous route's
   // scroll position carries over. Reset to the top on mount.
@@ -24,23 +43,21 @@ export default function EvaluatePage() {
     window.scrollTo(0, 0);
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (photos.length === 0) {
-      setError("Por favor suba al menos una foto.");
+    if (!triadComplete) {
+      setError("Sube las tres vistas requeridas antes de analizar.");
       return;
     }
 
     router.push("/analyzing", { scroll: false, transitionTypes: ["nav-forward"] });
   };
 
-  const openCamera = () => {
-    cameraInputRef.current?.click();
-  };
-
-  const openGallery = () => {
-    galleryInputRef.current?.click();
+  const openSupplementaryPicker = (type: GuideType) => {
+    setSupType(type);
+    // Defer so the ref's intended type is read on change.
+    requestAnimationFrame(() => supInputRef.current?.click());
   };
 
   return (
@@ -57,101 +74,158 @@ export default function EvaluatePage() {
         <div className="space-y-6 px-5 py-6">
           <section className="space-y-1">
             <h2 className="font-heading text-[26px] font-bold leading-8 tracking-tight text-on-surface">Nueva Evaluación</h2>
-            <p className="text-sm leading-5 text-on-surface-variant">Toma una foto clara del área estructural que deseas analizar.</p>
+            <p className="text-sm leading-5 text-on-surface-variant">
+              Documenta un solo daño con tres vistas: aléjate para el contexto, captura la pared completa y acércate a la grieta.
+            </p>
           </section>
 
-          <section
-            className={cn(
-              "upload-dashed flex w-full flex-col items-center justify-center bg-surface-container-lowest px-6 py-10 transition-colors",
-              previews.length > 0 && "bg-primary-fixed/50"
-            )}
-          >
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary-fixed text-primary">
-              <Camera className="h-8 w-8" />
-            </div>
-            <div className="mb-6 space-y-2 text-center">
-              <p className="font-heading text-lg font-semibold text-on-surface">Comenzar Escaneo</p>
-              <p className="text-sm leading-5 text-on-surface-variant">Toca para usar la cámara o sube desde tu galería</p>
-              <p className="text-xs font-medium text-on-surface-variant">
-                {photos.length}/{MAX_PHOTOS} · Máx. {MAX_FILE_SIZE_MB} MB por foto
-              </p>
-            </div>
-
-            <AnimatePresence>
-              {previews.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="mb-4 grid w-full grid-cols-2 gap-3 sm:grid-cols-3"
-                >
-                  {previews.map((src, i) => (
-                    <motion.div
-                      key={src}
-                      initial={{ opacity: 0, scale: 0.94 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.94 }}
-                      className="relative aspect-square overflow-hidden rounded-[18px] border border-outline-variant bg-surface-container-lowest"
-                    >
-                      <Image src={src} alt={`Foto ${i + 1}`} fill className="object-cover" />
-                      <button
-                        type="button"
-                        onClick={() => removePhoto(i)}
-                        className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full border border-outline-variant bg-white/85 text-on-surface shadow-sm backdrop-blur-sm"
-                        disabled={loading}
-                        aria-label={`Eliminar foto ${i + 1}`}
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </motion.div>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {photos.length < MAX_PHOTOS && (
-              <div className="mx-auto flex w-full max-w-sm flex-col gap-3">
-                <Button
-                  type="button"
-                  onClick={openCamera}
-                  className="h-14 w-full rounded-[18px] bg-primary text-base font-bold text-white shadow-[0px_4px_20px_rgba(37,99,235,0.2)] hover:bg-primary-container"
-                  disabled={loading}
-                >
-                  <Camera className="h-4 w-4" />
-                  Tomar Foto
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={openGallery}
-                  className="h-14 w-full rounded-[18px] border-outline-variant bg-surface-container text-base font-semibold text-on-surface hover:bg-surface-container-high"
-                  disabled={loading}
-                >
-                  <Images className="h-4 w-4" />
-                  Elegir de la Galería
-                </Button>
-              </div>
-            )}
-          </section>
-
+          {/* Required triad */}
           <section className="space-y-4">
             <div className="flex items-center gap-2">
-              <Info className="h-5 w-5 text-secondary" />
-              <h3 className="font-heading text-lg font-semibold text-on-surface">Consejos para la Foto</h3>
+              <Camera className="h-5 w-5 text-primary" />
+              <h3 className="font-heading text-lg font-semibold text-on-surface">Las 3 vistas requeridas</h3>
             </div>
-            <div className="grid grid-cols-1 gap-4">
-              {PHOTO_TIPS.map(({ title, text, icon: Icon }) => (
-                <div key={title} className="soft-card flex items-start gap-4 rounded-[18px] p-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary-container text-on-secondary-container">
-                    <Icon className="h-5 w-5" />
+
+            <div className="space-y-3">
+              {TRIAD_SLOTS.map((slot, i) => {
+                const entry = triad[slot.type];
+                return (
+                  <div
+                    key={slot.type}
+                    className={cn(
+                      "soft-card flex items-center gap-4 rounded-[18px] border p-3 transition-colors",
+                      entry ? "border-secondary/30 bg-secondary-container/30" : "border-outline-variant"
+                    )}
+                  >
+                    <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-[14px] border border-outline-variant bg-surface-container">
+                      {entry ? (
+                        <>
+                          <Image src={entry.preview} alt={slot.title} fill className="object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => setTriadPhoto(slot.type, null)}
+                            disabled={loading}
+                            aria-label={`Eliminar ${slot.title}`}
+                            className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full border border-outline-variant bg-white/85 text-on-surface shadow-sm backdrop-blur-sm"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          {/* Example framing to guide the citizen's shot. */}
+                          <Image src={slot.example} alt={`Ejemplo: ${slot.title}`} fill className="object-cover opacity-60" />
+                          <span className="absolute left-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-on-surface/80 text-[11px] font-bold text-white">
+                            {i + 1}
+                          </span>
+                          <span className="absolute bottom-0 left-0 right-0 bg-on-surface/55 py-0.5 text-center text-[9px] font-semibold uppercase tracking-[0.06em] text-white">
+                            Ejemplo
+                          </span>
+                        </>
+                      )}
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <p className="font-heading text-base font-semibold text-on-surface">{slot.title}</p>
+                      <p className="text-xs text-on-surface-variant">{slot.sub}</p>
+                    </div>
+
+                    <Button
+                      type="button"
+                      variant={entry ? "outline" : "default"}
+                      onClick={() => triadInputs.current[slot.type]?.click()}
+                      disabled={loading}
+                      className={cn(
+                        "h-10 shrink-0 rounded-[14px] px-4 text-sm font-semibold",
+                        entry
+                          ? "border-outline-variant bg-surface-container-lowest text-on-surface"
+                          : "bg-primary text-white"
+                      )}
+                    >
+                      {entry ? "Cambiar" : "Tomar"}
+                    </Button>
+
+                    <input
+                      ref={(el) => {
+                        triadInputs.current[slot.type] = el;
+                      }}
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      onChange={(e) => {
+                        setTriadPhoto(slot.type, e.target.files?.[0] ?? null);
+                        e.currentTarget.value = "";
+                      }}
+                      className="hidden"
+                    />
                   </div>
-                  <div className="space-y-1">
-                    <p className="font-heading text-base font-semibold text-on-surface">{title}</p>
-                    <p className="text-sm leading-5 text-on-surface-variant">{text}</p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
+          </section>
+
+          {/* Optional supplementary */}
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-heading text-lg font-semibold text-on-surface">Fotos adicionales (opcional)</h3>
+              <span className="text-xs font-semibold uppercase tracking-[0.12em] text-outline">
+                {supplementary.length}/{MAX_SUPPLEMENTARY}
+              </span>
+            </div>
+            <p className="text-sm leading-5 text-on-surface-variant">
+              Exterior, columnas o marcos de puertas/ventanas ayudan a la IA a corroborar el diagnóstico.
+            </p>
+
+            {supplementary.length > 0 && (
+              <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
+                {supplementary.map((entry, i) => (
+                  <div
+                    key={entry.preview}
+                    className="relative aspect-square overflow-hidden rounded-[14px] border border-outline-variant bg-surface-container"
+                  >
+                    <Image src={entry.preview} alt={`Adicional ${i + 1}`} fill className="object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removeSupplementary(i)}
+                      disabled={loading}
+                      aria-label={`Eliminar adicional ${i + 1}`}
+                      className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full border border-outline-variant bg-white/85 text-on-surface shadow-sm backdrop-blur-sm"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {supplementary.length < MAX_SUPPLEMENTARY && (
+              <div className="flex flex-wrap gap-2">
+                {SUPPLEMENTARY_OPTIONS.map((opt) => (
+                  <Button
+                    key={opt.type}
+                    type="button"
+                    variant="outline"
+                    onClick={() => openSupplementaryPicker(opt.type)}
+                    disabled={loading}
+                    className="h-10 rounded-full border-outline-variant bg-surface-container px-4 text-sm font-medium text-on-surface hover:bg-surface-container-high"
+                  >
+                    <Plus className="h-4 w-4" />
+                    {opt.label}
+                  </Button>
+                ))}
+              </div>
+            )}
+
+            <input
+              ref={supInputRef}
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                addSupplementary(supType, e.target.files?.[0] ?? null);
+                e.currentTarget.value = "";
+              }}
+              className="hidden"
+            />
           </section>
 
           <AnimatePresence>
@@ -183,12 +257,17 @@ export default function EvaluatePage() {
 
         <div className="pointer-events-none fixed bottom-0 left-0 z-40 w-full bg-gradient-to-t from-surface via-surface to-transparent px-5 pb-6 pt-10">
           <div className="pointer-events-auto mx-auto w-full max-w-sm">
+            {!triadComplete && (
+              <p className="mb-2 text-center text-xs font-medium text-on-surface-variant">
+                Completa las 3 vistas requeridas para continuar
+              </p>
+            )}
             <Button
               type="submit"
-              disabled={loading || photos.length === 0}
+              disabled={loading || !triadComplete}
               className={cn(
                 "h-14 w-full rounded-[18px] text-base font-bold transition-all",
-                photos.length > 0
+                triadComplete
                   ? "bg-primary text-white shadow-[0px_4px_20px_rgba(37,99,235,0.24)] hover:bg-primary-container"
                   : "bg-outline text-on-primary-fixed-variant opacity-50"
               )}
@@ -199,29 +278,6 @@ export default function EvaluatePage() {
           </div>
         </div>
       </motion.form>
-
-      <input
-        ref={cameraInputRef}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        onChange={(e) => {
-          addPhotos(e.target.files);
-          e.currentTarget.value = "";
-        }}
-        className="hidden"
-      />
-      <input
-        ref={galleryInputRef}
-        type="file"
-        accept="image/*"
-        multiple
-        onChange={(e) => {
-          addPhotos(e.target.files);
-          e.currentTarget.value = "";
-        }}
-        className="hidden"
-      />
     </RouteTransition>
   );
 }
