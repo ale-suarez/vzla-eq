@@ -248,9 +248,9 @@ export default function VolunteerEngineerRegistrationPage() {
         />
         <div className="border-b border-outline-variant bg-surface/95 backdrop-blur-md">
           <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-5">
-            <Link href="/login" className="inline-flex items-center gap-2 text-sm font-medium text-on-surface-variant hover:text-primary">
+            <Link href="/" className="inline-flex items-center gap-2 text-sm font-medium text-on-surface-variant hover:text-primary">
               <ArrowLeft className="h-4 w-4" />
-              Volver al acceso
+              Volver al inicio
             </Link>
             <div className="inline-flex items-center gap-2">
               <ShieldCheck className="h-5 w-5 text-primary" />
