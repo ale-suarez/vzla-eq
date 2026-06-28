@@ -120,7 +120,6 @@ export default function IncidentMap({
       >
         {incidents.map((incident) => {
           const conf = VERDICT_MARKER[incident.verdict];
-          const Icon = conf.icon;
           const selected = incident.id === selectedId;
           return (
             <Marker
@@ -136,13 +135,11 @@ export default function IncidentMap({
               <div className="group relative cursor-pointer">
                 <div
                   className={cn(
-                    "relative flex items-center justify-center rounded-full border-4 border-white text-white shadow-lg transition-all",
+                    "relative rounded-full border-2 border-white/80 opacity-75 shadow-lg transition-all",
                     conf.circle,
-                    selected ? "h-12 w-12 ring-2 ring-offset-2 ring-on-surface" : "h-10 w-10"
+                    selected ? "h-7 w-7 opacity-100 ring-2 ring-offset-2 ring-on-surface" : "h-5 w-5"
                   )}
-                >
-                  <Icon className={selected ? "h-6 w-6" : "h-5 w-5"} />
-                </div>
+                />
                 {/* Hover tooltip */}
                 <div className="pointer-events-none absolute left-1/2 top-[calc(100%+6px)] z-10 -translate-x-1/2 whitespace-nowrap rounded-lg bg-on-surface px-3 py-2 text-[10px] font-bold text-surface opacity-0 shadow-xl transition-opacity group-hover:opacity-100">
                   {incident.title}
@@ -184,8 +181,9 @@ export default function IncidentMap({
         </button>
       </div>
 
-      {/* Legend */}
-      <div className="absolute bottom-6 left-6 z-10 flex items-center gap-4 rounded-xl border border-outline-variant bg-surface px-4 py-3 shadow-[0px_4px_20px_rgba(0,0,0,0.08)]">
+      {/* Legend — pinned within the map bounds so it wraps instead of overflowing
+          on narrow viewports. The zoom controls sit at right-6, so cap the width. */}
+      <div className="absolute bottom-6 left-6 right-20 z-10 flex flex-wrap items-center gap-x-4 gap-y-1.5 rounded-xl border border-outline-variant bg-surface px-4 py-3 shadow-[0px_4px_20px_rgba(0,0,0,0.08)] sm:right-auto sm:max-w-[calc(100%-6rem)]">
         {LEGEND.map((verdict) => (
           <div key={verdict} className="flex items-center gap-2">
             <div className={cn("h-3 w-3 rounded-full", VERDICT_MARKER[verdict].dot)} />
