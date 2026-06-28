@@ -377,20 +377,43 @@ export async function ingenierosSolicitudesPost(c: Context) {
     reviewed_by: null,
     reviewed_at: null,
   };
+  const selectColumns =
+    "id,email,full_name,license_number,specialty,camera_affiliation,city,country,years_experience,motivation,documents_summary,documents_storage_paths,profile_url,application_status,is_certified,review_notes,reviewed_by,reviewed_at,created_at,updated_at";
 
-  const { data, error } = await supabase
+  const { data: existing, error: existingError } = await supabase
     .from("engineers")
-    .upsert(payload, { onConflict: "email" })
-    .select(
-      "id,email,full_name,license_number,specialty,camera_affiliation,city,country,years_experience,motivation,documents_summary,documents_storage_paths,profile_url,application_status,is_certified,review_notes,reviewed_by,reviewed_at,created_at,updated_at"
-    )
-    .single();
+    .select(selectColumns)
+    .eq("email", payload.email)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (existingError) {
+    return jsonError(c, 400, existingError.message);
+  }
+
+  if (existing) {
+    const { data, error } = await supabase
+      .from("engineers")
+      .update(payload)
+      .eq("id", existing.id)
+      .select(selectColumns)
+      .single();
+
+    if (error) {
+      return jsonError(c, 400, error.message);
+    }
+
+    return c.json({ data: mapEngineerRow(data as EngineerRow) }, 200);
+  }
+
+  const { data, error } = await supabase.from("engineers").insert(payload).select(selectColumns).single();
 
   if (error) {
     return jsonError(c, 400, error.message);
   }
 
-  return c.json({ data: data ? mapEngineerRow(data as EngineerRow) : data }, 201);
+  return c.json({ data: mapEngineerRow(data as EngineerRow) }, 201);
 }
 
 export async function engineerSolicitudByIdPatch(c: Context) {
