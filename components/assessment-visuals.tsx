@@ -71,14 +71,25 @@ export function LoadingView() {
   );
 }
 
-// Hydration-safe "has the client mounted?" signal. Server snapshot is false,
-// client snapshot is true, so we can gate the experimental ViewTransition
-// without a setState-in-effect.
-const noopSubscribe = () => () => {};
+// Hydration-safe "has the client mounted?" signal, via useSyncExternalStore so
+// we avoid a setState-in-effect. The CLIENT snapshot must be `false` too (not
+// just the server snapshot): React calls the client snapshot during hydration,
+// so returning `true` there would render ViewTransition's <Suspense> on the
+// first client paint while the server emitted a plain <div> — a hydration
+// mismatch. We start `false` on both, then `subscribe` flips the store to
+// `true` on the next microtask, re-rendering with ViewTransition after mount.
+let hydratedSnapshot = false;
+function subscribeHydrated(onStoreChange: () => void) {
+  if (!hydratedSnapshot) {
+    hydratedSnapshot = true;
+    queueMicrotask(onStoreChange);
+  }
+  return () => {};
+}
 function useHydrated(): boolean {
   return useSyncExternalStore(
-    noopSubscribe,
-    () => true,
+    subscribeHydrated,
+    () => hydratedSnapshot,
     () => false
   );
 }
