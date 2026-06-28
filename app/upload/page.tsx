@@ -36,6 +36,7 @@ export default function EvaluatePage() {
   const triadInputs = useRef<Partial<Record<ViewType, HTMLInputElement | null>>>({});
   const supInputRef = useRef<HTMLInputElement>(null);
   const [supType, setSupType] = useState<GuideType>(SUPPLEMENTARY_OPTIONS[0].type);
+  const [legalAccepted, setLegalAccepted] = useState(false);
 
   // Navigations into this page use `scroll: false`, so the previous route's
   // scroll position carries over. Reset to the top on mount.
@@ -48,6 +49,11 @@ export default function EvaluatePage() {
 
     if (!triadComplete) {
       setError("Sube las tres vistas requeridas antes de analizar.");
+      return;
+    }
+
+    if (!legalAccepted) {
+      setError("Debes aceptar el aviso legal antes de continuar.");
       return;
     }
 
@@ -250,6 +256,19 @@ export default function EvaluatePage() {
                 <p className="text-sm leading-5 text-on-surface-variant">
                   Este análisis es orientativo y se basa únicamente en la información proporcionada por el usuario. Puede ayudar a identificar posibles daños, fallas constructivas o condiciones que afecten la habitabilidad de una edificación, pero no constituye una inspección estructural formal ni sustituye la evaluación presencial de un ingeniero estructural o civil calificado. Cualquier decisión sobre ocupación, reparación o intervención del inmueble deberá ser confirmada por profesionales competentes y, cuando corresponda, por las autoridades correspondientes.
                 </p>
+                <label className="flex cursor-pointer items-start gap-3 pt-2 text-sm font-medium text-on-surface">
+                  <input
+                    type="checkbox"
+                    checked={legalAccepted}
+                    onChange={(e) => {
+                      setLegalAccepted(e.target.checked);
+                      if (e.target.checked) setError(null);
+                    }}
+                    disabled={loading}
+                    className="mt-0.5 h-5 w-5 shrink-0 rounded border-outline-variant accent-primary"
+                  />
+                  Acepto el aviso legal
+                </label>
               </div>
             </div>
           </section>
@@ -262,12 +281,17 @@ export default function EvaluatePage() {
                 Completa las 3 vistas requeridas para continuar
               </p>
             )}
+            {triadComplete && !legalAccepted && (
+              <p className="mb-2 text-center text-xs font-medium text-on-surface-variant">
+                Acepta el aviso legal para continuar
+              </p>
+            )}
             <Button
               type="submit"
-              disabled={loading || !triadComplete}
+              disabled={loading || !triadComplete || !legalAccepted}
               className={cn(
                 "h-14 w-full rounded-[18px] text-base font-bold transition-all",
-                triadComplete
+                triadComplete && legalAccepted
                   ? "bg-primary text-white shadow-[0px_4px_20px_rgba(37,99,235,0.24)] hover:bg-primary-container"
                   : "bg-outline text-on-primary-fixed-variant opacity-50"
               )}

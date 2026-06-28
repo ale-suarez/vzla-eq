@@ -176,9 +176,6 @@ export default function ResultPage() {
             <h2 className={cn("mt-1 font-heading text-[26px] font-bold leading-8", cfg.labelColor)}>
               {OVERALL_RESULT_COPY[result.verdict].level}
             </h2>
-            <p className={cn("mt-2 max-w-[240px] text-sm leading-5", OVERALL_RESULT_COPY[result.verdict].textClass)}>
-              {result.finding}
-            </p>
           </div>
           <div className="relative z-10 flex shrink-0 flex-col items-center">
             <ConfidenceRing value={result.confidence} className={cfg.ringColor} />
@@ -200,16 +197,24 @@ export default function ResultPage() {
           </div>
         )}
 
-        {/* Painting vs structural — the SME's key judgment */}
-        {result.paintingVsStructural && (
-          <section className="soft-card rounded-[24px] border border-outline-variant p-6">
-            <div className="mb-2 flex items-center gap-2">
-              <Search className="h-4 w-4 text-primary" />
-              <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-outline">Pintura vs. estructura (acercamiento)</h3>
+        {/* Reporte — the model's finding plus its painting-vs-structural judgment */}
+        <section className="soft-card rounded-[24px] border border-outline-variant p-6">
+          <h3 className="font-heading text-lg font-semibold text-on-surface">Reporte</h3>
+          <p className="mt-2 text-sm leading-6 text-on-surface-variant">{result.finding}</p>
+          <p className="mt-3 text-sm leading-6 text-on-surface-variant">
+            Este reporte tiene un {result.confidence}% de confianza. Una confianza más alta significa un resultado más fiable.
+          </p>
+
+          {result.paintingVsStructural && (
+            <div className="mt-4 border-t border-outline-variant/60 pt-4">
+              <div className="mb-2 flex items-center gap-2">
+                <Search className="h-4 w-4 text-primary" />
+                <h4 className="text-xs font-semibold uppercase tracking-[0.12em] text-outline">Pintura vs. estructura (acercamiento)</h4>
+              </div>
+              <p className="text-sm leading-6 text-on-surface-variant">{result.paintingVsStructural}</p>
             </div>
-            <p className="text-sm leading-6 text-on-surface-variant">{result.paintingVsStructural}</p>
-          </section>
-        )}
+          )}
+        </section>
 
         {/* Per-view observations */}
         {result.observations.length > 0 && (
@@ -289,55 +294,6 @@ export default function ResultPage() {
           </div>
         </section>
 
-        {result.showAuthorities && (
-          <section className="soft-card overflow-hidden rounded-[24px]">
-            <div className="flex items-center gap-2 px-6 py-5">
-              <Phone className="h-4 w-4 text-on-surface-variant" />
-              <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-outline">Contactos de emergencia</h3>
-            </div>
-            <div className="border-t border-surface-container px-6 py-4">
-              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-outline">Líneas de emergencia</p>
-              <div className="grid grid-cols-4 gap-2">
-                {EMERGENCY_NUMBERS.map(({ label, sub }) => (
-                  <a
-                    key={label}
-                    href={`tel:${label}`}
-                    className="flex min-h-16 flex-col items-center justify-center rounded-[18px] border border-outline-variant bg-surface-container-lowest transition-colors hover:bg-surface-container"
-                  >
-                    <span className="text-base font-bold leading-none text-on-surface">{label}</span>
-                    <span className="mt-1 text-[10px] text-on-surface-variant">{sub}</span>
-                  </a>
-                ))}
-              </div>
-            </div>
-            <div className="divide-y divide-surface-container border-t border-surface-container">
-              {CIVIL_CONTACTS.map(({ name, numbers, tels }) => (
-                <div key={name} className="flex items-center justify-between gap-3 px-6 py-3">
-                  <span className="shrink-0 text-sm text-on-surface-variant">{name}</span>
-                  <div className="flex flex-wrap justify-end gap-2">
-                    {numbers.map((n, i) => (
-                      <a key={n} href={`tel:${tels[i]}`} className="whitespace-nowrap text-xs font-semibold text-primary hover:underline">
-                        {n}
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="flex items-start gap-3 border-t border-surface-container px-6 py-4">
-              <Globe className="mt-0.5 h-4 w-4 shrink-0 text-on-surface-variant" />
-              <div className="flex flex-col gap-1">
-                <a href="https://venezuelareporta.org" target="_blank" rel="noopener noreferrer" className="flex items-center gap-0.5 text-xs text-primary hover:underline">
-                  venezuelareporta.org <ChevronRight className="h-3 w-3" />
-                </a>
-                <a href="https://venezuelatebusca.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-0.5 text-xs text-primary hover:underline">
-                  venezuelatebusca.com <ChevronRight className="h-3 w-3" />
-                </a>
-              </div>
-            </div>
-          </section>
-        )}
-
         <AnimatePresence>
           {error && (
             <motion.div
@@ -398,6 +354,55 @@ export default function ResultPage() {
             Compartir
           </Button>
         </div>
+
+        {result.showAuthorities && (
+          <section className="soft-card overflow-hidden rounded-[24px]">
+            <div className="flex items-center gap-2 px-6 py-5">
+              <Phone className="h-4 w-4 text-on-surface-variant" />
+              <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-outline">Contactos de emergencia</h3>
+            </div>
+            <div className="border-t border-surface-container px-6 py-4">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-outline">Líneas de emergencia</p>
+              <div className="grid grid-cols-4 gap-2">
+                {EMERGENCY_NUMBERS.map(({ label, sub }) => (
+                  <a
+                    key={label}
+                    href={`tel:${label}`}
+                    className="flex min-h-16 flex-col items-center justify-center rounded-[18px] border border-outline-variant bg-surface-container-lowest transition-colors hover:bg-surface-container"
+                  >
+                    <span className="text-base font-bold leading-none text-on-surface">{label}</span>
+                    <span className="mt-1 text-[10px] text-on-surface-variant">{sub}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+            <div className="divide-y divide-surface-container border-t border-surface-container">
+              {CIVIL_CONTACTS.map(({ name, numbers, tels }) => (
+                <div key={name} className="flex items-center justify-between gap-3 px-6 py-3">
+                  <span className="shrink-0 text-sm text-on-surface-variant">{name}</span>
+                  <div className="flex flex-wrap justify-end gap-2">
+                    {numbers.map((n, i) => (
+                      <a key={n} href={`tel:${tels[i]}`} className="whitespace-nowrap text-xs font-semibold text-primary hover:underline">
+                        {n}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex items-start gap-3 border-t border-surface-container px-6 py-4">
+              <Globe className="mt-0.5 h-4 w-4 shrink-0 text-on-surface-variant" />
+              <div className="flex flex-col gap-1">
+                <a href="https://venezuelareporta.org" target="_blank" rel="noopener noreferrer" className="flex items-center gap-0.5 text-xs text-primary hover:underline">
+                  venezuelareporta.org <ChevronRight className="h-3 w-3" />
+                </a>
+                <a href="https://venezuelatebusca.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-0.5 text-xs text-primary hover:underline">
+                  venezuelatebusca.com <ChevronRight className="h-3 w-3" />
+                </a>
+              </div>
+            </div>
+          </section>
+        )}
       </motion.main>
     </RouteTransition>
   );
