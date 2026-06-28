@@ -34,6 +34,17 @@ function normalizeText(value: FormDataEntryValue | null) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function readTextField(formData: FormData, ...keys: string[]) {
+  for (const key of keys) {
+    const value = normalizeText(formData.get(key));
+    if (value) {
+      return value;
+    }
+  }
+
+  return "";
+}
+
 function normalizeOptionalText(value: FormDataEntryValue | null) {
   const text = normalizeText(value);
   return text.length > 0 ? text : null;
@@ -86,6 +97,38 @@ function hasPrefix(value: string, prefixes: string[]) {
   return prefixes.some((prefix) => normalized.startsWith(prefix.toUpperCase()));
 }
 
+function normalizeSpecialty(value: string) {
+  const normalized = value.trim().toLowerCase();
+  const map: Record<string, string> = {
+    "ingeniería civil": "Ingeniería Civil",
+    "ingenieria civil": "Ingeniería Civil",
+    "ingeniería estructural": "Ingeniería Estructural",
+    "ingenieria estructural": "Ingeniería Estructural",
+    arquitectura: "Arquitectura",
+    otra: "Otra",
+  };
+
+  return map[normalized] ?? value.trim();
+}
+
+function deriveCollegiateStatus(documentNumber: string, explicitStatus: string) {
+  const normalizedExplicit = explicitStatus.trim();
+  if (COLLEGIATE_STATES.includes(normalizedExplicit as (typeof COLLEGIATE_STATES)[number])) {
+    return normalizedExplicit as (typeof COLLEGIATE_STATES)[number];
+  }
+
+  const normalizedDocument = documentNumber.trim().toUpperCase();
+  if (normalizedDocument.startsWith("CVI-")) {
+    return "Colegiado/a" as const;
+  }
+
+  if (normalizedDocument.startsWith("V-")) {
+    return "Sin colegiatura" as const;
+  }
+
+  return "";
+}
+
 function isAllowedDocument(file: File) {
   if (file.size > MAX_SUPPORTING_DOCUMENT_SIZE) {
     return false;
@@ -99,20 +142,23 @@ function validateSubmission(formData: FormData) {
   const errors: Record<string, string> = {};
 
   const email = normalizeEmail(formData.get("email"));
-  const fullName = normalizeText(formData.get("fullName"));
-  const documentNumber = normalizeText(formData.get("documentNumber"));
-  const specialty = normalizeText(formData.get("specialty"));
-  const collegiateStatus = normalizeText(formData.get("collegiateStatus"));
-  const licenseNumber = normalizeOptionalText(formData.get("licenseNumber"));
-  const city = normalizeText(formData.get("city"));
-  const country = normalizeText(formData.get("country"));
-  const yearsExperience = normalizeYears(formData.get("yearsExperience"));
-  const organization = normalizeOptionalText(formData.get("organization"));
-  const linkedinUrl = normalizeUrl(formData.get("linkedinUrl"));
+  const fullName = readTextField(formData, "full_name", "fullName");
+  const documentNumber = readTextField(formData, "license_number", "documentNumber");
+  const specialty = normalizeSpecialty(readTextField(formData, "specialty"));
+  const explicitCollegiateStatus = readTextField(formData, "collegiateStatus");
+  const collegiateStatus = deriveCollegiateStatus(documentNumber, explicitCollegiateStatus);
+  const licenseNumber = normalizeOptionalText(formData.get("license_number")) ?? normalizeOptionalText(formData.get("licenseNumber"));
+  const city = readTextField(formData, "city");
+  const country = readTextField(formData, "country");
+  const yearsExperience = normalizeYears(formData.get("years_experience")) ?? normalizeYears(formData.get("yearsExperience"));
+  const organization = normalizeOptionalText(formData.get("camera_affiliation")) ?? normalizeOptionalText(formData.get("organization"));
+  const linkedinUrl = normalizeUrl(formData.get("profile_url")) ?? normalizeUrl(formData.get("linkedinUrl"));
   const motivation = normalizeOptionalText(formData.get("motivation"));
-  const consent = normalizeText(formData.get("consent")) === "true";
+  const consentText = normalizeText(formData.get("consent"));
+  const consent = consentText ? consentText === "true" : true;
   const files = formData
-    .getAll("supportingDocuments")
+    .getAll("documents")
+    .concat(formData.getAll("supportingDocuments"))
     .filter((value): value is File => value instanceof File && value.size > 0);
 
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -129,7 +175,9 @@ function validateSubmission(formData: FormData) {
     errors.documentNumber = "Ingresa un documento de identidad válido.";
   }
 
-  if (!PROFESSIONAL_AREAS.includes(specialty as (typeof PROFESSIONAL_AREAS)[number])) {
+  if (
+    !PROFESSIONAL_AREAS.some((area) => area.toLowerCase() === specialty.trim().toLowerCase())
+  ) {
     errors.specialty = "Selecciona un área profesional.";
   }
 
