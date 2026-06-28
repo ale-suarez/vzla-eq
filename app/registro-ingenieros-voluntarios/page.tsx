@@ -255,8 +255,8 @@ export default function VolunteerEngineerRegistrationPage() {
             <div className="inline-flex items-center gap-2">
               <ShieldCheck className="h-5 w-5 text-primary" />
               <div>
-                <h1 className="font-heading text-[22px] font-bold leading-none text-primary">Registro de ingenieros voluntarios</h1>
-                <p className="mt-1 text-[11px] text-on-surface-variant">Cámara de Ingenieros Civiles de Venezuela</p>
+                <h1 className="font-heading text-[22px] font-bold leading-none text-primary">Chequeo Estructural</h1>
+                <p className="mt-1 text-[11px] text-on-surface-variant">Registro de ingenieros voluntarios</p>
               </div>
             </div>
             <div className="w-28" />
