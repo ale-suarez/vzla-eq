@@ -116,9 +116,14 @@ export default function FormPage() {
         <div className="space-y-6">
           {/* Contacto y ubicación */}
           <div className="soft-card space-y-4 rounded-[18px] p-4">
-            <div className="flex items-center gap-2">
-              <MapPin className="h-5 w-5 text-primary" />
-              <p className="font-heading text-base font-semibold text-on-surface">Contacto y ubicación</p>
+            <div className="flex items-start gap-2">
+              <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+              <div className="space-y-0.5">
+                <p className="font-heading text-base font-semibold text-on-surface">Contacto y ubicación</p>
+                <p className="text-xs leading-snug text-on-surface-variant">
+                  Tu número de teléfono no se comparte públicamente. Lo usamos solo internamente para conectarte con un ingeniero certificado.
+                </p>
+              </div>
             </div>
 
             <label className="block space-y-1.5">
