@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { Map, Marker, type MapRef } from "@vis.gl/react-maplibre";
 import { Minus, Plus, LocateFixed } from "lucide-react";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -8,6 +8,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { CARACAS_CENTER, VERDICT_MARKER, type Incident } from "@/lib/incidents";
 import { VERDICT_LABELS, type VerdictLevel } from "@/lib/assessment";
 import { cn } from "@/lib/utils";
+import { getCurrentGeoPoint } from "@/lib/geolocation";
 
 // Free, no-key OpenFreeMap vector style.
 const MAP_STYLE = "https://tiles.openfreemap.org/styles/positron";
@@ -24,6 +25,9 @@ export default function IncidentMap({
   onSelect: (id: string) => void;
 }) {
   const mapRef = useRef<MapRef | null>(null);
+  const hasFitInitialBounds = useRef(false);
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const [locating, startLocating] = useTransition();
 
   // When the selection changes (e.g. from a list-card click), fly to it.
   useEffect(() => {
@@ -33,6 +37,64 @@ export default function IncidentMap({
     mapRef.current?.flyTo({ center: [target.lng, target.lat], zoom: 14, duration: 800 });
   }, [selectedId, incidents]);
 
+  useEffect(() => {
+    if (!mapLoaded || hasFitInitialBounds.current || selectedId || incidents.length === 0) {
+      return;
+    }
+
+    const coords = incidents
+      .filter((incident) => Number.isFinite(incident.lat) && Number.isFinite(incident.lng))
+      .map((incident) => [incident.lng, incident.lat] as const);
+
+    if (coords.length === 0) {
+      hasFitInitialBounds.current = true;
+      return;
+    }
+
+    if (coords.length === 1) {
+      const [lng, lat] = coords[0];
+      mapRef.current?.flyTo({ center: [lng, lat], zoom: 14, duration: 800 });
+      hasFitInitialBounds.current = true;
+      return;
+    }
+
+    const bounds = coords.reduce(
+      (acc, [lng, lat]) => {
+        acc.minLng = Math.min(acc.minLng, lng);
+        acc.maxLng = Math.max(acc.maxLng, lng);
+        acc.minLat = Math.min(acc.minLat, lat);
+        acc.maxLat = Math.max(acc.maxLat, lat);
+        return acc;
+      },
+      {
+        minLng: Infinity,
+        maxLng: -Infinity,
+        minLat: Infinity,
+        maxLat: -Infinity,
+      }
+    );
+
+    mapRef.current?.fitBounds(
+      [
+        [bounds.minLng, bounds.minLat],
+        [bounds.maxLng, bounds.maxLat],
+      ],
+      { padding: 80, duration: 800 }
+    );
+    hasFitInitialBounds.current = true;
+  }, [incidents, mapLoaded, selectedId]);
+
+  const handleLocateMe = () => {
+    startLocating(async () => {
+      try {
+        const { latitude, longitude } = await getCurrentGeoPoint();
+        mapRef.current?.flyTo({ center: [longitude, latitude], zoom: 15, duration: 800 });
+      } catch (error) {
+        console.error("[map] geolocation", error);
+      }
+    });
+  };
+
   return (
     <div className="relative h-full w-full overflow-hidden">
       <Map
@@ -41,6 +103,9 @@ export default function IncidentMap({
         initialViewState={{ longitude: CARACAS_CENTER.lng, latitude: CARACAS_CENTER.lat, zoom: 12 }}
         attributionControl={false}
         style={{ width: "100%", height: "100%" }}
+        onLoad={() => {
+          setMapLoaded(true);
+        }}
         onError={(e) => {
           // MapLibre aborts in-flight tile fetches while panning/zooming (and on
           // StrictMode remounts in dev), surfacing as "Failed to fetch" / status 0.
@@ -108,13 +173,14 @@ export default function IncidentMap({
         </button>
         <button
           type="button"
-          onClick={() =>
-            mapRef.current?.flyTo({ center: [CARACAS_CENTER.lng, CARACAS_CENTER.lat], zoom: 12, duration: 800 })
-          }
-          className="mt-2 flex h-11 w-11 items-center justify-center rounded-xl bg-primary-container text-white shadow-[0px_4px_20px_rgba(0,0,0,0.08)] transition-opacity hover:opacity-90"
-          aria-label="Mi ubicación"
+          onClick={handleLocateMe}
+          disabled={locating}
+          className="mt-2 inline-flex h-11 items-center gap-2 rounded-xl border border-outline-variant bg-white px-4 text-on-surface-variant shadow-[0px_4px_20px_rgba(0,0,0,0.08)] transition-colors hover:bg-surface-container-high disabled:cursor-wait disabled:opacity-60"
+          aria-label="Localízame"
+          title="Localízame"
         >
-          <LocateFixed className="h-5 w-5" />
+          <LocateFixed className="h-5 w-5 text-on-surface-variant" />
+          <span className="text-xs font-semibold uppercase tracking-[0.08em]">Localízame</span>
         </button>
       </div>
 

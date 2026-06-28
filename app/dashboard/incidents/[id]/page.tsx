@@ -1,4 +1,5 @@
 import { IncidentDetailClient } from "@/app/dashboard/incidents/[id]/incident-detail-client";
+import { RouteTransition } from "@/components/assessment-visuals";
 
 export default async function IncidentDetailPage({
   params,
@@ -8,6 +9,9 @@ export default async function IncidentDetailPage({
   }>;
 }) {
   const { id } = await params;
-  return <IncidentDetailClient id={id} />;
+  return (
+    <RouteTransition className="min-h-dvh">
+      <IncidentDetailClient id={id} />
+    </RouteTransition>
+  );
 }
-

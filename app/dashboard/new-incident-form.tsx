@@ -1,15 +1,23 @@
 "use client";
 
 import type { FormEvent, InputHTMLAttributes } from "react";
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useRef, useState, useTransition } from "react";
+import { LocateFixed } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BUILDING_USE_OPTIONS } from "@/lib/assessment";
+import { getCurrentGeoPoint } from "@/lib/geolocation";
+import type { DbIncident } from "@/lib/incidents";
 
-export function NewIncidentForm() {
-  const router = useRouter();
+export function NewIncidentForm({
+  onCreated,
+}: {
+  onCreated?: (incident: DbIncident) => void;
+}) {
+  const formRef = useRef<HTMLFormElement | null>(null);
   const [pending, startTransition] = useTransition();
+  const [locating, startLocating] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -35,9 +43,43 @@ export function NewIncidentForm() {
         return;
       }
 
+      if (body.data) {
+        onCreated?.(body.data as DbIncident);
+      }
+
       form.reset();
       setMessage("Incidente creado.");
-      router.refresh();
+    });
+  };
+
+  const handleLocateMe = () => {
+    setError(null);
+    setMessage(null);
+
+    startLocating(async () => {
+      try {
+        const { latitude, longitude } = await getCurrentGeoPoint();
+        const form = formRef.current;
+
+        if (!form) {
+          return;
+        }
+
+        const latInput = form.elements.namedItem("latitude");
+        const lngInput = form.elements.namedItem("longitude");
+
+        if (latInput instanceof HTMLInputElement) {
+          latInput.value = String(latitude);
+        }
+
+        if (lngInput instanceof HTMLInputElement) {
+          lngInput.value = String(longitude);
+        }
+
+        setMessage("Ubicación obtenida desde el dispositivo.");
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "No se pudo obtener la ubicación.");
+      }
     });
   };
 
@@ -47,16 +89,50 @@ export function NewIncidentForm() {
         <CardTitle className="font-heading text-lg font-semibold text-on-surface">Nuevo incidente</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={onSubmit} className="grid grid-cols-1 gap-3 md:grid-cols-2">
+        <form ref={formRef} onSubmit={onSubmit} className="grid grid-cols-1 gap-3 md:grid-cols-2">
           <InputField label="Contacto" name="contact" placeholder="Nombre o teléfono" />
-          <InputField label="Uso del edificio" name="building_use" placeholder="Residencial, comercial..." />
+          <label className="block space-y-2">
+            <span className="text-sm font-medium text-on-surface">Uso del edificio</span>
+            <select
+              name="building_use"
+              defaultValue=""
+              className="h-11 w-full rounded-[16px] border border-outline-variant bg-surface px-4 text-sm outline-none focus:border-primary"
+            >
+              <option value="" disabled>
+                Selecciona una opción
+              </option>
+              {BUILDING_USE_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </label>
           <InputField label="Año de construcción" name="build_year" type="number" />
           <InputField label="Niveles" name="levels" type="number" />
           <InputField label="Sótanos" name="basements" type="number" />
           <InputField label="Material" name="material" placeholder="Hormigón, acero..." />
           <InputField label="Tipo de terreno" name="terrain_type" placeholder="Roca, relleno..." />
-          <InputField label="Latitud" name="latitude" type="number" step="any" />
-          <InputField label="Longitud" name="longitude" type="number" step="any" />
+          <div className="md:col-span-2 rounded-[20px] border border-outline-variant/70 bg-surface-container-low p-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <span className="text-sm font-semibold text-on-surface">Localización</span>
+              <button
+                type="button"
+                onClick={handleLocateMe}
+                disabled={locating}
+                className="inline-flex h-11 items-center gap-2 rounded-[16px] border border-outline-variant bg-white px-4 text-sm font-medium text-on-surface-variant transition-colors hover:bg-surface-container-high disabled:cursor-wait disabled:opacity-60"
+                aria-label="Localízame"
+                title="Localízame"
+              >
+                <LocateFixed className="h-4 w-4 text-on-surface-variant" />
+                <span>Localízame</span>
+              </button>
+            </div>
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              <InputField label="Latitud" name="latitude" type="number" step="any" />
+              <InputField label="Longitud" name="longitude" type="number" step="any" />
+            </div>
+          </div>
           <div className="md:col-span-2">
             <InputField label="Feedback" name="feedback" placeholder="Observaciones del caso" />
           </div>

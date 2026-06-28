@@ -5,8 +5,6 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  BarChart3,
-  ChevronRight,
   ClipboardList,
   List,
   Map as MapIcon,
@@ -18,9 +16,10 @@ import {
 import type { LucideIcon } from "lucide-react";
 
 import { NewIncidentForm } from "@/app/dashboard/new-incident-form";
-import { SignOutButton } from "@/app/dashboard/sign-out-button";
+import { IncidentCard } from "@/app/dashboard/incident-card";
+import { DashboardTopBar } from "@/app/dashboard/dashboard-top-bar";
 import { cn } from "@/lib/utils";
-import { INCIDENT_STATE_LABELS, VERDICT_LABELS, type IncidentState, type VerdictLevel } from "@/lib/assessment";
+import { INCIDENT_STATE_LABELS, VERDICT_LABELS, type VerdictLevel } from "@/lib/assessment";
 import { fromDbIncident, VERDICT_RISK, type DbIncident, type Incident } from "@/lib/incidents";
 
 // MapLibre is browser-only WebGL — load the client map without SSR.
@@ -42,25 +41,6 @@ type SessionData = {
   email?: string;
   backoffice?: boolean;
 };
-
-function verdictBadge(verdict: VerdictLevel) {
-  switch (verdict) {
-    case "low":
-      return "bg-secondary-container text-on-secondary-container";
-    case "moderate":
-      return "bg-primary-fixed text-on-primary-fixed-variant";
-    case "severe":
-      return "bg-tertiary-fixed text-on-tertiary-fixed-variant";
-    case "critical":
-      return "bg-error-container text-on-error-container";
-  }
-}
-
-function stateBadge(state: IncidentState) {
-  return state === "in_review"
-    ? "bg-secondary-container text-on-secondary-container"
-    : "bg-surface-container-highest text-on-surface-variant";
-}
 
 export function DashboardClient() {
   const router = useRouter();
@@ -136,38 +116,37 @@ export function DashboardClient() {
 
   const handleSelect = (id: string) => setSelectedId((prev) => (prev === id ? null : id));
 
+  const handleIncidentCreated = (incident: DbIncident) => {
+    const next = fromDbIncident(incident);
+
+    setIncidents((current) => [next, ...current.filter((item) => item.id !== next.id)]);
+    setFilter("all");
+    setSelectedId(next.id);
+  };
+
   return (
     <div className="min-h-dvh bg-[#F8FAFC]">
       <div className="flex min-h-dvh flex-col">
-        {/* Top bar */}
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-outline-variant bg-surface px-5">
-          <div className="flex items-center gap-3">
-            <BarChart3 className="h-6 w-6 text-primary" />
-            <div>
-              <h1 className="font-heading text-[22px] font-bold leading-none text-primary">Incidencias</h1>
-              <p className="mt-1 text-[11px] text-on-surface-variant">
-                {session?.email
-                  ? `${session.email} · ${session.role === "admin" ? "Admin" : "Ingeniero"}`
-                  : "Validando acceso..."}
-              </p>
+        <DashboardTopBar
+          title="Dashboard de Incidentes"
+          subtitle={session?.email ? `${session.email} · ${session.role === "admin" ? "Admin" : "Ingeniero"}` : "Validando acceso..."}
+          rightSlot={
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowForm((v) => !v)}
+                className="hidden h-10 items-center gap-2 rounded-full bg-primary px-4 text-xs font-semibold uppercase tracking-[0.08em] text-white shadow-sm transition-opacity hover:opacity-90 md:flex"
+              >
+                <Plus className="h-4 w-4" />
+                Crear Incidencia
+              </button>
             </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setShowForm((v) => !v)}
-              className="hidden h-10 items-center gap-2 rounded-full bg-primary px-4 text-xs font-semibold uppercase tracking-[0.08em] text-white shadow-sm transition-opacity hover:opacity-90 md:flex"
-            >
-              <Plus className="h-4 w-4" />
-              Crear Incidencia
-            </button>
-            <SignOutButton />
-          </div>
-        </header>
+          }
+        />
 
         {/* New-incident form (toggle) */}
         {showForm && (
           <div className="border-b border-outline-variant bg-surface px-5 py-4">
-            <NewIncidentForm />
+            <NewIncidentForm onCreated={handleIncidentCreated} />
           </div>
         )}
 
@@ -223,7 +202,7 @@ export function DashboardClient() {
             </div>
 
             {/* Cards */}
-            <div className="flex-1 space-y-4 overflow-y-auto px-5 pb-6">
+            <div className="flex-1 space-y-4 overflow-y-auto px-5 pb-6 pt-4 [scroll-padding-top:1rem]">
               {loading ? (
                 <p className="pt-8 text-center text-sm text-on-surface-variant">Cargando incidentes…</p>
               ) : error ? (
@@ -237,7 +216,7 @@ export function DashboardClient() {
                       key={incident.id}
                       incident={incident}
                       selected={incident.id === selectedId}
-                      onSelect={() => handleSelect(incident.id)}
+                      onClick={() => handleSelect(incident.id)}
                     />
                   ))}
                   {visible.length === 0 && (
@@ -281,61 +260,6 @@ function FilterChip({ active, onClick, children }: { active: boolean; onClick: (
     >
       {children}
     </button>
-  );
-}
-
-function IncidentCard({
-  incident,
-  selected,
-  onSelect,
-}: {
-  incident: Incident;
-  selected: boolean;
-  onSelect: () => void;
-}) {
-  const Icon = incident.icon;
-  return (
-    <div
-      onClick={onSelect}
-      className={cn(
-        "cursor-pointer rounded-[18px] border-l-4 bg-white p-4 shadow-[0px_4px_20px_rgba(0,0,0,0.05)] transition-all",
-        incident.accent,
-        selected ? "ring-2 ring-primary" : "hover:scale-[1.01]"
-      )}
-    >
-      <div className="flex items-start gap-3">
-        <div className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px]", incident.iconWrap)}>
-          <Icon className="h-5 w-5" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <h3 className="font-heading text-base font-semibold leading-tight text-on-surface">{incident.title}</h3>
-          <p className="text-xs text-on-surface-variant">
-            ID: {incident.id} • {incident.meta}
-          </p>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            <span className={cn("rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.05em]", verdictBadge(incident.verdict))}>
-              {VERDICT_LABELS[incident.verdict]}
-            </span>
-            <span className={cn("rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.05em]", stateBadge(incident.state))}>
-              {INCIDENT_STATE_LABELS[incident.state]}
-            </span>
-          </div>
-        </div>
-      </div>
-      <div className="mt-3 flex items-center justify-between border-t border-outline-variant pt-3">
-        <p className="flex items-center gap-1 text-xs text-on-surface-variant">
-          {incident.assignee ? <User className="h-4 w-4" /> : <UserX className="h-4 w-4" />}
-          {incident.assignee ?? "No asignado"}
-        </p>
-        <Link
-          href={`/dashboard/incidents/${incident.id}`}
-          onClick={(e) => e.stopPropagation()}
-          className="flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.05em] text-primary"
-        >
-          Ver detalles <ChevronRight className="h-4 w-4" />
-        </Link>
-      </div>
-    </div>
   );
 }
 

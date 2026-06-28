@@ -5,7 +5,10 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 
+import { DashboardTopBar } from "@/app/dashboard/dashboard-top-bar";
+import { IncidentCard, IncidentCardSkeleton } from "@/app/dashboard/incident-card";
 import { IncidentEditForm } from "@/app/dashboard/incidents/[id]/incident-edit-form";
+import { fromDbIncident } from "@/lib/incidents";
 import type { Tables } from "@/lib/database.types";
 
 type Incident = Tables<"incidents">;
@@ -52,42 +55,48 @@ export function IncidentDetailClient({ id }: { id: string }) {
 
   if (loading) {
     return (
-      <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-5 py-20">
-        <p className="text-sm text-on-surface-variant">Cargando incidente...</p>
-      </main>
+      <>
+        <DashboardTopBar title="Incidencia" subtitle="Cargando detalle..." />
+        <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-5 py-8">
+          <IncidentCardSkeleton eyebrow="Incidente" />
+          <div className="grid gap-3">
+            <div className="h-6 w-40 animate-pulse rounded bg-surface-container-high" />
+            <div className="h-64 animate-pulse rounded-[28px] border border-outline-variant/70 bg-surface-container-low" />
+          </div>
+        </main>
+      </>
     );
   }
 
   if (error || !incident) {
     return (
-      <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-5 py-20">
-        <p className="text-sm text-on-surface-variant">{error ?? "Incidente no encontrado."}</p>
-        <Link href="/dashboard" className="inline-flex w-fit items-center gap-2 text-sm font-medium text-on-surface-variant hover:text-primary">
-          <ChevronLeft className="h-4 w-4" />
-          Volver al panel
-        </Link>
-      </main>
+      <>
+        <DashboardTopBar title="Incidencia" subtitle="Detalle no disponible" />
+        <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-5 py-20">
+          <p className="text-sm text-on-surface-variant">{error ?? "Incidente no encontrado."}</p>
+          <Link href="/dashboard" transitionTypes={["nav-back"]} className="inline-flex w-fit items-center gap-2 text-sm font-medium text-on-surface-variant hover:text-primary">
+            <ChevronLeft className="h-4 w-4" />
+            Volver al Dashboard
+          </Link>
+        </main>
+      </>
     );
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-5 py-20">
-      <Link href="/dashboard" className="inline-flex w-fit items-center gap-2 text-sm font-medium text-on-surface-variant hover:text-primary">
-        <ChevronLeft className="h-4 w-4" />
-        Volver al panel
-      </Link>
+    <>
+      <DashboardTopBar title="Incidencia" subtitle={`${incident.building_use || "Incidente sin uso definido"} · ID ${incident.id}`} />
 
-      <section className="rounded-[28px] border border-outline-variant/70 bg-surface-container-low p-6">
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-on-surface-variant">Incidente</p>
-        <h1 className="mt-2 font-heading text-3xl font-bold tracking-tight text-on-surface">
-          {incident.building_use || "Incidente sin uso definido"}
-        </h1>
-        <p className="mt-2 text-sm leading-6 text-on-surface-variant">
-          ID: {incident.id}
-        </p>
-      </section>
+      <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-5 py-8">
+        <Link href="/dashboard" transitionTypes={["nav-back"]} className="inline-flex w-fit items-center gap-2 text-sm font-medium text-on-surface-variant hover:text-primary">
+          <ChevronLeft className="h-4 w-4" />
+          Volver al Dashboard
+        </Link>
 
-      <IncidentEditForm id={incident.id} incident={incident} />
-    </main>
+        <IncidentCard incident={fromDbIncident(incident)} showDetailsLink={false} eyebrow="Incidente" />
+
+        <IncidentEditForm id={incident.id} incident={incident} />
+      </main>
+    </>
   );
 }

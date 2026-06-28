@@ -111,6 +111,8 @@ export const FORM_QUESTIONS: FormQuestion[] = [
   },
 ];
 
+export const BUILDING_USE_OPTIONS = ["Residencial", "Comercial", "Mixto", "Otro"] as const;
+
 export interface FormAnswers {
   phone: string;
   /** Geocoded human-readable label for the pinned location (reference only). */
