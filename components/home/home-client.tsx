@@ -13,6 +13,7 @@ import {
   Rocket,
   Ruler,
   ShieldCheck,
+  Sparkles,
   Sun,
   Users,
 } from "lucide-react";
@@ -31,7 +32,7 @@ const IncidentMap = dynamic(() => import("@/components/backoffice/incident-map")
 });
 
 const HOME_COPY = {
-  badge: "ANÁLISIS CON IA",
+  badge: "ASISTIDO POR IA",
   title: "¿Tu casa tiene fallas estructurales?",
   description:
     "Conoce el estado estructural de tu vivienda o edificio mediante una evaluación preliminar asistida por inteligencia artificial y confirmada por un ingeniero.",
@@ -154,7 +155,7 @@ export default function HomeClient() {
           <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full bg-primary-fixed opacity-40 blur-[100px]" />
           <div className="relative z-10 flex flex-col items-center space-y-4 text-center">
             <div className="inline-flex items-center gap-1.5 rounded-full bg-primary-fixed px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-on-primary-fixed-variant">
-              <Rocket className="h-3.5 w-3.5" />
+              <Sparkles className="h-3.5 w-3.5" />
               {HOME_COPY.badge}
             </div>
             <h1 className="max-w-md font-heading text-[26px] font-bold leading-8 tracking-tight text-on-surface md:text-[30px] md:leading-[38px]">
@@ -176,7 +177,7 @@ export default function HomeClient() {
                 transitionTypes={["nav-forward"]}
                 className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-[18px] border border-outline-variant/30 bg-surface-container-low text-base font-bold text-on-surface shadow-[0px_4px_20px_rgba(15,23,42,0.06)] transition-colors hover:bg-surface-container"
               >
-                <ShieldCheck className="h-4 w-4" />
+                <HeartHandshake className="h-4 w-4" />
                 Registro de voluntarios
               </Link>
             </div>
