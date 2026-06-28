@@ -9,6 +9,10 @@ function isBackofficePath(pathname: string) {
   return pathname === "/dashboard" || pathname.startsWith("/dashboard/");
 }
 
+function isReviewPath(pathname: string) {
+  return pathname === "/revision-solicitudes" || pathname.startsWith("/revision-solicitudes/");
+}
+
 async function resolveRole(request: NextRequest, response: NextResponse) {
   if (!supabaseUrl || !supabasePublishableKey) {
     return { role: "anonymous" as const };
@@ -45,14 +49,36 @@ async function resolveRole(request: NextRequest, response: NextResponse) {
     return { role: "admin" as const };
   }
 
+  const { data: reviewer } = await supabase
+    .from("reviewer_users")
+    .select("user_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (reviewer) {
+    return { role: "reviewer" as const };
+  }
+
   const { data: engineer } = await supabase
     .from("engineers")
     .select("is_certified")
-    .eq("id", user.id)
+    .eq("user_id", user.id)
     .maybeSingle();
 
   if (engineer?.is_certified) {
     return { role: "engineer" as const };
+  }
+
+  if (user.email) {
+    const { data: engineerByEmail } = await supabase
+      .from("engineers")
+      .select("is_certified")
+      .eq("email", user.email.toLowerCase())
+      .maybeSingle();
+
+    if (engineerByEmail?.is_certified) {
+      return { role: "engineer" as const };
+    }
   }
 
   return { role: "anonymous" as const };
@@ -64,18 +90,35 @@ export async function proxy(request: NextRequest) {
   const { role } = await resolveRole(request, response);
 
   if (pathname === "/login" && role !== "anonymous") {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    const destination = role === "reviewer" ? "/revision-solicitudes" : "/dashboard";
+    return NextResponse.redirect(new URL(destination, request.url));
   }
 
   if (isBackofficePath(pathname) && role === "anonymous") {
     const redirectUrl = new URL("/login", request.url);
     redirectUrl.searchParams.set("reason", "auth");
+    redirectUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(redirectUrl);
+  }
+
+  if (isReviewPath(pathname) && role === "anonymous") {
+    const redirectUrl = new URL("/login", request.url);
+    redirectUrl.searchParams.set("reason", "auth");
+    redirectUrl.searchParams.set("next", pathname);
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  if (isBackofficePath(pathname) && role === "reviewer") {
+    return NextResponse.redirect(new URL("/revision-solicitudes", request.url));
+  }
+
+  if (isReviewPath(pathname) && role === "engineer") {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   return response;
 }
 
 export const config = {
-  matcher: ["/login", "/dashboard/:path*"],
+  matcher: ["/login", "/dashboard/:path*", "/revision-solicitudes/:path*"],
 };

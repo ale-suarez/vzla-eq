@@ -8,11 +8,20 @@ import { Mail, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-export function LoginForm({ reason }: { reason?: string | null }) {
+function normalizeNext(next?: string | null) {
+  if (!next || !next.startsWith("/") || next.startsWith("//")) {
+    return "/dashboard";
+  }
+
+  return next;
+}
+
+export function LoginForm({ reason, next }: { reason?: string | null; next?: string | null }) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [email, setEmail] = useState("");
+  const destination = normalizeNext(next);
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -23,7 +32,7 @@ export function LoginForm({ reason }: { reason?: string | null }) {
       const response = await fetch("/api/auth/magic-link", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, next: destination }),
       });
 
       const payload = (await response.json()) as { error?: string; message?: string };
@@ -48,7 +57,7 @@ export function LoginForm({ reason }: { reason?: string | null }) {
           Iniciar sesión con enlace mágico
         </CardTitle>
         <CardDescription className="text-base leading-6 text-on-surface-variant">
-          Solo usuarios certificados o administradores pueden entrar al panel de control.
+          El acceso se envía por correo. Si ya fuiste aprobado, recibirás entrada al panel correspondiente.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -61,7 +70,7 @@ export function LoginForm({ reason }: { reason?: string | null }) {
                 type="email"
                 name="email"
                 autoComplete="email"
-                placeholder="ingeniero@dominio.com"
+                placeholder="nombre@dominio.org"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 className="h-full w-full border-0 bg-transparent text-sm outline-none placeholder:text-on-surface-variant"
@@ -93,7 +102,12 @@ export function LoginForm({ reason }: { reason?: string | null }) {
         </form>
 
         <div className="mt-6 flex items-center justify-between gap-3 text-sm text-on-surface-variant">
-          <span>¿No tienes acceso?</span>
+          <span>¿Eres ingeniero voluntario?</span>
+          <Link href="/registro-ingenieros-voluntarios" className="font-medium text-primary hover:underline">
+            Completar solicitud
+          </Link>
+        </div>
+        <div className="mt-3 text-sm text-on-surface-variant">
           <Link href="/" className="font-medium text-primary hover:underline">
             Volver al inicio
           </Link>

@@ -1,6 +1,6 @@
 import { z } from "@hono/zod-openapi";
 
-export const appRoleSchema = z.enum(["anonymous", "engineer", "admin"]).openapi("AppRole");
+export const appRoleSchema = z.enum(["anonymous", "engineer", "reviewer", "admin"]).openapi("AppRole");
 
 export const verdictLevelSchema = z.enum(["low", "moderate", "severe", "critical"]).openapi("VerdictLevel");
 // The analysis pipeline emits the same verdict vocabulary as the DB enum.
@@ -21,6 +21,7 @@ export const sessionResponseSchema = z
     email: z.string().email().optional().openapi({ example: "user@example.com" }),
     id: z.string().uuid().optional().openapi({ example: "4a8e1f02-2f58-4c3d-8a72-31f65d2b9b86" }),
     backoffice: z.boolean().optional().openapi({ example: true }),
+    reviewer: z.boolean().optional().openapi({ example: false }),
   })
   .openapi("SessionResponse");
 
@@ -40,8 +41,60 @@ export const authCallbackRedirectQuerySchema = z
 export const authMagicLinkRequestSchema = z
   .object({
     email: z.string().email().openapi({ example: "engineer@example.com" }),
+    next: z.string().optional().openapi({ example: "/revision-solicitudes" }),
   })
   .openapi("AuthMagicLinkRequest");
+
+export const engineerApplicationStatusSchema = z
+  .enum(["pending", "approved", "rejected"])
+  .openapi("EngineerApplicationStatus");
+
+export const engineerApplicationSubmitSchema = z
+  .object({
+    email: z.string().email().openapi({ example: "voluntario@correo.org" }),
+    fullName: z.string().min(2).openapi({ example: "María Fernanda López" }),
+    documentNumber: z.string().min(3).openapi({ example: "V-18.642.903" }),
+    specialty: z.string().min(2).openapi({ example: "Ingeniería estructural" }),
+    collegiateStatus: z.string().min(2).openapi({ example: "Colegiado/a" }),
+    licenseNumber: z.string().optional().openapi({ example: "CIV-20481" }),
+    city: z.string().min(2).openapi({ example: "Valencia" }),
+    country: z.string().min(2).openapi({ example: "Venezuela" }),
+    yearsExperience: z.string().optional().openapi({ example: "12" }),
+    organization: z.string().optional().openapi({ example: "Consultora del Centro" }),
+    linkedinUrl: z.string().url().optional().openapi({ example: "https://www.linkedin.com/in/ejemplo" }),
+    motivation: z.string().optional().openapi({ example: "Quiero colaborar con la revisión técnica de solicitudes." }),
+    supportingDocuments: z
+      .array(
+        z.object({
+          name: z.string(),
+          type: z.string(),
+          size: z.number().int().positive(),
+          storage_path: z.string(),
+        })
+      )
+      .optional(),
+    consent: z.boolean().openapi({ example: true }),
+  })
+  .openapi("EngineerApplicationSubmit");
+
+export const engineerApplicationRecordSchema = engineerApplicationSubmitSchema.omit({ consent: true })
+  .extend({
+    id: z.string().uuid().openapi({ example: "e2f7b9f2-c0f5-4f09-9c8a-3d6f1c6eb3cb" }),
+    application_status: engineerApplicationStatusSchema.openapi({ example: "pending" }),
+    is_certified: z.boolean().openapi({ example: false }),
+    reviewed_by: z.string().uuid().nullable().optional(),
+    reviewed_at: z.string().datetime().nullable().optional(),
+    review_notes: z.string().nullable().optional(),
+    created_at: z.string().datetime().openapi({ example: "2026-06-28T01:45:00Z" }),
+    updated_at: z.string().datetime().openapi({ example: "2026-06-28T01:45:00Z" }),
+  })
+  .openapi("EngineerApplicationRecord");
+
+export const engineerApplicationsResponseSchema = z
+  .object({
+    data: z.array(engineerApplicationRecordSchema),
+  })
+  .openapi("EngineerApplicationsEnvelope");
 
 export const photoResultSchema = z
   .object({
@@ -190,4 +243,3 @@ export const analysisResponseEnvelopeSchema = z
     data: analysisResultSchema,
   })
   .openapi("AnalysisEnvelope");
-

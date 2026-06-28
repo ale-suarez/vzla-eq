@@ -2,7 +2,7 @@ import type { User } from "@supabase/supabase-js";
 
 import { createSupabaseServerClient } from "@/api/lib/supabase";
 
-export type AppRole = "anonymous" | "engineer" | "admin";
+export type AppRole = "anonymous" | "engineer" | "reviewer" | "admin";
 
 export interface SessionContext {
   user: User | null;
@@ -36,13 +36,37 @@ export async function getSessionContext(): Promise<SessionContext> {
     return { user, role: "admin" };
   }
 
-  const { data: engineer } = await supabase
-    .from("engineers")
-    .select("is_certified")
-    .eq("id", user.id)
+  const { data: reviewer } = await supabase
+    .from("reviewer_users")
+    .select("user_id")
+    .eq("user_id", user.id)
     .maybeSingle();
 
-  if (engineer?.is_certified) {
+  if (reviewer) {
+    return { user, role: "reviewer" };
+  }
+
+  const { data: engineerByUserId } = await supabase
+    .from("engineers")
+    .select("is_certified")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (engineerByUserId?.is_certified) {
+    return { user, role: "engineer" };
+  }
+
+  let engineerByEmail = null as { is_certified: boolean } | null;
+  if (user.email) {
+    const { data } = await supabase
+      .from("engineers")
+      .select("is_certified")
+      .eq("email", user.email.toLowerCase())
+      .maybeSingle();
+    engineerByEmail = data ?? null;
+  }
+
+  if (engineerByEmail?.is_certified) {
     return { user, role: "engineer" };
   }
 
@@ -51,6 +75,10 @@ export async function getSessionContext(): Promise<SessionContext> {
 
 export function hasBackofficeAccess(role: AppRole) {
   return role === "engineer" || role === "admin";
+}
+
+export function hasReviewAccess(role: AppRole) {
+  return role === "reviewer" || role === "admin";
 }
 
 export function hasAdminAccess(role: AppRole) {

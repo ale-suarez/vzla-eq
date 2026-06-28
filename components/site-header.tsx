@@ -5,16 +5,18 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { ShieldCheck, UserCircle2 } from "lucide-react";
 
-// Routes that render their own bespoke header (the questionnaire and the
-// engineer console). The shared citizen header is hidden on these.
+// Routes that render their own bespoke header (the questionnaire, volunteer
+// registration and the engineer/reviewer consoles). The shared citizen header
+// is hidden on these.
 // Home (`/`) renders this same header, so it is intentionally not headerless.
 // `/dashboard` (and its nested incident routes) ship their own top bar.
-const HEADERLESS_PREFIXES = ["/form", "/dashboard"];
+const HEADERLESS_PREFIXES = ["/form", "/dashboard", "/registro-ingenieros-voluntarios", "/revision-solicitudes"];
 
 type SessionData = {
   authenticated: boolean;
-  role: "anonymous" | "engineer" | "admin";
+  role: "anonymous" | "engineer" | "reviewer" | "admin";
   backoffice?: boolean;
+  reviewer?: boolean;
 };
 
 export function SiteHeader() {
@@ -43,10 +45,13 @@ export function SiteHeader() {
     return null;
   }
 
-  const backoffice = Boolean(session?.backoffice);
-  // Professional access: authenticated backoffice users go straight to their
-  // console; everyone else lands on the login page to authenticate.
-  const professionalHref = backoffice ? "/dashboard" : "/login";
+  const role = session?.role ?? "anonymous";
+  const professionalHref =
+    role === "admin" || role === "engineer"
+      ? "/dashboard"
+      : role === "reviewer"
+        ? "/revision-solicitudes"
+        : "/login";
 
   return (
     <header style={{ viewTransitionName: "site-header" }} className="fixed left-0 right-0 top-0 z-50 bg-surface/90 backdrop-blur-md">
@@ -67,7 +72,7 @@ export function SiteHeader() {
             href={professionalHref}
             transitionTypes={["nav-forward"]}
             className="text-on-surface-variant transition-opacity hover:opacity-80"
-            aria-label={backoffice ? "Panel profesional" : "Acceso profesional"}
+            aria-label={role === "anonymous" ? "Acceso profesional" : "Panel profesional"}
           >
             <UserCircle2 className="h-6 w-6" />
           </Link>

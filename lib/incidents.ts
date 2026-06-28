@@ -43,15 +43,24 @@ const VERDICT_PRESENTATION: Record<
 export type DbIncident = {
   id: string;
   building_use: string | null;
+  address: string | null;
   contact: string | null;
   finding: string | null;
   severity: VerdictLevel | null;
   ai_verdict: VerdictLevel | null;
+  analysis_status: string | null;
+  confidence: number | null;
   state: IncidentState | null;
   assigned_to: string | null;
+  build_year: number | null;
+  levels: number | null;
+  basements: number | null;
+  material: string | null;
+  terrain_type: string | null;
   latitude: number | null;
   longitude: number | null;
   created_at: string | null;
+  updated_at: string | null;
 };
 
 function relativeTime(iso: string | null): string {

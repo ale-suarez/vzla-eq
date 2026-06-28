@@ -7,14 +7,14 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{
     reason?: string;
+    next?: string;
   }>;
 }) {
-  const { reason } = await searchParams;
+  const { reason, next } = await searchParams;
 
   return (
     <main className="mx-auto flex w-full max-w-xl flex-1 items-center px-5 py-20">
-      <LoginForm reason={reason} />
+      <LoginForm reason={reason} next={next} />
     </main>
   );
 }
-

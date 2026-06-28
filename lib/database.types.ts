@@ -29,25 +29,91 @@ export type Database = {
       };
       engineers: {
         Row: {
+          application_status: Database["public"]["Enums"]["engineer_application_status"];
+          city: string | null;
+          collegiate_status: string | null;
+          country: string | null;
           created_at: string;
+          document_number: string | null;
+          email: string | null;
           full_name: string | null;
           id: string;
           is_certified: boolean;
           license_number: string | null;
+          linkedin_url: string | null;
+          motivation: string | null;
+          organization: string | null;
+          review_notes: string | null;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
+          specialty: string | null;
+          supporting_documents: Json | null;
+          updated_at: string;
+          user_id: string | null;
+          years_experience: number | null;
         };
         Insert: {
+          application_status?: Database["public"]["Enums"]["engineer_application_status"];
+          city?: string | null;
+          collegiate_status?: string | null;
+          country?: string | null;
           created_at?: string;
-          full_name?: string | null;
-          id: string;
-          is_certified?: boolean;
-          license_number?: string | null;
-        };
-        Update: {
-          created_at?: string;
+          document_number?: string | null;
+          email?: string | null;
           full_name?: string | null;
           id?: string;
           is_certified?: boolean;
           license_number?: string | null;
+          linkedin_url?: string | null;
+          motivation?: string | null;
+          organization?: string | null;
+          review_notes?: string | null;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          specialty?: string | null;
+          supporting_documents?: Json | null;
+          updated_at?: string;
+          user_id?: string | null;
+          years_experience?: number | null;
+        };
+        Update: {
+          application_status?: Database["public"]["Enums"]["engineer_application_status"];
+          city?: string | null;
+          collegiate_status?: string | null;
+          country?: string | null;
+          created_at?: string;
+          document_number?: string | null;
+          email?: string | null;
+          full_name?: string | null;
+          id?: string;
+          is_certified?: boolean;
+          license_number?: string | null;
+          linkedin_url?: string | null;
+          motivation?: string | null;
+          organization?: string | null;
+          review_notes?: string | null;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
+          specialty?: string | null;
+          supporting_documents?: Json | null;
+          updated_at?: string;
+          user_id?: string | null;
+          years_experience?: number | null;
+        };
+        Relationships: [];
+      };
+      reviewer_users: {
+        Row: {
+          created_at: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          user_id?: string;
         };
         Relationships: [];
       };
@@ -192,6 +258,12 @@ export type Database = {
         };
         Returns: boolean;
       };
+      has_review_access: {
+        Args: {
+          user_id?: string;
+        };
+        Returns: boolean;
+      };
       is_admin_user: {
         Args: {
           user_id?: string;
@@ -204,9 +276,16 @@ export type Database = {
         };
         Returns: boolean;
       };
+      is_reviewer_user: {
+        Args: {
+          user_id?: string;
+        };
+        Returns: boolean;
+      };
     };
     Enums: {
       analysis_status: "pending" | "complete" | "failed";
+      engineer_application_status: "pending" | "approved" | "rejected";
       incident_state: "pending" | "in_review" | "resolved" | "archived";
       verdict_level: "low" | "moderate" | "severe" | "critical";
     };

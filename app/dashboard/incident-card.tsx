@@ -11,6 +11,10 @@ export function IncidentCard({
   incident,
   selected = false,
   showDetailsLink = true,
+  showId = true,
+  detailsHref = `/dashboard/incidents/${incident.id}`,
+  detailsLabel = "Ver detalles",
+  showAssignee = true,
   className,
   eyebrow,
   onClick,
@@ -18,6 +22,10 @@ export function IncidentCard({
   incident: Incident;
   selected?: boolean;
   showDetailsLink?: boolean;
+  showId?: boolean;
+  detailsHref?: string;
+  detailsLabel?: string;
+  showAssignee?: boolean;
   className?: string;
   eyebrow?: string;
   onClick?: () => void;
@@ -43,7 +51,8 @@ export function IncidentCard({
         <div className="min-w-0 flex-1">
           <h3 className="font-heading text-base font-semibold leading-tight text-on-surface">{incident.title}</h3>
           <p className="text-xs text-on-surface-variant">
-            ID: {incident.id} • {incident.meta}
+            {showId ? <>ID: {incident.id} • </> : null}
+            {incident.meta}
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <span className={cn("rounded px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.05em]", verdictBadge(incident.verdict))}>
@@ -56,17 +65,21 @@ export function IncidentCard({
         </div>
       </div>
       <div className="mt-3 flex items-center justify-between border-t border-outline-variant pt-3">
-        <p className="flex items-center gap-1 text-xs text-on-surface-variant">
-          {incident.assignee ? <User className="h-4 w-4" /> : <UserX className="h-4 w-4" />}
-          {incident.assignee ?? "No asignado"}
-        </p>
+        {showAssignee ? (
+          <p className="flex items-center gap-1 text-xs text-on-surface-variant">
+            {incident.assignee ? <User className="h-4 w-4" /> : <UserX className="h-4 w-4" />}
+            {incident.assignee ?? "No asignado"}
+          </p>
+        ) : (
+          <span className="text-xs text-on-surface-variant">&nbsp;</span>
+        )}
         {showDetailsLink ? (
           <Link
-            href={`/dashboard/incidents/${incident.id}`}
+            href={detailsHref}
             transitionTypes={["nav-forward"]}
             className="flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.05em] text-primary"
           >
-            Ver detalles <ChevronRight className="h-4 w-4" />
+            {detailsLabel} <ChevronRight className="h-4 w-4" />
           </Link>
         ) : null}
       </div>

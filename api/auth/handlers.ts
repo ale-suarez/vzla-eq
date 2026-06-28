@@ -3,16 +3,25 @@ import { createServerClient } from "@supabase/ssr";
 import { generateCookie, getCookie } from "hono/cookie";
 import type { Context } from "hono";
 
-import { getSessionContext, hasBackofficeAccess } from "@/api/lib/auth";
+import { getSessionContext, hasBackofficeAccess, hasReviewAccess } from "@/api/lib/auth";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabasePublishableKey =
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
+function normalizeNextPath(next: string | null | undefined, fallback: string) {
+  const value = String(next ?? "").trim();
+  if (!value.startsWith("/") || value.startsWith("//")) {
+    return fallback;
+  }
+
+  return value;
+}
+
 export async function authCallbackGet(c: Context) {
   const requestUrl = new URL(c.req.url);
   const code = requestUrl.searchParams.get("code");
-  const next = requestUrl.searchParams.get("next") ?? "/dashboard";
+  const next = normalizeNextPath(requestUrl.searchParams.get("next"), "/dashboard");
 
   if (!supabaseUrl || !supabasePublishableKey || !code) {
     return c.redirect("/login?reason=auth");
@@ -51,14 +60,15 @@ export async function authMagicLinkPost(c: Context) {
     return c.json({ error: "Servicio no configurado correctamente." }, 500);
   }
 
-  let body: { email?: string };
+  let body: { email?: string; next?: string };
   try {
-    body = (await c.req.json()) as { email?: string };
+    body = (await c.req.json()) as { email?: string; next?: string };
   } catch {
     return c.json({ error: "Cuerpo inválido." }, 400);
   }
 
   const email = String(body.email ?? "").trim().toLowerCase();
+  const next = normalizeNextPath(body.next, "/dashboard");
   if (!email) {
     return c.json({ error: "Ingresa un correo válido." }, 400);
   }
@@ -69,7 +79,7 @@ export async function authMagicLinkPost(c: Context) {
   const { error } = await supabase.auth.signInWithOtp({
     email,
     options: {
-      emailRedirectTo: `${origin}/auth/callback?next=/dashboard`,
+      emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(next)}`,
     },
   });
 
@@ -94,7 +104,7 @@ export async function authSessionPost(c: Context) {
 
   const accessToken = String(body.access_token ?? "").trim();
   const refreshToken = String(body.refresh_token ?? "").trim();
-  const next = String(body.next ?? "/dashboard").trim() || "/dashboard";
+  const next = normalizeNextPath(body.next, "/dashboard");
 
   if (!accessToken || !refreshToken) {
     return c.json({ error: "Sesión inválida." }, 400);
@@ -144,6 +154,7 @@ export async function authMeGet(c: Context) {
       email: user.email,
       id: user.id,
       backoffice: hasBackofficeAccess(role),
+      reviewer: hasReviewAccess(role),
     },
   });
 }

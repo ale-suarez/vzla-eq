@@ -9,6 +9,11 @@ import { normalizeDbVerdict, optionalNumber, optionalText } from "@/api/incident
 type IncidentInsert = Database["public"]["Tables"]["incidents"]["Insert"];
 type IncidentUpdate = Database["public"]["Tables"]["incidents"]["Update"];
 
+const PUBLIC_INCIDENT_SELECT =
+  "id, state, severity, analysis_status, ai_verdict, confidence, finding, building_use, build_year, levels, basements, material, terrain_type, latitude, longitude, address, created_at, updated_at";
+const BACKOFFICE_INCIDENT_SELECT =
+  "id, state, severity, analysis_status, ai_verdict, confidence, finding, assigned_to, created_at, updated_at, contact, building_use, build_year, levels, basements, material, terrain_type, latitude, longitude, address, feedback";
+
 function buildIncidentPayload(input: Record<string, unknown>): IncidentInsert {
   const analysis = typeof input.analysis === "object" && input.analysis !== null ? (input.analysis as Record<string, unknown>) : null;
 
@@ -110,15 +115,12 @@ function buildUpdatePayload(input: Record<string, unknown>): IncidentUpdate {
 
 export async function incidentsGet(c: Context) {
   const { role } = await getSessionContext();
-
-  if (!hasBackofficeAccess(role)) {
-    return c.json({ error: "Unauthorized" }, 401);
-  }
-
   const supabase = createSupabaseAdminClient();
+
+  const select: string = hasBackofficeAccess(role) ? BACKOFFICE_INCIDENT_SELECT : PUBLIC_INCIDENT_SELECT;
   const { data, error } = await supabase
     .from("incidents")
-    .select("id, state, severity, analysis_status, ai_verdict, confidence, finding, assigned_to, created_at, updated_at, contact, building_use, build_year, levels, basements, material, terrain_type, latitude, longitude, address, feedback")
+    .select(select)
     .order("created_at", { ascending: false })
     .limit(100);
 
@@ -177,20 +179,19 @@ export async function incidentsPost(c: Context) {
 
 export async function incidentByIdGet(c: Context) {
   const { role } = await getSessionContext();
-  if (!hasBackofficeAccess(role)) {
-    return c.json({ error: "Unauthorized" }, 401);
-  }
-
   const id = c.req.param("id");
   if (!id) {
     return c.json({ error: "Missing incident id." }, 400);
   }
 
   const supabase = createSupabaseAdminClient();
+  const isBackoffice = hasBackofficeAccess(role);
 
   const [{ data: incident, error: incidentError }, { data: photos, error: photosError }] = await Promise.all([
-    supabase.from("incidents").select("*").eq("id", id).maybeSingle(),
-    supabase.from("incident_photos").select("*").eq("incident_id", id).order("position", { ascending: true }),
+    supabase.from("incidents").select(isBackoffice ? "*" : PUBLIC_INCIDENT_SELECT).eq("id", id).maybeSingle(),
+    isBackoffice
+      ? supabase.from("incident_photos").select("*").eq("incident_id", id).order("position", { ascending: true })
+      : Promise.resolve({ data: [], error: null as null }),
   ]);
 
   if (incidentError) {
@@ -205,7 +206,8 @@ export async function incidentByIdGet(c: Context) {
     return c.json({ error: photosError.message }, 500);
   }
 
-  return c.json({ data: { ...incident, photos: photos ?? [] } });
+  const responseData = Object.assign({}, incident, { photos: photos ?? [] });
+  return c.json({ data: responseData });
 }
 
 export async function incidentByIdPut(c: Context) {
