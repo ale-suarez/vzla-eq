@@ -8,7 +8,20 @@ const supabasePublishableKey =
 const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 function isBackofficePath(pathname: string) {
-  return pathname === "/dashboard" || pathname.startsWith("/dashboard/");
+  return (
+    pathname === "/dashboard" ||
+    pathname.startsWith("/dashboard/") ||
+    pathname === "/inspeccion" ||
+    pathname.startsWith("/inspeccion/")
+  );
+}
+
+// Phase 1 is engineer-first (ADR 0001-digital-boletin-61 §D9). Citizen capture
+// routes are SHELVED, not removed — code stays in the repo but is unreachable.
+const SHELVED_CITIZEN_ROUTES = ["/form", "/upload", "/analyzing", "/results"];
+
+function isShelvedCitizenPath(pathname: string) {
+  return SHELVED_CITIZEN_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`));
 }
 
 function isReviewPath(pathname: string) {
@@ -87,6 +100,12 @@ async function resolveRole(request: NextRequest, response: NextResponse) {
 export async function proxy(request: NextRequest) {
   const response = NextResponse.next();
   const { pathname } = request.nextUrl;
+
+  // Shelved citizen routes (Phase 2) -> redirect to the engineer flow.
+  if (isShelvedCitizenPath(pathname)) {
+    return NextResponse.redirect(new URL("/inspeccion", request.url));
+  }
+
   const { role } = await resolveRole(request, response);
 
   if (pathname === "/login" && role !== "anonymous") {
@@ -120,5 +139,14 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/login", "/dashboard/:path*", "/revision-solicitudes/:path*"],
+  matcher: [
+    "/login",
+    "/dashboard/:path*",
+    "/inspeccion/:path*",
+    "/revision-solicitudes/:path*",
+    "/form/:path*",
+    "/upload/:path*",
+    "/analyzing/:path*",
+    "/results/:path*",
+  ],
 };

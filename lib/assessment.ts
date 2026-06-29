@@ -364,6 +364,11 @@ export const MAX_FILE_SIZE_MB = 10;
 // ---------------------------------------------------------------------------
 // Photo evidence model (see docs/ai-analysis-flow.md).
 // The triad is required; supplementary photos fill the rest up to MAX_PHOTOS.
+//
+// SHELVED (Phase 2 — citizen track). ADR 0001-digital-boletin-61 §D9: this full
+// triad belongs to the CITIZEN flow, where the photo IS the conclusion (no
+// expert present). DO NOT relax it to the engineer-draft 1-photo rule — the
+// relaxed capture is valid only because a certified inspector verifies in person.
 // ---------------------------------------------------------------------------
 
 /** The three required defect views, in capture order. */
