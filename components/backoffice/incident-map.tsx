@@ -13,7 +13,7 @@ import { getCurrentGeoPoint } from "@/lib/geolocation";
 // Free, no-key OpenFreeMap vector style.
 const MAP_STYLE = "https://tiles.openfreemap.org/styles/positron";
 
-const LEGEND: VerdictLevel[] = ["critical", "severe", "moderate", "low"];
+const LEGEND: VerdictLevel[] = ["completo", "severo", "moderado", "menor"];
 
 // Geographic bounds reported to the parent so the list can mirror the viewport.
 export type MapBounds = { minLng: number; minLat: number; maxLng: number; maxLat: number };

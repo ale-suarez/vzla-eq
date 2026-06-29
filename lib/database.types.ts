@@ -320,7 +320,7 @@ export type Database = {
       engineer_application_status: "pending" | "approved" | "rejected"
       incident_state: "pending" | "in_review" | "resolved" | "archived"
       photo_tier: "triad" | "supplementary"
-      verdict_level: "low" | "moderate" | "severe" | "critical"
+      verdict_level: "sin_dano" | "menor" | "moderado" | "severo" | "completo"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -452,7 +452,7 @@ export const Constants = {
       engineer_application_status: ["pending", "approved", "rejected"],
       incident_state: ["pending", "in_review", "resolved", "archived"],
       photo_tier: ["triad", "supplementary"],
-      verdict_level: ["low", "moderate", "severe", "critical"],
+      verdict_level: ["sin_dano", "menor", "moderado", "severo", "completo"],
     },
   },
 } as const

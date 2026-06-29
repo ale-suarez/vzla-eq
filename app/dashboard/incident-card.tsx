@@ -109,13 +109,13 @@ export function IncidentCardSkeleton({ eyebrow }: { eyebrow?: string }) {
 
 function verdictBadge(verdict: Incident["verdict"]) {
   switch (verdict) {
-    case "low":
+    case "menor":
       return "bg-secondary-container text-on-secondary-container";
-    case "moderate":
+    case "moderado":
       return "bg-primary-fixed text-on-primary-fixed-variant";
-    case "severe":
+    case "severo":
       return "bg-tertiary-fixed text-on-tertiary-fixed-variant";
-    case "critical":
+    case "completo":
       return "bg-error-container text-on-error-container";
   }
 }

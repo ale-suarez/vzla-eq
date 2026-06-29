@@ -33,7 +33,7 @@ const IncidentMap = dynamic(() => import("@/components/backoffice/incident-map")
 });
 
 // Severity filter order (mirrors the map legend). "Todos" handled separately.
-const SEVERITY_FILTERS: VerdictLevel[] = ["critical", "severe", "moderate", "low"];
+const SEVERITY_FILTERS: VerdictLevel[] = ["completo", "severo", "moderado", "menor"];
 
 type SessionData = {
   authenticated: boolean;
@@ -102,7 +102,7 @@ export function DashboardClient() {
   }, [router]);
 
   const counts = useMemo(() => {
-    const c: Record<VerdictLevel, number> = { critical: 0, severe: 0, moderate: 0, low: 0 };
+    const c: Record<VerdictLevel, number> = { completo: 0, severo: 0, moderado: 0, menor: 0 };
     for (const i of incidents) c[i.verdict] += 1;
     return c;
   }, [incidents]);

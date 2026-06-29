@@ -17,16 +17,24 @@ import {
   XCircle,
 } from "lucide-react";
 
-// Canonical keys match the DB `verdict_level` enum (see supabase/migrations).
-// Shared 4-level scale used for both ai_verdict and severity.
-export type VerdictLevel = "low" | "moderate" | "severe" | "critical";
+// Canonical keys match the DB `damage_grade` enum (national Boletín 61 scale;
+// see supabase/migrations and lib/rubric/taxonomy.ts). `VerdictLevel` is kept as
+// an alias of the four damage grades so legacy consumers (the shelved citizen
+// track, #32) keep compiling against the national vocabulary. The DB enum also
+// has `sin_dano`, represented as `null` here. ADR §D3, issue #28.
+export type VerdictLevel = "menor" | "moderado" | "severo" | "completo";
 
-// Spanish display labels for the verdict scale.
+// The DB `damage_grade` enum also carries `sin_dano` (§8 "Sin daño" column).
+// `VerdictLevel` is the four graded levels; `DamageGradeDb` is the full enum as
+// it comes off the wire. Presentation normalizes `sin_dano` -> "menor".
+export type DamageGradeDb = "sin_dano" | VerdictLevel;
+
+// Spanish display labels for the damage scale.
 export const VERDICT_LABELS: Record<VerdictLevel, string> = {
-  low: "Leve",
-  moderate: "Moderado",
-  severe: "Grave",
-  critical: "Severo",
+  menor: "Menor",
+  moderado: "Moderado",
+  severo: "Severo",
+  completo: "Completo",
 };
 
 // DB `incident_state` enum -> Spanish labels (used in the backoffice).
@@ -420,19 +428,19 @@ export const RING_CIRCUMFERENCE = 251.2;
 export const ASSESSMENT_STORAGE_KEY = "vzla-eq-assessment";
 
 export const VERDICT_CONFIG: Record<VerdictLevel, VerdictConfig> = {
-  low: {
+  menor: {
     statusBg: "bg-secondary-container",
     statusBorder: "border-secondary/10",
     iconBg: "bg-secondary",
     iconColor: "text-white",
     ringColor: "text-secondary",
-    label: "Leve",
+    label: "Menor",
     labelColor: "text-on-secondary-container",
     findingColor: "text-on-secondary-container",
     badgeClass: "bg-secondary/10 text-secondary",
     Icon: ShieldCheck,
   },
-  moderate: {
+  moderado: {
     statusBg: "bg-tertiary-fixed",
     statusBorder: "border-tertiary/10",
     iconBg: "bg-tertiary",
@@ -444,25 +452,25 @@ export const VERDICT_CONFIG: Record<VerdictLevel, VerdictConfig> = {
     badgeClass: "bg-tertiary-fixed text-[#653e00]",
     Icon: AlertTriangle,
   },
-  severe: {
+  severo: {
     statusBg: "bg-error-container",
     statusBorder: "border-destructive/10",
     iconBg: "bg-[#630000]",
     iconColor: "text-white",
     ringColor: "text-[#630000]",
-    label: "Grave",
+    label: "Severo",
     labelColor: "text-[#630000]",
     findingColor: "text-[#410002]",
     badgeClass: "bg-error-container text-[#630000]",
     Icon: AlertTriangle,
   },
-  critical: {
+  completo: {
     statusBg: "bg-error-container",
     statusBorder: "border-destructive/10",
     iconBg: "bg-destructive",
     iconColor: "text-white",
     ringColor: "text-destructive",
-    label: "Severo",
+    label: "Completo",
     labelColor: "text-on-error-container",
     findingColor: "text-on-error-container",
     badgeClass: "bg-error-container text-on-error-container",
@@ -525,7 +533,7 @@ export const PHOTO_TIPS: PhotoTip[] = [
 ];
 
 export const RECOMMENDED_ACTIONS: Record<VerdictLevel, ActionStep[]> = {
-  low: [
+  menor: [
     {
       title: "Entrar con cuidado",
       text: "Proceda con precaución y reporte cualquier novedad de inmediato.",
@@ -545,7 +553,7 @@ export const RECOMMENDED_ACTIONS: Record<VerdictLevel, ActionStep[]> = {
       iconClass: "bg-on-surface",
     },
   ],
-  moderate: [
+  moderado: [
     {
       title: "Limitar ocupación",
       text: "Evite permanecer mucho tiempo en las zonas afectadas.",
@@ -565,7 +573,7 @@ export const RECOMMENDED_ACTIONS: Record<VerdictLevel, ActionStep[]> = {
       iconClass: "bg-on-surface",
     },
   ],
-  severe: [
+  severo: [
     {
       title: "Evacúe la edificación",
       text: "Los daños en elementos estructurales primarios obligan a desocupar el inmueble hasta su reparación.",
@@ -585,7 +593,7 @@ export const RECOMMENDED_ACTIONS: Record<VerdictLevel, ActionStep[]> = {
       iconClass: "bg-on-surface",
     },
   ],
-  critical: [
+  completo: [
     {
       title: "No entre",
       text: "La estructura está inestable. Evite acercarse a menos de 5 metros de la fachada.",
@@ -608,23 +616,23 @@ export const RECOMMENDED_ACTIONS: Record<VerdictLevel, ActionStep[]> = {
 };
 
 export const OVERALL_RESULT_COPY: Record<VerdictLevel, { level: string; text: string; textClass: string }> = {
-  low: {
-    level: "Riesgo Leve",
+  menor: {
+    level: "Riesgo Menor",
     text: "No se detectaron indicadores estructurales severos en las fotos analizadas.",
     textClass: "text-on-secondary-container",
   },
-  moderate: {
+  moderado: {
     level: "Riesgo Moderado",
     text: "Se detectaron problemas estructurales en algunas fotos analizadas. Se recomienda consulta profesional.",
     textClass: "text-[#653e00]",
   },
-  severe: {
-    level: "Riesgo Grave",
+  severo: {
+    level: "Riesgo Severo",
     text: "Daños significativos en elementos estructurales primarios. El edificio debe ser evacuado hasta su reparación certificada.",
     textClass: "text-[#630000]",
   },
-  critical: {
-    level: "Riesgo Severo",
+  completo: {
+    level: "Riesgo Completo",
     text: "Colapso parcial o inminente. Prohibida toda entrada: la estructura representa un peligro inmediato para la vida.",
     textClass: "text-on-error-container",
   },
@@ -635,8 +643,8 @@ export function verdictShortLabel(verdict: VerdictLevel) {
 }
 
 export function verdictBadgeClass(verdict: VerdictLevel) {
-  if (verdict === "low") return "bg-secondary text-white";
-  if (verdict === "moderate") return "bg-tertiary text-white";
-  if (verdict === "severe") return "bg-[#630000] text-white";
+  if (verdict === "menor") return "bg-secondary text-white";
+  if (verdict === "moderado") return "bg-tertiary text-white";
+  if (verdict === "severo") return "bg-[#630000] text-white";
   return "bg-destructive text-white";
 }
