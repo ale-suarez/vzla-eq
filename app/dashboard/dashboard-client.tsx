@@ -132,13 +132,13 @@ export function DashboardClient() {
           subtitle={session?.email ? `${session.email} · ${session.role === "admin" ? "Admin" : "Ingeniero"}` : "Validando acceso..."}
           rightSlot={
             <div className="flex items-center gap-3">
-              <button
-                onClick={() => setShowForm((v) => !v)}
-                className="hidden h-10 items-center gap-2 rounded-full bg-primary px-4 text-xs font-semibold uppercase tracking-[0.08em] text-white shadow-sm transition-opacity hover:opacity-90 md:flex"
+              <Link
+                href="/inspeccion"
+                className="flex h-10 items-center gap-2 rounded-full bg-primary px-4 text-xs font-semibold uppercase tracking-[0.08em] text-white shadow-sm transition-opacity hover:opacity-90"
               >
                 <Plus className="h-4 w-4" />
-                Crear Incidencia
-              </button>
+                Nueva Inspección
+              </Link>
             </div>
           }
         />
