@@ -18,7 +18,7 @@ import type { DbIncident } from "@/lib/incidents";
 import { cn } from "@/lib/utils";
 
 // Engineer-graded severity scale, ordered least to most serious.
-const SEVERITY_OPTIONS: VerdictLevel[] = ["low", "moderate", "severe", "critical"];
+const SEVERITY_OPTIONS: VerdictLevel[] = ["menor", "moderado", "severo", "completo"];
 
 export function NewIncidentForm({
   onCreated,

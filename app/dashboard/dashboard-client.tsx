@@ -33,7 +33,7 @@ const IncidentMap = dynamic(() => import("@/components/backoffice/incident-map")
 });
 
 // Severity filter order (mirrors the map legend). "Todos" handled separately.
-const SEVERITY_FILTERS: VerdictLevel[] = ["critical", "severe", "moderate", "low"];
+const SEVERITY_FILTERS: VerdictLevel[] = ["completo", "severo", "moderado", "menor"];
 
 type SessionData = {
   authenticated: boolean;
@@ -102,7 +102,7 @@ export function DashboardClient() {
   }, [router]);
 
   const counts = useMemo(() => {
-    const c: Record<VerdictLevel, number> = { critical: 0, severe: 0, moderate: 0, low: 0 };
+    const c: Record<VerdictLevel, number> = { completo: 0, severo: 0, moderado: 0, menor: 0 };
     for (const i of incidents) c[i.verdict] += 1;
     return c;
   }, [incidents]);
@@ -132,13 +132,13 @@ export function DashboardClient() {
           subtitle={session?.email ? `${session.email} · ${session.role === "admin" ? "Admin" : "Ingeniero"}` : "Validando acceso..."}
           rightSlot={
             <div className="flex items-center gap-3">
-              <button
-                onClick={() => setShowForm((v) => !v)}
-                className="hidden h-10 items-center gap-2 rounded-full bg-primary px-4 text-xs font-semibold uppercase tracking-[0.08em] text-white shadow-sm transition-opacity hover:opacity-90 md:flex"
+              <Link
+                href="/inspeccion"
+                className="flex h-10 items-center gap-2 rounded-full bg-primary px-4 text-xs font-semibold uppercase tracking-[0.08em] text-white shadow-sm transition-opacity hover:opacity-90"
               >
                 <Plus className="h-4 w-4" />
-                Crear Incidencia
-              </button>
+                Nueva Inspección
+              </Link>
             </div>
           }
         />

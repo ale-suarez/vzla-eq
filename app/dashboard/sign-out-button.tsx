@@ -19,9 +19,16 @@ export function SignOutButton() {
   };
 
   return (
-    <Button type="button" variant="outline" className="h-11 rounded-[16px]" onClick={onClick} disabled={pending}>
-      <LogOut className="mr-2 h-4 w-4" />
-      {pending ? "Saliendo..." : "Cerrar sesión"}
+    <Button
+      type="button"
+      variant="outline"
+      aria-label="Cerrar sesión"
+      className="h-10 rounded-[16px] px-3 sm:h-11 sm:px-4"
+      onClick={onClick}
+      disabled={pending}
+    >
+      <LogOut className="h-4 w-4 sm:mr-2" />
+      <span className="hidden sm:inline">{pending ? "Saliendo..." : "Cerrar sesión"}</span>
     </Button>
   );
 }

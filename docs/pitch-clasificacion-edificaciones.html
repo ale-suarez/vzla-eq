@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Boletín 61 Digital · Instrumento de Inspección asistido por IA</title>
+<style>
+  :root{
+    --verde:#1b8a4b; --amarilla:#e0a400; --roja:#b00020; --roja-dark:#630000;
+    --ink:#0e1726; --muted:#5b6b80; --line:#e2e8f0; --bg:#f6f8fb; --card:#ffffff;
+    --accent:#0b5cad; --accent-soft:#e8f1fb; --mono:#0b3a66;
+    --vzla-y:#FCD116; --vzla-b:#00247D; --vzla-r:#CF142B;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--ink); background:var(--bg); line-height:1.55; -webkit-font-smoothing:antialiased;
+  }
+  .deck{max-width:1120px;margin:0 auto;padding:0 24px}
+  section.slide{ padding:68px 0; border-bottom:1px solid var(--line); }
+  .eyebrow{ text-transform:uppercase; letter-spacing:.14em; font-size:.72rem;
+    font-weight:700; color:var(--accent); margin-bottom:14px; }
+  h1{font-size:2.6rem; line-height:1.1; letter-spacing:-.02em; margin-bottom:18px}
+  h2{font-size:1.85rem; line-height:1.15; letter-spacing:-.01em; margin-bottom:14px}
+  h3{font-size:1.12rem; margin-bottom:8px}
+  p.lead{font-size:1.18rem; color:var(--muted); max-width:820px}
+  p{color:var(--ink); max-width:860px}
+  .muted{color:var(--muted)}
+  code{background:#eef2f7;padding:2px 7px;border-radius:5px;font-size:.85em;
+    font-family:"SF Mono",ui-monospace,Menlo,monospace;color:var(--mono)}
+  .grid{display:grid; gap:18px; margin-top:28px}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:860px){.g2,.g3{grid-template-columns:1fr}}
+  .card{ background:var(--card); border:1px solid var(--line); border-radius:14px;
+    padding:22px; box-shadow:0 1px 2px rgba(13,30,60,.04); }
+  .card .num{ font-size:.72rem; font-weight:700; color:var(--accent);
+    letter-spacing:.1em; text-transform:uppercase; margin-bottom:6px; }
+  .pill{ display:inline-flex; align-items:center; gap:8px; font-size:.82rem; font-weight:600;
+    padding:6px 13px; border-radius:999px; border:1px solid var(--line); background:#fff; }
+  .dot{width:9px;height:9px;border-radius:50%}
+  .dot.v{background:var(--verde)} .dot.a{background:var(--amarilla)} .dot.r{background:var(--roja)}
+  .flag{display:inline-block;width:34px;height:13px;border-radius:3px;overflow:hidden;vertical-align:middle;
+    background:linear-gradient(to bottom,var(--vzla-y) 0 33.3%,var(--vzla-b) 33.3% 66.6%,var(--vzla-r) 66.6% 100%)}
+  .hero{padding:92px 0 76px}
+  .hero .pill{margin-bottom:22px}
+  .kicker-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:26px}
+
+  /* planilla mock */
+  .planilla{margin-top:24px;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}
+  .planilla .ph{background:#0e1726;color:#fff;padding:14px 18px;font-weight:700;display:flex;align-items:center;gap:10px}
+  .sec{border-bottom:1px solid var(--line);padding:14px 18px}
+  .sec:last-child{border-bottom:none}
+  .sec .sn{font-size:.7rem;font-weight:800;color:var(--accent);letter-spacing:.08em}
+  .sec h4{font-size:.98rem;margin:2px 0 6px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+  .chip{font-size:.74rem;padding:4px 10px;border-radius:7px;background:#eef2f7;color:var(--ink)}
+  .chip.ai{background:var(--accent-soft);color:var(--accent);font-weight:600}
+  .chip.calc{background:#e3f4ea;color:var(--verde);font-weight:600}
+  .abc{display:inline-flex;gap:4px}
+  .abc span{width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;
+    font-size:.72rem;font-weight:700;border:1px solid var(--line);color:var(--muted)}
+
+  .flow{display:flex;flex-direction:column;gap:0;margin-top:26px}
+  .flow-step{display:flex;gap:18px;align-items:flex-start}
+  .flow-rail{display:flex;flex-direction:column;align-items:center}
+  .flow-node{width:46px;height:46px;border-radius:12px;background:var(--accent);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;font-size:.95rem}
+  .flow-line{width:2px;flex:1;background:var(--line);min-height:30px}
+  .flow-step:last-child .flow-line{display:none}
+  .flow-body{padding-bottom:30px;flex:1}
+
+  table{width:100%;border-collapse:collapse;margin-top:18px;font-size:.9rem}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+  .etq{border-radius:12px;padding:18px;color:#fff}
+  .etq.v{background:var(--verde)} .etq.a{background:var(--amarilla);color:#1b1300}
+  .etq.r{background:var(--roja-dark)}
+  .etq h3{color:inherit} .etq p{color:inherit;opacity:.95}
+  .etq .t{font-size:.74rem;opacity:.92;text-transform:uppercase;letter-spacing:.08em}
+  .callout{border-left:4px solid var(--accent);background:var(--accent-soft);
+    padding:18px 22px;border-radius:0 12px 12px 0;margin-top:22px}
+  .callout.warn{border-color:var(--roja);background:#fdecef}
+  .json{background:#0e1726;color:#d7e3f4;border-radius:12px;padding:20px 22px;margin-top:18px;
+    font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:.82rem;line-height:1.7;overflow-x:auto}
+  .json .k{color:#8ec7ff} .json .s{color:#b8e6a0} .json .c{color:#6b7d94} .json .n{color:#f3c969}
+  ul.clean{list-style:none;margin-top:8px}
+  ul.clean li{padding:6px 0 6px 24px;position:relative;color:var(--ink)}
+  ul.clean li::before{content:"";position:absolute;left:0;top:13px;width:7px;height:7px;
+    border-radius:50%;background:var(--accent)}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:14px;font-size:.8rem;color:var(--muted)}
+  .legend .chip{cursor:default}
+  .shelf{opacity:.7}
+  .foot{padding:46px 0;color:var(--muted);font-size:.84rem}
+</style>
+</head>
+<body>
+<div class="deck">
+
+  <!-- HERO -->
+  <section class="slide hero">
+    <span class="pill"><span class="flag"></span> Boletín ANIH Nº 61 · Instrumento oficial</span>
+    <h1>El Boletín 61, ahora digital — con IA que asiste y etiquetas que se calculan solas.</h1>
+    <p class="lead">La planilla nacional de Evaluación Rápida de Daños, fiel campo por campo,
+    para el ingeniero certificado. La IA propone, la norma calcula, el inspector certifica.</p>
+    <div class="kicker-row">
+      <span class="pill">Para ingenieros certificados</span>
+      <span class="pill">Candidato a <strong>&nbsp;instrumento oficial del Estado</strong></span>
+    </div>
+  </section>
+
+  <!-- EL PIVOTE -->
+  <section class="slide">
+    <div class="eyebrow">El enfoque</div>
+    <h2>Digitalizamos el instrumento, no lo reinventamos.</h2>
+    <p class="lead">Un inspector certificado abre la app y llena la <strong>misma planilla</strong>
+    que llena hoy en papel — con las mismas secciones, casillas y tablas de riesgo del Boletín 61.
+    La diferencia es lo que la app hace por debajo.</p>
+    <div class="grid g3">
+      <div class="card"><div class="num">Fidelidad</div><h3>Campo por campo</h3><p class="muted">Cada sección, casilla y tabla de la planilla oficial, en el mismo orden y numeración.</p></div>
+      <div class="card"><div class="num">Inteligencia</div><h3>IA que propone</h3><p class="muted">Sugiere el grado de daño desde las fotos; el inspector confirma o corrige.</p></div>
+      <div class="card"><div class="num">Automatismo</div><h3>Etiqueta que se calcula</h3><p class="muted">El riesgo y la etiqueta se computan solos con las tablas del Boletín. Sin error humano.</p></div>
+    </div>
+    <div class="callout">
+      Por eso puede ser el <strong>instrumento oficial</strong>: no es una herramienta paralela,
+      <em>es</em> la planilla — fiel, con el inspector como autor responsable de cada campo, más
+      asistencia inteligente y cálculo automático.
+    </div>
+  </section>
+
+  <!-- LA PLANILLA DIGITAL -->
+  <section class="slide">
+    <div class="eyebrow">El producto</div>
+    <h2>La planilla, sección por sección.</h2>
+    <div class="planilla">
+      <div class="ph"><span class="flag"></span> Evaluación Rápida de Daños en Edificaciones · Planilla Nº ____</div>
+      <div class="sec"><div class="sn">1 · 2</div><h4>Datos de los inspectores · Datos generales</h4>
+        <div class="chips"><span class="chip">Función · Cédula · Profesión</span><span class="chip">Estado · Municipio · Parroquia</span><span class="chip">Coord UTM / Huso</span><span class="chip">Nº Pisos · Sótanos</span></div></div>
+      <div class="sec"><div class="sn">3</div><h4>Uso de la edificación</h4>
+        <div class="chips"><span class="chip">Gubernamental</span><span class="chip">Vivienda</span><span class="chip">Educativo</span><span class="chip">Médico-Asistencial</span><span class="chip">Industrial</span><span class="chip">…</span></div></div>
+      <div class="sec"><div class="sn">4</div><h4>Tipo estructural <span class="chip ai">◆ IA sugiere</span></h4>
+        <div class="chips"><span class="chip">Concreto: Pórticos · Muros · Prefabricados</span><span class="chip">Acero: arriostrado · conexiones</span><span class="chip">Mampostería: confinada · no confinada</span></div></div>
+      <div class="sec"><div class="sn">5</div><h4>Inspección externa — 5 ejes, cada uno a / b / c <span class="chip ai">◆ IA señala</span></h4>
+        <div class="chips"><span class="chip">Colapso</span><span class="chip">Edificios aledaños</span><span class="chip">Amenaza geológica</span><span class="chip">Asentamiento</span><span class="chip">Inclinación</span><span class="chip calc">→ 5.1 Riesgo Externo (A/B/C)</span></div></div>
+      <div class="sec"><div class="sn">7 · 8</div><h4>Croquis del piso crítico · Inspección interna por elemento <span class="chip ai">◆ IA propone grado</span></h4>
+        <div class="chips"><span class="chip">Columna · Viga · Muro · Nodo · Losa · Mampostería</span><span class="chip">Sin daño · Leve · Moderado · Severo · Completo</span><span class="chip calc">→ 9.1 Riesgo Estructura</span></div></div>
+      <div class="sec"><div class="sn">10</div><h4>Daños no estructurales</h4>
+        <div class="chips"><span class="chip">Paredes · Escaleras · Tanques · Fachada</span><span class="chip calc">→ 10.1 Riesgo no estructural</span></div></div>
+      <div class="sec"><div class="sn">11</div><h4>Decisión final — el riesgo más desfavorable <span class="chip calc">◆ se calcula</span></h4>
+        <div class="chips"><span class="chip">Verde · Inspeccionada</span><span class="chip">Amarilla · Restringida</span><span class="chip">Roja · Insegura</span></div></div>
+      <div class="sec"><div class="sn">12 · 13 · 14</div><h4>Recomendaciones · Medidas de seguridad · Observaciones · Firmas</h4></div>
+    </div>
+    <div class="legend">
+      <span><span class="chip ai">◆ IA</span> el modelo propone, el inspector confirma</span>
+      <span><span class="chip calc">◆ cálculo</span> la norma lo computa de forma determinista</span>
+    </div>
+  </section>
+
+  <!-- DÓNDE ENCAJA -->
+  <section class="slide">
+    <div class="eyebrow">Dónde encaja · Figura 1 del Boletín 61</div>
+    <h2>Resolvemos la Etapa 1. Liberamos a los especialistas para las Etapas 2 y 3.</h2>
+    <p class="muted">La Inspección Rápida es de corta duración pero alto volumen: miles de
+    edificios que etiquetar en días. Es el cuello de botella que esta herramienta absorbe.</p>
+    <div class="grid g3">
+      <div class="card" style="border-color:var(--accent)"><div class="num" style="color:var(--accent)">Etapa 1 · nuestra</div><h3>Inspección Rápida</h3><p class="muted">Planilla digital → <strong>Colocación de Etiqueta</strong> (Verde/Amarilla/Roja). Asistida por IA, calculada por la norma.</p></div>
+      <div class="card shelf"><div class="num">Etapa 2</div><h3>Inspección Detallada</h3><p class="muted">Examen del especialista → Reparación / Reforzamiento / Demolición. Ahora con recursos liberados.</p></div>
+      <div class="card shelf"><div class="num">Etapa 3</div><h3>Evaluación Detallada</h3><p class="muted">Informe, especificaciones y planos de detalle.</p></div>
+    </div>
+  </section>
+
+  <!-- CÓMO ASISTE LA IA -->
+  <section class="slide">
+    <div class="eyebrow">Cómo asiste la IA</div>
+    <h2>Propone el grado; el inspector tiene la última palabra.</h2>
+    <p class="muted">En la sección 8, al adjuntar fotos de un elemento del piso crítico, el
+    modelo lee las imágenes y propone su grado — pero reporta <strong>observables</strong>, no
+    veredictos. El inspector ve <em>por qué</em> y confirma o corrige.</p>
+    <div class="json">
+<span class="c">// la IA propone — observables + grado sugerido, sujeto a confirmación</span><br>
+{<br>
+&nbsp;&nbsp;<span class="k">"elemento"</span>: <span class="s">"columna"</span>,<br>
+&nbsp;&nbsp;<span class="k">"anchoGrietaAprox"</span>: <span class="s">"&gt;2mm"</span>, <span class="k">"desconchado"</span>: <span class="n">true</span>,<br>
+&nbsp;&nbsp;<span class="k">"gradoSugerido"</span>: <span class="s">"severo"</span>,<br>
+&nbsp;&nbsp;<span class="k">"fuente"</span>: <span class="s">"Boletín 61 · Fig 11c"</span>,<br>
+&nbsp;&nbsp;<span class="k">"requiereConfirmacion"</span>: <span class="n">true</span><br>
+}
+    </div>
+    <div class="callout">
+      Cada propuesta cita la <strong>figura del manual</strong> que la justifica. La decisión es
+      auditable, y cada confirmación o corrección del ingeniero <strong>entrena al modelo</strong>
+      para la próxima vez.
+    </div>
+  </section>
+
+  <!-- LA RÚBRICA -->
+  <section class="slide">
+    <div class="eyebrow">La regla que decide</div>
+    <h2>Los umbrales del Boletín 61, escritos una sola vez.</h2>
+    <p class="muted">Cada tipo de elemento tiene su tabla. Ejemplo — columna de concreto armado
+    (Figura 11). Misma entrada, misma salida, siempre — y trazada a su figura.</p>
+    <table>
+      <tr><th>Grado</th><th>Condición observable</th><th>Fuente</th></tr>
+      <tr><td><strong>Menor</strong></td><td>Grieta &lt; 1&nbsp;mm</td><td>Fig 11a</td></tr>
+      <tr><td><strong>Moderado</strong></td><td>Grieta 1–2&nbsp;mm</td><td>Fig 11b</td></tr>
+      <tr><td><strong>Severo</strong></td><td>Grieta &gt; 2&nbsp;mm <em>+ desconchado</em></td><td>Fig 11c</td></tr>
+      <tr><td><strong>Completo</strong></td><td>Caída de concreto, pandeo de barras, acortamiento</td><td>Fig 11d</td></tr>
+    </table>
+    <div class="callout warn">
+      El modelo puede <strong>subir</strong> el grado por indicadores, pero <strong>nunca lo
+      baja</strong> para fabricar seguridad. Y el grado del ingeniero siempre prevalece sobre el
+      de la IA.
+    </div>
+  </section>
+
+  <!-- LA ETIQUETA -->
+  <section class="slide">
+    <div class="eyebrow">El cálculo de la etiqueta</div>
+    <h2>La escalera nacional: el riesgo más desfavorable manda.</h2>
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-rail"><div class="flow-node">5.1</div><div class="flow-line"></div></div>
+        <div class="flow-body"><h3>Riesgo externo</h3><p class="muted">A (todos a) · B (b≥1) · C (c≥1) entre los 5 ejes externos.</p></div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-rail"><div class="flow-node">9.1</div><div class="flow-line"></div></div>
+        <div class="flow-body"><h3>Riesgo estructural del piso crítico</h3><p class="muted">Un elemento <code>severo</code>/<code>completo</code> ⇒ Alto (cortocircuito §3). Si no, el % de <code>moderado</code> decide (Tabla 2).</p></div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-rail"><div class="flow-node">10.1</div><div class="flow-line"></div></div>
+        <div class="flow-body"><h3>Riesgo no estructural</h3><p class="muted">Paredes, escaleras, fachada → A/B/C.</p></div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-rail"><div class="flow-node">11</div></div>
+        <div class="flow-body"><h3>Decisión final = el peor de los tres (Tabla 5)</h3>
+          <div class="grid g3" style="margin-top:10px">
+            <div class="etq v"><div class="t">Riesgo bajo</div><h3>Verde</h3><p>Edificación inspeccionada</p></div>
+            <div class="etq a"><div class="t">Riesgo medio</div><h3>Amarilla</h3><p>Acceso restringido</p></div>
+            <div class="etq r"><div class="t">Riesgo alto</div><h3>Roja</h3><p>Edificación insegura</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="callout">
+      El sistema <strong>propone</strong> la etiqueta con las tablas; el inspector la
+      <strong>atestigua</strong> o la sobrescribe con una razón registrada. Elimina el error de
+      cálculo manual, conserva el criterio profesional.
+    </div>
+  </section>
+
+  <!-- EL OBJETIVO -->
+  <section class="slide">
+    <div class="eyebrow">El objetivo</div>
+    <h2>Cada planilla, un nodo del gemelo digital.</h2>
+    <p class="lead">Como cada inspección es estructurada, geolocalizada y trazable, deja de ser
+    un papel archivado y se vuelve un dato vivo del estado de la ciudad — base para priorizar
+    intervenciones y, a futuro, planificar la reconstrucción.</p>
+    <div class="grid g3">
+      <div class="card"><div class="num">Oficial</div><h3>Fiel al instrumento</h3><p class="muted">Adoptable por el Estado porque <em>es</em> la planilla del Boletín 61.</p></div>
+      <div class="card"><div class="num">Trazable</div><h3>Cada grado cita su figura</h3><p class="muted">Auditable y defendible decisión por decisión.</p></div>
+      <div class="card"><div class="num">Acumulativo</div><h3>Más preciso con cada uso</h3><p class="muted">Las correcciones del inspector realimentan al modelo.</p></div>
+    </div>
+    <div class="callout">
+      <strong>Fase 2 (en reserva):</strong> la capa ciudadana — reportes con teléfono que
+      alimentan al inspector — ya está diseñada y se conserva para activarla cuando el
+      instrumento profesional esté consolidado.
+    </div>
+  </section>
+
+  <div class="foot">
+    Estado objetivo · pivote a producto para ingenieros (feedback Universidad Metropolitana).
+    Fiel a la <strong>Evaluación Rápida de Daños en Edificaciones</strong> — Academia Nacional
+    de la Ingeniería y el Hábitat (Boletín Nº 61, 2023) y FUNVISIS. Detalle:
+    <code>docs/adr/0002-digital-boletin-61-engineer-first.md</code>.
+  </div>
+
+</div>
+</body>
+</html>

@@ -17,7 +17,7 @@ export function optionalNumber(value: unknown) {
 // (`low | moderate | severe | critical`), so this is now a pure validator:
 // it returns the verdict unchanged when valid, otherwise null.
 export function normalizeDbVerdict(verdict: unknown) {
-  if (verdict === "low" || verdict === "moderate" || verdict === "severe" || verdict === "critical") {
+  if (verdict === "menor" || verdict === "moderado" || verdict === "severo" || verdict === "completo") {
     return verdict;
   }
   return null;

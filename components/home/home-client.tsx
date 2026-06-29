@@ -88,9 +88,9 @@ const IDEAL_SEQUENCE = [
 
 const ACCESS_LINKS = [
   {
-    title: "Reportar un edificio",
-    description: "Abre el flujo ciudadano.",
-    href: "/form",
+    title: "Nueva inspección",
+    description: "Evaluación Rápida de Daños (Boletín 61).",
+    href: "/inspeccion",
     icon: Rocket,
   },
   {
@@ -179,7 +179,7 @@ export default function HomeClient() {
             <p className="max-w-lg text-base leading-6 text-on-surface-variant">{HOME_COPY.description}</p>
             <div className="flex w-full max-w-sm flex-col gap-4 pt-4">
               <Link
-                href="/form"
+                href="/inspeccion"
                 transitionTypes={["nav-forward"]}
                 onClick={() => clearEvaluation()}
                 className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-[18px] bg-primary-container text-base font-bold text-white shadow-[0px_4px_20px_rgba(37,99,235,0.2)] transition-colors hover:bg-primary"

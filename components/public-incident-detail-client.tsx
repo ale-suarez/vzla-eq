@@ -194,11 +194,11 @@ function Detail({ label, value }: { label: string; value: string }) {
 
 function verdictPill(verdict: string) {
   switch (verdict) {
-    case "critical":
+    case "completo":
       return "bg-error-container text-on-error-container";
-    case "severe":
+    case "severo":
       return "bg-tertiary-fixed text-tertiary";
-    case "moderate":
+    case "moderado":
       return "bg-primary-fixed text-on-primary-fixed-variant";
     default:
       return "bg-secondary-container text-on-secondary-container";

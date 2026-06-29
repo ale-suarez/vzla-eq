@@ -1,7 +1,11 @@
 # AI Analysis Flow — Defect Triad Redesign
 
-> Status: **proposed** (pending review before implementation)
-> Supersedes the per-photo isolated analysis in `api/analysis/handlers.ts`.
+> Status: **SUPERSEDED** by `docs/adr/0001-building-classification-flow.md` (2026-06-29).
+> The unit of analysis moved from defect → **building**, the scale moved to the national
+> ANIH taxonomy (`menor/moderado/severo/completo` + etiqueta Verde/Amarilla/Roja), and a
+> certified-inspection record was added. Kept for history; do not implement from this file.
+>
+> _(original) Supersedes the per-photo isolated analysis in `api/analysis/handlers.ts`._
 
 ## Why
 

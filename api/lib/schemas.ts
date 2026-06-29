@@ -2,7 +2,7 @@ import { z } from "@hono/zod-openapi";
 
 export const appRoleSchema = z.enum(["anonymous", "engineer", "reviewer", "admin"]).openapi("AppRole");
 
-export const verdictLevelSchema = z.enum(["low", "moderate", "severe", "critical"]).openapi("VerdictLevel");
+export const verdictLevelSchema = z.enum(["menor", "moderado", "severo", "completo"]).openapi("VerdictLevel");
 // The analysis pipeline emits the same verdict vocabulary as the DB enum.
 export const analysisVerdictSchema = verdictLevelSchema;
 export const incidentStateSchema = z.enum(["pending", "in_review", "resolved", "archived"]).openapi("IncidentState");
@@ -136,7 +136,7 @@ export const observationSchema = z
 
 export const analysisResultSchema = z
   .object({
-    verdict: analysisVerdictSchema.nullable().openapi({ example: "severe" }),
+    verdict: analysisVerdictSchema.nullable().openapi({ example: "severo" }),
     confidence: z.number().int().min(0).max(100).openapi({ example: 72 }),
     finding: z.string().openapi({ example: "Grieta estructural en muro portante." }),
     observations: z.array(observationSchema).openapi({ example: [] }),

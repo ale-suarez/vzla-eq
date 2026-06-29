@@ -6,7 +6,17 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-import type { IncidentState, VerdictLevel } from "@/lib/assessment";
+import type { DamageGradeDb, IncidentState, VerdictLevel } from "@/lib/assessment";
+
+// A DB damage_grade as it arrives off the wire, narrowed to the four graded
+// levels for presentation. Anything else — `sin_dano`, null, or a legacy value
+// from a row not yet migrated (low/moderate/severe/critical) — falls back to
+// "menor" so presentation lookups never miss. (Defensive: the DB enum migration
+// may not yet have run against this environment.)
+const NATIONAL_GRADES: VerdictLevel[] = ["menor", "moderado", "severo", "completo"];
+function toVerdict(grade: DamageGradeDb | string | null): VerdictLevel {
+  return grade && (NATIONAL_GRADES as string[]).includes(grade) ? (grade as VerdictLevel) : "menor";
+}
 
 export type Incident = {
   id: string;
@@ -33,10 +43,10 @@ const VERDICT_PRESENTATION: Record<
   VerdictLevel,
   { icon: LucideIcon; accent: string; iconWrap: string }
 > = {
-  critical: { icon: ShieldAlert, accent: "border-l-destructive", iconWrap: "bg-error-container text-destructive" },
-  severe: { icon: TriangleAlert, accent: "border-l-tertiary", iconWrap: "bg-tertiary-fixed text-tertiary" },
-  moderate: { icon: Info, accent: "border-l-primary", iconWrap: "bg-primary-fixed text-primary" },
-  low: { icon: ClipboardCheck, accent: "border-l-secondary", iconWrap: "bg-secondary-container text-secondary" },
+  completo: { icon: ShieldAlert, accent: "border-l-destructive", iconWrap: "bg-error-container text-destructive" },
+  severo: { icon: TriangleAlert, accent: "border-l-tertiary", iconWrap: "bg-tertiary-fixed text-tertiary" },
+  moderado: { icon: Info, accent: "border-l-primary", iconWrap: "bg-primary-fixed text-primary" },
+  menor: { icon: ClipboardCheck, accent: "border-l-secondary", iconWrap: "bg-secondary-container text-secondary" },
 };
 
 // Subset of an incidents row the console list/map needs. Mirrors the columns
@@ -47,8 +57,8 @@ export type DbIncident = {
   address: string | null;
   contact: string | null;
   finding: string | null;
-  severity: VerdictLevel | null;
-  ai_verdict: VerdictLevel | null;
+  severity: DamageGradeDb | null;
+  ai_verdict: DamageGradeDb | null;
   analysis_status: string | null;
   confidence: number | null;
   state: IncidentState | null;
@@ -80,10 +90,10 @@ function relativeTime(iso: string | null): string {
 }
 
 // Adapts a DB incidents row into the presentation `Incident` the console
-// renders. Verdict falls back severity -> ai_verdict -> "moderate"; rows
+// renders. Verdict falls back severity -> ai_verdict -> "moderado"; rows
 // without coordinates are placed at the Caracas center so they still list.
 export function fromDbIncident(row: DbIncident): Incident {
-  const verdict: VerdictLevel = row.severity ?? row.ai_verdict ?? "moderate";
+  const verdict: VerdictLevel = toVerdict(row.severity ?? row.ai_verdict);
   const presentation = VERDICT_PRESENTATION[verdict];
 
   return {
@@ -107,16 +117,16 @@ export const VERDICT_MARKER: Record<
   VerdictLevel,
   { dot: string; circle: string; icon: LucideIcon }
 > = {
-  critical: { dot: "bg-error", circle: "bg-error", icon: ShieldAlert },
-  severe: { dot: "bg-tertiary", circle: "bg-tertiary", icon: TriangleAlert },
-  moderate: { dot: "bg-primary", circle: "bg-primary", icon: Info },
-  low: { dot: "bg-secondary", circle: "bg-secondary", icon: ClipboardCheck },
+  completo: { dot: "bg-error", circle: "bg-error", icon: ShieldAlert },
+  severo: { dot: "bg-tertiary", circle: "bg-tertiary", icon: TriangleAlert },
+  moderado: { dot: "bg-primary", circle: "bg-primary", icon: Info },
+  menor: { dot: "bg-secondary", circle: "bg-secondary", icon: ClipboardCheck },
 };
 
 // Risk bar fill per verdict (used in the selected-zone panel).
 export const VERDICT_RISK: Record<VerdictLevel, { pct: number; bar: string; text: string }> = {
-  critical: { pct: 92, bar: "bg-error", text: "text-error" },
-  severe: { pct: 74, bar: "bg-tertiary", text: "text-tertiary" },
-  moderate: { pct: 52, bar: "bg-primary", text: "text-primary" },
-  low: { pct: 24, bar: "bg-secondary", text: "text-secondary" },
+  completo: { pct: 92, bar: "bg-error", text: "text-error" },
+  severo: { pct: 74, bar: "bg-tertiary", text: "text-tertiary" },
+  moderado: { pct: 52, bar: "bg-primary", text: "text-primary" },
+  menor: { pct: 24, bar: "bg-secondary", text: "text-secondary" },
 };

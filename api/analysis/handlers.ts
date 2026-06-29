@@ -22,14 +22,14 @@ const MODEL_FAST = "gpt-4.1-mini";
 const MODEL_STRONG = "gpt-4.1";
 const ESCALATION_CONFIDENCE_THRESHOLD = 70;
 
-const VERDICT_SEVERITY: Record<VerdictLevel, number> = { low: 0, moderate: 1, severe: 2, critical: 3 };
+const VERDICT_SEVERITY: Record<VerdictLevel, number> = { menor: 0, moderado: 1, severo: 2, completo: 3 };
 
 function verdictSeverity(v: VerdictLevel): number {
   return VERDICT_SEVERITY[v];
 }
 
 function shouldEscalate(verdict: VerdictLevel, confidence: number): boolean {
-  return verdictSeverity(verdict) >= VERDICT_SEVERITY.severe || confidence < ESCALATION_CONFIDENCE_THRESHOLD;
+  return verdictSeverity(verdict) >= VERDICT_SEVERITY.severo || confidence < ESCALATION_CONFIDENCE_THRESHOLD;
 }
 
 // Issues that make a photo irrelevant noise rather than weak evidence: the
@@ -65,16 +65,16 @@ Responde ÚNICAMENTE con JSON compacto, sin texto adicional, con ESTE orden de c
   "photos": [{"index":n,"usable":bool,"issue":"blurry"|"dark"|"wrong_distance"|"irrelevant"|"inappropriate"|null}],
   "observations": [{"index":n,"seen":"qué muestra esa vista (solo fotos válidas)"}],
   "paintingVsStructural": "juicio del acercamiento: ¿la grieta cruza el sustrato o solo la pintura? (null si no hay acercamiento válido)",
-  "verdict": "low"|"moderate"|"severe"|"critical",
+  "verdict": "menor"|"moderado"|"severo"|"completo",
   "confidence": 0-100,
   "finding": "oración breve en español describiendo el daño del conjunto"
 }
 
 Escala de veredicto:
-- low (Leve): Sin daños estructurales visibles o daños cosméticos.
-- moderate (Moderado): Grietas menores, daños superficiales, requiere inspección.
-- severe (Grave): Daños significativos en elementos portantes; evacuar hasta reparación.
-- critical (Severo): Colapso parcial o inminente, riesgo inmediato para la vida.
+- menor (Menor): Sin daños estructurales visibles o daños cosméticos.
+- moderado (Moderado): Grietas menores, daños superficiales, requiere inspección.
+- severo (Severo): Daños significativos en elementos portantes; evacuar hasta reparación.
+- completo (Completo): Colapso parcial o inminente, riesgo inmediato para la vida.
 
 Completa "observations" y "paintingVsStructural" ANTES de decidir el veredicto: el
 veredicto debe ser la conclusión de leer las vistas en conjunto. Sé conservador: ante la
@@ -216,9 +216,9 @@ async function analyzeSet(
     return meta && seen ? [{ viewType: meta.type, seen }] : [];
   });
 
-  const verdict = (["low", "moderate", "severe", "critical"].includes(parsed.verdict ?? "")
+  const verdict = (["menor", "moderado", "severo", "completo"].includes(parsed.verdict ?? "")
     ? parsed.verdict
-    : "moderate") as VerdictLevel;
+    : "moderado") as VerdictLevel;
 
   const confidence = Math.min(100, Math.max(0, Number(parsed.confidence) || 50));
   const finding = String(parsed.finding || "Sin descripción disponible.");
@@ -360,7 +360,7 @@ export async function analyzePost(c: Context) {
     paintingVsStructural: analysis.paintingVsStructural,
     photos: analysis.photos,
     validTriadViews,
-    showAuthorities: analysis.verdict !== "low",
+    showAuthorities: analysis.verdict !== "menor",
   };
 
   return c.json(result);
