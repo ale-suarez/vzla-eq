@@ -9,9 +9,13 @@ import {
 import type { DamageGradeDb, IncidentState, VerdictLevel } from "@/lib/assessment";
 
 // A DB damage_grade as it arrives off the wire, narrowed to the four graded
-// levels for presentation: `sin_dano` and null both fall back to "menor".
-function toVerdict(grade: DamageGradeDb | null): VerdictLevel {
-  return grade && grade !== "sin_dano" ? grade : "menor";
+// levels for presentation. Anything else — `sin_dano`, null, or a legacy value
+// from a row not yet migrated (low/moderate/severe/critical) — falls back to
+// "menor" so presentation lookups never miss. (Defensive: the DB enum migration
+// may not yet have run against this environment.)
+const NATIONAL_GRADES: VerdictLevel[] = ["menor", "moderado", "severo", "completo"];
+function toVerdict(grade: DamageGradeDb | string | null): VerdictLevel {
+  return grade && (NATIONAL_GRADES as string[]).includes(grade) ? (grade as VerdictLevel) : "menor";
 }
 
 export type Incident = {
