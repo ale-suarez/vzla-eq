@@ -9,7 +9,6 @@ import {
   DoorOpen,
   Info,
   Layers,
-  HeartHandshake,
   Rocket,
   Ruler,
   ShieldCheck,
@@ -34,9 +33,9 @@ const IncidentMap = dynamic(() => import("@/components/backoffice/incident-map")
 
 const HOME_COPY = {
   badge: "ASISTIDO POR IA",
-  title: "¿Tu casa tiene fallas estructurales?",
-  description:
-    "Conoce el estado estructural de tu vivienda o edificio mediante una evaluación preliminar asistida por inteligencia artificial y confirmada por un ingeniero.",
+  title: "Más inspecciones en menos tiempo, para volver a estar de pie",
+  description: "Rellena el formulario oficial desde tus fotos, con la ayuda de la inteligencia artificial.",
+  attribution: "Basado en la Guía de Evaluación de Daños de la ANIH — Boletín 61.",
 };
 
 type PhotoGuide = { title: string; text: string; icon: LucideIcon; iconClass: string };
@@ -98,12 +97,6 @@ const ACCESS_LINKS = [
     description: "Acceso para ingenieros y admins.",
     href: "/dashboard",
     icon: ShieldCheck,
-  },
-  {
-    title: "Unirse como ingeniero",
-    description: "Registro de voluntarios.",
-    href: "/register",
-    icon: HeartHandshake,
   },
   {
     title: "Revisión de solicitudes",
@@ -173,11 +166,11 @@ export default function HomeClient() {
               <Sparkles className="h-3.5 w-3.5" />
               {HOME_COPY.badge}
             </div>
-            <h1 className="max-w-md font-heading text-[26px] font-bold leading-8 tracking-tight text-on-surface md:text-[30px] md:leading-[38px]">
+            <h1 className="max-w-xl font-heading text-[26px] font-bold leading-8 tracking-tight text-on-surface md:text-[32px] md:leading-[40px]">
               {HOME_COPY.title}
             </h1>
             <p className="max-w-lg text-base leading-6 text-on-surface-variant">{HOME_COPY.description}</p>
-            <div className="flex w-full max-w-sm flex-col gap-4 pt-4">
+            <div className="flex w-full max-w-sm flex-col gap-3 pt-4">
               <Link
                 href="/inspeccion"
                 transitionTypes={["nav-forward"]}
@@ -185,17 +178,10 @@ export default function HomeClient() {
                 className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-[18px] bg-primary-container text-base font-bold text-white shadow-[0px_4px_20px_rgba(37,99,235,0.2)] transition-colors hover:bg-primary"
               >
                 <Rocket className="h-4 w-4" />
-                Empezar
-              </Link>
-              <Link
-                href="/register"
-                transitionTypes={["nav-forward"]}
-                className="inline-flex h-14 w-full items-center justify-center gap-2 rounded-[18px] border border-outline-variant/30 bg-surface-container-low text-base font-bold text-on-surface shadow-[0px_4px_20px_rgba(15,23,42,0.06)] transition-colors hover:bg-surface-container"
-              >
-                <HeartHandshake className="h-4 w-4" />
-                Registro de voluntarios
+                Iniciar inspección
               </Link>
             </div>
+            <p className="max-w-md pt-1 text-xs text-on-surface-variant">{HOME_COPY.attribution}</p>
           </div>
         </section>
 
