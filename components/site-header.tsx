@@ -10,7 +10,7 @@ import { Menu, ShieldCheck, X } from "lucide-react";
 // is hidden on these.
 // Home (`/`) renders this same header, so it is intentionally not headerless.
 // `/dashboard` (and its nested incident routes) ship their own top bar.
-const HEADERLESS_PREFIXES = ["/form", "/dashboard", "/register", "/revision-solicitudes"];
+const HEADERLESS_PREFIXES = ["/form", "/dashboard", "/inspeccion", "/register", "/revision-solicitudes"];
 
 type SessionData = {
   authenticated: boolean;

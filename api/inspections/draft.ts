@@ -2,6 +2,13 @@
 // the model PERCEIVES observables (never verdicts), the deterministic grader
 // (lib/rubric) assigns grades, and the draft is returned for the engineer to
 // review/correct/attest. ADR §D4 (draft model), §D8 (no LLM millimeters).
+//
+// Photos are captured in three CATEGORIES (hard-scoped): each category produces
+// ONLY its planilla section's output, so the model evaluates a photo as the kind
+// of evidence the inspector labeled it.
+//   exteriores    -> §2 external-axis flags only
+//   estructurales -> §3/§4/§8 element grades only
+//   otros         -> §10 non-structural component letters only
 
 import OpenAI from "openai";
 import sharp from "sharp";
@@ -24,32 +31,60 @@ const MODEL_DRAFT = "gpt-4.1-mini";
 const ELEMENT_TYPES = Object.keys(RUBRIC.elementTypes) as ElementType[];
 const CRACK_BANDS: CrackBand[] = ["lt1", "1to2", "2to6", "6to10", "gt6", "gt10", "unknown"];
 
-// The model emits observables keyed to the rubric vocabulary. The element
-// type/indicator/band enums are injected so the model speaks the grader's tokens.
-function buildSystemPrompt(): string {
-  const indicatorList = Object.values(RUBRIC.elementTypes)
-    .flatMap((r) => r.grades)
-    .flatMap((g) => [...(g.requiredIndicators ?? []), ...(g.anyOfIndicators ?? [])]);
-  const indicators = Array.from(new Set(indicatorList));
+export type PhotoCategory = "exteriores" | "estructurales" | "otros";
+export const PHOTO_CATEGORIES: PhotoCategory[] = ["exteriores", "estructurales", "otros"];
 
-  return `Eres un asistente de inspección estructural post-sismo siguiendo el Boletín ANIH Nº 61.
-Recibes fotos de UN edificio: una vista externa amplia y fotos de elementos del piso crítico.
+const ALL_INDICATORS = Array.from(
+  new Set(
+    Object.values(RUBRIC.elementTypes)
+      .flatMap((r) => r.grades)
+      .flatMap((g) => [...(g.requiredIndicators ?? []), ...(g.anyOfIndicators ?? [])]),
+  ),
+);
 
-Tu tarea es PERCIBIR hechos observables, NO emitir grados ni etiquetas. Para cada elemento
-estructural fotografiado reporta lo que VES. NUNCA estimes milímetros exactos: reporta una
-banda de ancho de grieta entre estas opciones: ${CRACK_BANDS.join(", ")}.
+// ── per-category prompts (hard-scoped output) ─────────────────────────────────
 
-Tipos de elemento válidos: ${ELEMENT_TYPES.join(", ")}.
-Indicadores válidos (usa SOLO estos tokens): ${indicators.join(", ")}.
+function exterioresPrompt(): string {
+  return `Eres un asistente de inspección post-sismo (Boletín ANIH Nº 61).
+Estas son VISTAS EXTERNAS del edificio. Evalúa SOLO los ejes externos visibles. NO reportes
+elementos estructurales internos. Para cada eje asigna a/b/c según lo que veas (a=sin/bajo,
+b=moderado/medio, c=elevado/alto).
 
-Responde ÚNICAMENTE con JSON compacto:
+IMPORTANTE: si el eje NO es evaluable con estas fotos (no se ve el terreno, no hay vista de
+los edificios contiguos, etc.), devuelve null para ese eje — NO asumas "a". Explica el motivo
+en su nota. No inventes seguridad: "a" significa que VISTE que no hay peligro, no que no sabes.
+
+Responde ÚNICAMENTE con JSON, con una nota breve por eje:
 {
-  "tipoEstructural": ${ELEMENT_TYPES.map((t) => `"${t}"`).join("|")}|null,
-  "externalFlags": {
-    "colapso": "a"|"b"|"c"|null,
-    "aledanos": "a"|"b"|"c"|null,
-    "geologico": "a"|"b"|"c"|null
-  },
+  "externalFlags": { "colapso": "a"|"b"|"c"|null, "aledanos": "a"|"b"|"c"|null, "geologico": "a"|"b"|"c"|null },
+  "notes": { "colapso": "motivo breve", "aledanos": "motivo breve", "geologico": "motivo breve" },
+  "tipoEstructural": ${ELEMENT_TYPES.map((t) => `"${t}"`).join("|")}|null
+}
+Inclinación y asentamiento NO los reportes: son mediciones de campo del inspector.`;
+}
+
+function estructuralesPrompt(): string {
+  return `Eres un asistente de inspección post-sismo (Boletín ANIH Nº 61).
+Estas son fotos de ELEMENTOS ESTRUCTURALES del piso crítico. Para CADA elemento reporta hechos
+observables, NO grados. NUNCA estimes milímetros: usa una banda de estas opciones: ${CRACK_BANDS.join(", ")}.
+Tipos válidos: ${ELEMENT_TYPES.join(", ")}.
+Indicadores válidos (SOLO estos tokens): ${ALL_INDICATORS.join(", ")}.
+
+CLAVE para concreto armado — distingue DAÑO SUPERFICIAL de DAÑO ESTRUCTURAL:
+- "caida_recubrimiento" / "desconchado": se cayó el RECUBRIMIENTO o el acabado (friso/pintura)
+  y quizá algo de concreto superficial, pero el elemento SIGUE ÍNTEGRO. Esto es daño de
+  superficie/deterioro. Úsalo para spalling, acero expuesto por corrosión, friso caído.
+- "caida_concreto": se perdió concreto ESTRUCTURAL del núcleo del elemento, el elemento está
+  aplastado/colapsado/seccionado. Reserva esto SOLO para falla estructural real, NO para friso
+  o recubrimiento caído. Si la viga/columna sigue en pie y solo perdió el recubrimiento, NO uses
+  "caida_concreto".
+- "grieta_pasante": la grieta CRUZA TODA LA SECCIÓN de lado a lado, o es diagonal atravesando
+  todo el miembro (corte). Solo si efectivamente atraviesa el elemento completo.
+El daño Severo requiere una grieta diagonal/pasante ACOMPAÑADA de ancho >2mm o desconchado; una
+grieta fina sin desprendimiento es Moderada.
+
+Responde ÚNICAMENTE con JSON:
+{
   "elements": [
     {
       "label": "p.ej. Columna B-3",
@@ -57,16 +92,23 @@ Responde ÚNICAMENTE con JSON compacto:
       "crackBand": ${CRACK_BANDS.map((b) => `"${b}"`).join("|")},
       "indicators": ["token", ...],
       "photoQuality": "ok"|"low"|"unusable",
-      "note": "breve descripción de lo observado"
+      "note": "breve descripción"
     }
   ]
 }
+Ante la duda, escala (reporta el indicador más severo que realmente observes).`;
+}
 
-Reglas:
-- Las banderas externas (colapso/aledaños/geológico) son SEÑALES a verificar por el inspector,
-  no grados definitivos. Inclinación y asentamiento NO los reportes: son mediciones de campo.
-- Si una foto es de baja calidad, marca photoQuality y reporta lo que puedas; no inventes.
-- Ante la duda, escala (reporta el indicador más severo que realmente observes).`;
+function otrosPrompt(): string {
+  return `Eres un asistente de inspección post-sismo (Boletín ANIH Nº 61).
+Estas son fotos de ELEMENTOS NO ESTRUCTURALES (paredes/tabiquería, escaleras, tanques/balcones,
+fachada/cielo raso). Evalúa el riesgo de cada componente visible en a/b/c (a=sin o poco daño,
+b=grietas/separación, c=peligro de caída/colapso).
+
+Responde ÚNICAMENTE con JSON:
+{
+  "nonStructural": [ { "component": "texto", "letter": "a"|"b"|"c", "note": "breve" } ]
+}`;
 }
 
 async function resizeImage(buffer: Buffer): Promise<string> {
@@ -75,21 +117,6 @@ async function resizeImage(buffer: Buffer): Promise<string> {
     .jpeg({ quality: 82 })
     .toBuffer();
   return resized.toString("base64");
-}
-
-interface RawDraftElement {
-  label?: string;
-  elementType?: string;
-  crackBand?: string;
-  indicators?: string[];
-  photoQuality?: string;
-  note?: string;
-}
-
-interface RawDraft {
-  tipoEstructural?: string | null;
-  externalFlags?: { colapso?: string | null; aledanos?: string | null; geologico?: string | null };
-  elements?: RawDraftElement[];
 }
 
 function coerceElementType(v: unknown): ElementType | null {
@@ -106,6 +133,8 @@ function coerceIndicators(v: unknown): StructuralIndicator[] {
   return v.filter((x): x is StructuralIndicator => typeof x === "string" && isStructuralIndicator(x));
 }
 
+// ── draft shape ───────────────────────────────────────────────────────────────
+
 export interface DraftElement {
   label: string | null;
   elementTypeAi: ElementType | null;
@@ -115,43 +144,46 @@ export interface DraftElement {
   photoQuality: string | null;
   note: string | null;
 }
-
+export interface DraftNonStructural {
+  component: string;
+  letter: "a" | "b" | "c";
+  note: string | null;
+}
+export type AxisFlag = "a" | "b" | "c" | null;
 export interface DraftPlanilla {
   tipoEstructuralAi: ElementType | null;
-  externalFlags: { colapso: "a" | "b" | "c" | null; aledanos: "a" | "b" | "c" | null; geologico: "a" | "b" | "c" | null };
+  externalFlags: { colapso: AxisFlag; aledanos: AxisFlag; geologico: AxisFlag };
+  // Per-axis basis. null flag + a note = "evaluated, couldn't tell" (verify).
+  externalNotes: { colapso: string | null; aledanos: string | null; geologico: string | null };
   elements: DraftElement[];
+  nonStructural: DraftNonStructural[];
   rubricVersion: string;
 }
 
-// Turn the model's raw observables into a draft: run each element through the
-// deterministic grader to get gradeAi (the proposal). The LLM never grades.
-function assembleDraft(raw: RawDraft): DraftPlanilla {
-  const elements: DraftElement[] = (raw.elements ?? []).map((e) => {
-    const elementType = coerceElementType(e.elementType);
-    const crackBand = coerceBand(e.crackBand);
-    const indicators = coerceIndicators(e.indicators);
-    const gradeAi = elementType ? gradeElement(elementType, { crackBand, indicators }).grade : null;
-    return {
-      label: typeof e.label === "string" ? e.label : null,
-      elementTypeAi: elementType,
-      gradeAi,
-      crackBandAi: crackBand,
-      indicatorsAi: indicators,
-      photoQuality: typeof e.photoQuality === "string" ? e.photoQuality : null,
-      note: typeof e.note === "string" ? e.note : null,
-    };
+async function runCategory(
+  client: OpenAI,
+  category: PhotoCategory,
+  base64s: string[],
+): Promise<{ raw: unknown; text: string }> {
+  const prompt = category === "exteriores" ? exterioresPrompt() : category === "estructurales" ? estructuralesPrompt() : otrosPrompt();
+  const content: OpenAI.Chat.Completions.ChatCompletionContentPart[] = [
+    { type: "text", text: `Analiza estas ${base64s.length} foto(s) de la categoría "${category}".` },
+  ];
+  for (const b of base64s) {
+    content.push({ type: "image_url", image_url: { url: `data:image/jpeg;base64,${b}`, detail: "high" } });
+  }
+  const response = await client.chat.completions.create({
+    model: MODEL_DRAFT,
+    max_tokens: 1200,
+    temperature: 0,
+    messages: [
+      { role: "system", content: prompt },
+      { role: "user", content },
+    ],
   });
-
-  return {
-    tipoEstructuralAi: coerceElementType(raw.tipoEstructural),
-    externalFlags: {
-      colapso: coerceAbc(raw.externalFlags?.colapso),
-      aledanos: coerceAbc(raw.externalFlags?.aledanos),
-      geologico: coerceAbc(raw.externalFlags?.geologico),
-    },
-    elements,
-    rubricVersion: RUBRIC_VERSION,
-  };
+  const text = response.choices[0].message.content?.trim() ?? "";
+  const match = text.match(/\{[\s\S]*\}/);
+  return { raw: match ? JSON.parse(match[0]) : {}, text };
 }
 
 export async function inspectionDraftPost(c: Context) {
@@ -165,11 +197,15 @@ export async function inspectionDraftPost(c: Context) {
     return c.json({ error: "Servicio no configurado correctamente." }, 500);
   }
 
+  // Photos arrive index-aligned with a `categories` JSON array.
   let files: File[];
+  let categories: PhotoCategory[];
   let inspectionId: string | null = null;
   try {
     const formData = await c.req.raw.formData();
     files = formData.getAll("fotos") as File[];
+    const rawCats = formData.get("categories");
+    categories = typeof rawCats === "string" ? (JSON.parse(rawCats) as PhotoCategory[]) : [];
     const rawId = formData.get("inspection_id");
     if (typeof rawId === "string" && rawId.length > 0) inspectionId = rawId;
   } catch {
@@ -179,58 +215,112 @@ export async function inspectionDraftPost(c: Context) {
   if (!files || files.length === 0) {
     return c.json({ error: "No se recibieron imágenes." }, 400);
   }
+  if (categories.length !== files.length) {
+    return c.json({ error: "Las fotos y sus categorías no coinciden." }, 400);
+  }
 
-  const content: OpenAI.Chat.Completions.ChatCompletionContentPart[] = [
-    { type: "text", text: `Analiza estas ${files.length} foto(s) del edificio y sus elementos.` },
-  ];
-  for (const file of files) {
-    const buf = Buffer.from(await file.arrayBuffer());
+  // Group base64-encoded photos by category.
+  const byCategory: Record<PhotoCategory, string[]> = { exteriores: [], estructurales: [], otros: [] };
+  for (let i = 0; i < files.length; i++) {
+    const cat = PHOTO_CATEGORIES.includes(categories[i]) ? categories[i] : "estructurales";
+    const buf = Buffer.from(await files[i].arrayBuffer());
     let base64: string;
     try {
       base64 = await resizeImage(buf);
     } catch {
       base64 = buf.slice(0, 1_000_000).toString("base64");
     }
-    content.push({ type: "image_url", image_url: { url: `data:image/jpeg;base64,${base64}`, detail: "high" } });
+    byCategory[cat].push(base64);
   }
 
   const client = new OpenAI({ apiKey });
   const startedAt = Date.now();
-  let raw: RawDraft;
-  let rawText = "";
+
+  const draft: DraftPlanilla = {
+    tipoEstructuralAi: null,
+    externalFlags: { colapso: null, aledanos: null, geologico: null },
+    externalNotes: { colapso: null, aledanos: null, geologico: null },
+    elements: [],
+    nonStructural: [],
+    rubricVersion: RUBRIC_VERSION,
+  };
+  const rawByCategory: Record<string, unknown> = {};
+
   try {
-    const response = await client.chat.completions.create({
-      model: MODEL_DRAFT,
-      max_tokens: 1200,
-      temperature: 0,
-      messages: [
-        { role: "system", content: buildSystemPrompt() },
-        { role: "user", content },
-      ],
-    });
-    rawText = response.choices[0].message.content?.trim() ?? "";
-    const match = rawText.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error("no-json");
-    raw = JSON.parse(match[0]) as RawDraft;
+    if (byCategory.exteriores.length > 0) {
+      const { raw } = await runCategory(client, "exteriores", byCategory.exteriores);
+      rawByCategory.exteriores = raw;
+      const r = raw as {
+        externalFlags?: Record<string, unknown>;
+        notes?: Record<string, unknown>;
+        tipoEstructural?: unknown;
+      };
+      draft.externalFlags = {
+        colapso: coerceAbc(r.externalFlags?.colapso),
+        aledanos: coerceAbc(r.externalFlags?.aledanos),
+        geologico: coerceAbc(r.externalFlags?.geologico),
+      };
+      const note = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : null);
+      draft.externalNotes = {
+        colapso: note(r.notes?.colapso),
+        aledanos: note(r.notes?.aledanos),
+        geologico: note(r.notes?.geologico),
+      };
+      draft.tipoEstructuralAi = coerceElementType(r.tipoEstructural);
+    }
+
+    if (byCategory.estructurales.length > 0) {
+      const { raw } = await runCategory(client, "estructurales", byCategory.estructurales);
+      rawByCategory.estructurales = raw;
+      const r = raw as { elements?: Array<Record<string, unknown>> };
+      draft.elements = (r.elements ?? []).map((e) => {
+        const elementType = coerceElementType(e.elementType);
+        const crackBand = coerceBand(e.crackBand);
+        const indicators = coerceIndicators(e.indicators);
+        const gradeAi = elementType ? gradeElement(elementType, { crackBand, indicators }).grade : null;
+        return {
+          label: typeof e.label === "string" ? e.label : null,
+          elementTypeAi: elementType,
+          gradeAi,
+          crackBandAi: crackBand,
+          indicatorsAi: indicators,
+          photoQuality: typeof e.photoQuality === "string" ? e.photoQuality : null,
+          note: typeof e.note === "string" ? e.note : null,
+        };
+      });
+      // If no explicit tipoEstructural came from exteriores, infer from elements.
+      if (!draft.tipoEstructuralAi && draft.elements[0]?.elementTypeAi) {
+        draft.tipoEstructuralAi = draft.elements[0].elementTypeAi;
+      }
+    }
+
+    if (byCategory.otros.length > 0) {
+      const { raw } = await runCategory(client, "otros", byCategory.otros);
+      rawByCategory.otros = raw;
+      const r = raw as { nonStructural?: Array<Record<string, unknown>> };
+      draft.nonStructural = (r.nonStructural ?? [])
+        .map((n) => ({
+          component: typeof n.component === "string" ? n.component : "",
+          letter: coerceAbc(n.letter),
+          note: typeof n.note === "string" ? n.note : null,
+        }))
+        .filter((n): n is DraftNonStructural => n.letter !== null && n.component !== "");
+    }
   } catch {
     return c.json({ error: "No se pudo generar el borrador del modelo." }, 502);
   }
+
   const latencyMs = Date.now() - startedAt;
 
-  const draft = assembleDraft(raw);
-
-  // Persist the generation event (archive) + extract per-element predictions.
   const supabase = createSupabaseAdminClient();
   await supabase.from("ai_drafts").insert({
     inspection_id: inspectionId,
-    raw_output: { rawText, parsed: raw, draft } as unknown as Json,
+    raw_output: { rawByCategory, draft } as unknown as Json,
     model_id: MODEL_DRAFT,
     prompt_version: RUBRIC_VERSION,
     latency_ms: latencyMs,
   });
 
-  // If attached to an existing inspection, write/overwrite the *_ai columns by
-  // replacing AI-drafted element rows (latest draft wins; ADR §D7).
   if (inspectionId) {
     await supabase.from("inspection_elements").delete().eq("inspection_id", inspectionId).eq("source", "ai_drafted");
     if (draft.elements.length > 0) {

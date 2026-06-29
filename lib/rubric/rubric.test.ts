@@ -11,32 +11,50 @@ import { RUBRIC, RUBRIC_VERSION } from "./artifact";
 
 // ── Grader: boletín worked examples ───────────────────────────────────────────
 
-describe("gradeElement — concreto armado (Fig 11)", () => {
+describe("gradeElement — concreto armado (Fig 11 / Fig 16)", () => {
   it("crack <1mm => menor", () => {
     expect(gradeElement("concreto_armado", { crackBand: "lt1" }).grade).toBe("menor");
   });
 
-  it("crack 1–2mm => moderado", () => {
-    expect(gradeElement("concreto_armado", { crackBand: "1to2" }).grade).toBe("moderado");
+  it("EVAL: thin diagonal crack 1–2mm, no spalling => MODERADO (Fig 11b)", () => {
+    // Dataset ground truth: a side-to-side diagonal crack that is thin and has no
+    // spalling is Moderado, NOT severo. Geometry alone is not enough.
+    const r = gradeElement("concreto_armado", { crackBand: "1to2", indicators: ["grietas_diagonales"] });
+    expect(r.grade).toBe("moderado");
   });
 
-  it("crack >2mm + desconchado => severo (the canonical example)", () => {
-    const r = gradeElement("concreto_armado", { crackBand: "2to6", indicators: ["desconchado"] });
+  it("EVAL: ceiling soffit — cover/finish fell, rebar exposed, element intact => MODERADO", () => {
+    // The ceiling photo: caida_recubrimiento + acero_expuesto, no structural
+    // failure, no through-crack. Surface damage => Moderado, NOT completo/severo.
+    const r = gradeElement("concreto_armado", {
+      crackBand: "unknown",
+      indicators: ["caida_recubrimiento", "desconchado", "acero_expuesto"],
+    });
+    expect(r.grade).toBe("moderado");
+  });
+
+  it("diagonal crack + >2mm => severo (Fig 11c, compound width qualifier)", () => {
+    const r = gradeElement("concreto_armado", { crackBand: "2to6", indicators: ["grietas_diagonales"] });
     expect(r.grade).toBe("severo");
-    expect(r.matched?.sourceFigure).toContain("Fig 11c");
   });
 
-  it("pandeo de barras => completo, even without a width band (indicator escalation)", () => {
-    const r = gradeElement("concreto_armado", { indicators: ["pandeo_barras"] });
+  it("diagonal crack + desconchado => severo (Fig 11c, compound spalling qualifier)", () => {
+    const r = gradeElement("concreto_armado", { crackBand: "1to2", indicators: ["grietas_diagonales", "desconchado"] });
+    expect(r.grade).toBe("severo");
+  });
+
+  it("through-crack with NO qualifier (thin, no spalling) => moderado, NOT severo", () => {
+    const r = gradeElement("concreto_armado", { crackBand: "1to2", indicators: ["grieta_pasante"] });
+    expect(r.grade).toBe("moderado");
+  });
+
+  it("STRUCTURAL concrete loss (caida_concreto) => completo (Fig 11d/16.5)", () => {
+    const r = gradeElement("concreto_armado", { indicators: ["caida_concreto"] });
     expect(r.grade).toBe("completo");
-    expect(r.basis).toBe("indicators");
   });
 
-  it("upward-only: small band but severe indicator escalates UP, never down", () => {
-    // Width alone says menor (<1mm) but exposed rebar present => severo.
-    const r = gradeElement("concreto_armado", { crackBand: "lt1", indicators: ["acero_expuesto"] });
-    expect(r.grade).toBe("severo");
-    expect(r.basis).toBe("indicators");
+  it("buckled bars => completo", () => {
+    expect(gradeElement("concreto_armado", { indicators: ["pandeo_barras"] }).grade).toBe("completo");
   });
 
   it("no observables => sin daño (null)", () => {

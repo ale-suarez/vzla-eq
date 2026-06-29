@@ -107,10 +107,6 @@ export interface PlanillaState {
   // §1/§2
   planillaNo: string;
   address: string;
-  estado: string;
-  municipio: string;
-  parroquia: string;
-  sector: string;
   latitude: number | null;
   longitude: number | null;
   nivelPisos: number | null;
@@ -124,6 +120,10 @@ export interface PlanillaState {
   // §2 external (final letters + AI flags)
   externalFinal: Partial<Record<ExternalAxisId, Abc>>;
   externalAi: Partial<Record<ExternalAxisId, Abc>>;
+  // Whether the AI actually evaluated each axis (false = "no pudo evaluar").
+  externalAiEvaluated: Partial<Record<ExternalAxisId, boolean>>;
+  // The AI's per-axis justification note.
+  externalNotes: Partial<Record<ExternalAxisId, string | null>>;
   // §8
   elements: PlanillaElement[];
   inspectedStructuralCount: number | null;
@@ -184,10 +184,6 @@ export function emptyPlanilla(): PlanillaState {
   return {
     planillaNo: "",
     address: "",
-    estado: "",
-    municipio: "",
-    parroquia: "",
-    sector: "",
     latitude: null,
     longitude: null,
     nivelPisos: null,
@@ -199,6 +195,8 @@ export function emptyPlanilla(): PlanillaState {
     tipoEstructuralFinal: null,
     externalFinal: {},
     externalAi: {},
+    externalAiEvaluated: {},
+    externalNotes: {},
     elements: [],
     inspectedStructuralCount: null,
     nonStructural: {},

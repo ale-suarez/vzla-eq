@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { BarChart3 } from "lucide-react";
+import { ArrowLeft, BarChart3 } from "lucide-react";
 
 import { SignOutButton } from "@/app/dashboard/sign-out-button";
 
@@ -28,22 +28,28 @@ export function DashboardTopBar({
         className="h-[18px] w-full"
         style={{ background: "linear-gradient(to bottom, #FCD116 0 33.333%, #00247D 33.333% 66.666%, #CF142B 66.666% 100%)" }}
       />
-      <div className="flex h-16 items-center justify-between border-b border-outline-variant bg-surface px-5 backdrop-blur-md">
-        <div className="flex items-center gap-3">
-          <BarChart3 className="h-6 w-6 text-primary" />
-          <div>
-            <h1 className="font-heading text-[22px] font-bold leading-none text-primary">{title}</h1>
-            <p className="mt-1 text-[11px] text-on-surface-variant">{subtitle}</p>
+      <div className="flex h-14 items-center justify-between border-b border-outline-variant bg-surface px-4 backdrop-blur-md sm:h-16 sm:px-5">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+          {backLink ? (
+            <Link
+              href={backLink.href}
+              transitionTypes={backLink.transitionTypes}
+              aria-label={`Volver a ${backLink.label}`}
+              className="-ml-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container-high hover:text-primary"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+          ) : (
+            <BarChart3 className="h-5 w-5 shrink-0 text-primary sm:h-6 sm:w-6" />
+          )}
+          <div className="min-w-0">
+            <h1 className="truncate font-heading text-base font-bold leading-tight text-primary sm:text-[22px] sm:leading-none">
+              {title}
+            </h1>
+            <p className="mt-0.5 hidden text-[11px] text-on-surface-variant sm:block">{subtitle}</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          {backLink ? (
-            <Link href={backLink.href} transitionTypes={backLink.transitionTypes} className="text-sm font-medium text-on-surface-variant hover:text-primary">
-              {backLink.label}
-            </Link>
-          ) : null}
-          {rightSlot ?? <SignOutButton />}
-        </div>
+        <div className="flex shrink-0 items-center gap-3">{rightSlot ?? <SignOutButton />}</div>
       </div>
     </header>
   );

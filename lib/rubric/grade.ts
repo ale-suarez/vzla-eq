@@ -6,6 +6,7 @@
 import type { DamageGrade, GradeOrNone } from "./taxonomy";
 import { DAMAGE_GRADE_ORDER } from "./taxonomy";
 import type { CrackBand, StructuralIndicator } from "./indicators";
+import { bandAtLeast } from "./indicators";
 import type { ElementType, GradeDef } from "./artifact";
 import { RUBRIC, bandInRange } from "./artifact";
 
@@ -35,6 +36,21 @@ function indicatorsMatch(def: GradeDef, observed: Set<StructuralIndicator>): boo
   }
   // No anyOf list: required-only (or none) is enough.
   return true;
+}
+
+/**
+ * Compound match: a geometry indicator AND a severity qualifier (a spalling
+ * indicator OR a min crack band). Both halves must hold. Used for concrete
+ * Severo — a diagonal/through crack alone (Fig 11b) is not enough.
+ */
+function compoundMatch(def: GradeDef, observed: Set<StructuralIndicator>, band: CrackBand | undefined): boolean {
+  const c = def.compound;
+  if (!c) return false;
+  const geometry = c.geometryAnyOf.some((i) => observed.has(i));
+  if (!geometry) return false;
+  const byIndicator = (c.qualifierAnyOf ?? []).some((i) => observed.has(i));
+  const byBand = c.qualifierMinBand && band ? bandAtLeast(band, c.qualifierMinBand) : false;
+  return byIndicator || byBand;
 }
 
 /**
@@ -69,6 +85,11 @@ export function gradeElement(elementType: ElementType, obs: ElementObservables):
       (def.requiredIndicators && def.requiredIndicators.length > 0) ||
       (def.anyOfIndicators && def.anyOfIndicators.length > 0);
     if (hasIndicatorCriteria && indicatorsMatch(def, observed)) {
+      if (!indicatorHit || r > indicatorHit.r) indicatorHit = { def, r };
+    }
+
+    // Compound match (geometry AND qualifier) counts as an indicator-driven hit.
+    if (def.compound && compoundMatch(def, observed, band)) {
       if (!indicatorHit || r > indicatorHit.r) indicatorHit = { def, r };
     }
   }

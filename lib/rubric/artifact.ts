@@ -38,6 +38,19 @@ export interface GradeDef {
   crackWidthMm?: { min: number | null; max: number | null };
   requiredIndicators?: StructuralIndicator[];
   anyOfIndicators?: StructuralIndicator[];
+  /**
+   * Compound AND condition: matches only when a geometry indicator is present
+   * AND a severity qualifier is met (a spalling indicator OR a min crack band).
+   * Used for concrete Severo: a diagonal/through crack alone is NOT enough (Fig
+   * 11b stays Moderado); it must be accompanied by width >2mm or spalling
+   * (Fig 11c). See gradeElement().
+   */
+  compound?: {
+    geometryAnyOf: StructuralIndicator[];
+    qualifierAnyOf?: StructuralIndicator[];
+    /** Minimum crack band (inclusive) that satisfies the qualifier, e.g. "2to6". */
+    qualifierMinBand?: CrackBand;
+  };
   qualitative?: boolean;
   /** Boletín figure / section this grade definition comes from (audit trail). */
   sourceFigure: string;
@@ -77,19 +90,50 @@ export const RUBRIC: RubricArtifact = {
       elementType: "concreto_armado",
       axis: "structural",
       label: "Columna / Viga / Losa / Nodo (concreto armado)",
+      // Grade tracks loss of STRUCTURAL INTEGRITY, not cosmetic/surface damage.
+      //  · Cover/finish spalling (caida_recubrimiento/desconchado/acero_expuesto)
+      //    is surface damage — it never alone exceeds Moderado.
+      //  · Severo needs a diagonal/through crack AND a severity qualifier
+      //    (>2mm OR spalling): Fig 11b (thin diagonal) is Moderado, Fig 11c
+      //    (diagonal + >2mm + desconchado) is Severo.
+      //  · Completo is STRUCTURAL failure: caida_concreto (structural concrete
+      //    gone/crushed), buckled/fractured bars, column shortening, vertical
+      //    displacement — i.e. the element has effectively failed (Fig 11d/16.5).
       grades: [
-        { grade: "menor", crackWidthMm: { min: 0, max: 1 }, sourceFigure: "Fig 11a / Manual de Campo" },
-        { grade: "moderado", crackWidthMm: { min: 1, max: 2 }, sourceFigure: "Fig 11b / Manual de Campo" },
+        { grade: "menor", crackWidthMm: { min: 0, max: 1 }, sourceFigure: "Fig 11a / Fig 16.1" },
+        {
+          grade: "moderado",
+          // Any crack ≥1mm, OR cover/finish spalling on an intact element — the
+          // ceiling-soffit case: recubrimiento fell, rebar exposed, no failure.
+          crackWidthMm: { min: 1, max: null },
+          anyOfIndicators: ["caida_recubrimiento", "desconchado", "acero_expuesto", "aplastamiento_local"],
+          sourceFigure: "Fig 11b / Fig 16.2",
+        },
         {
           grade: "severo",
-          crackWidthMm: { min: 2, max: null },
-          anyOfIndicators: ["caida_recubrimiento", "desconchado", "acero_expuesto"],
-          sourceFigure: "Fig 11c / Manual de Campo",
+          // Diagonal/through crack AND (width >2mm OR spalling). Geometry alone
+          // (thin diagonal, Fig 11b) is NOT severo.
+          compound: {
+            geometryAnyOf: ["grieta_pasante", "grietas_diagonales"],
+            qualifierAnyOf: ["desconchado", "caida_recubrimiento"],
+            qualifierMinBand: "2to6",
+          },
+          sourceFigure: "Fig 11c / Fig 16.3-16.4 (diagonal/through crack + >2mm o desconchado)",
         },
         {
           grade: "completo",
-          anyOfIndicators: ["pandeo_barras", "fractura_barras", "acortamiento_columna", "caida_concreto", "desplazamiento_residual"],
-          sourceFigure: "Fig 11d / Manual de Campo",
+          // STRUCTURAL failure only — element collapsed/crushed, not surface loss.
+          anyOfIndicators: [
+            "caida_concreto",
+            "pandeo_barras",
+            "fractura_barras",
+            "acortamiento_columna",
+            "desplazamiento_residual",
+            "desplazamiento_vertical",
+            "derrumbe_parcial",
+            "derrumbe_total",
+          ],
+          sourceFigure: "Fig 11d / Fig 16.5",
         },
       ],
     },

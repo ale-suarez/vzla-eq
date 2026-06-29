@@ -1,9 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Check, Plus, Sparkles, Trash2 } from "lucide-react";
+import { AlertTriangle, Check, Plus, Sparkles, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import LocationPicker from "@/components/location-picker";
 import { cn } from "@/lib/utils";
 import {
   ABC_AS_LETTER,
@@ -94,10 +95,6 @@ export function PlanillaForm({
       const payload = {
         planillaNo: value.planillaNo || undefined,
         address: value.address || undefined,
-        estado: value.estado || undefined,
-        municipio: value.municipio || undefined,
-        parroquia: value.parroquia || undefined,
-        sector: value.sector || undefined,
         latitude: value.latitude,
         longitude: value.longitude,
         nivelPisos: value.nivelPisos,
@@ -155,17 +152,69 @@ export function PlanillaForm({
     <div className="space-y-5">
       {/* §1/§2 datos generales */}
       <Section n="1 · 2" title="Datos generales y localización">
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <Field label="Planilla Nº" value={value.planillaNo} onChange={(v) => set("planillaNo", v)} />
-          <Field label="Estado" value={value.estado} onChange={(v) => set("estado", v)} />
-          <Field label="Municipio" value={value.municipio} onChange={(v) => set("municipio", v)} />
-          <Field label="Parroquia" value={value.parroquia} onChange={(v) => set("parroquia", v)} />
-          <Field label="Sector" value={value.sector} onChange={(v) => set("sector", v)} />
-          <Field label="Dirección" value={value.address} onChange={(v) => set("address", v)} />
           <NumField label="Nº Pisos" value={value.nivelPisos} onChange={(v) => set("nivelPisos", v)} />
           <NumField label="Semisótanos" value={value.semisotanos} onChange={(v) => set("semisotanos", v)} />
           <NumField label="Sótanos" value={value.sotanos} onChange={(v) => set("sotanos", v)} />
           <NumField label="Año constr." value={value.anioConstruccion} onChange={(v) => set("anioConstruccion", v)} />
+        </div>
+        <div className="mt-3">
+          <span className="mb-1 block text-xs font-medium text-on-surface-variant">Dirección (busque y fije el pin)</span>
+          <LocationPicker
+            value={{ latitude: value.latitude, longitude: value.longitude, address: value.address }}
+            onChange={(loc) =>
+              onChange({ ...value, address: loc.address, latitude: loc.latitude, longitude: loc.longitude })
+            }
+          />
+        </div>
+      </Section>
+
+      {/* §2 external axes */}
+      <Section n="2" title="Inspección externa — 5 ejes (a / b / c)">
+        <div className="space-y-3">
+          {EXTERNAL_AXES.map((axis) => {
+            const aiFlag = value.externalAi[axis.id];
+            const aiEvaluated = value.externalAiEvaluated[axis.id];
+            const aiNote = value.externalNotes[axis.id];
+            // The AI "couldn't evaluate" only applies to the 3 visual axes: it
+            // produced a note/attempt but no a/b/c flag.
+            const aiUnsure = !axis.measured && !aiFlag && (aiEvaluated === false || !!aiNote);
+            return (
+              <div key={axis.id} className="flex flex-wrap items-start gap-3">
+                <span className="min-w-[220px] pt-1.5 text-sm font-medium text-on-surface">
+                  {axis.label}
+                  {axis.measured && <span className="ml-1 text-xs text-on-surface-variant">(medición)</span>}
+                </span>
+                <div className="flex flex-col gap-1">
+                  <div className="flex gap-1.5">
+                    {ABC_AS_LETTER.map((l, idx) => (
+                      <Chip
+                        key={l}
+                        active={value.externalFinal[axis.id] === l}
+                        suggested={!axis.measured && aiFlag === l}
+                        onClick={() => set("externalFinal", { ...value.externalFinal, [axis.id]: l })}
+                      >
+                        {axis.opts[idx]}
+                      </Chip>
+                    ))}
+                  </div>
+                  {!axis.measured && aiFlag && (
+                    <span className="text-xs text-primary" title={aiNote ?? undefined}>
+                      <Sparkles className="mr-1 inline h-3 w-3" />
+                      IA sugiere: {ABC_LABEL[aiFlag]}
+                    </span>
+                  )}
+                  {aiUnsure && (
+                    <span className="text-xs text-tertiary" title={aiNote ?? undefined}>
+                      <AlertTriangle className="mr-1 inline h-3 w-3" />
+                      IA no pudo evaluar — verifique
+                    </span>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </Section>
 
@@ -187,41 +236,6 @@ export function PlanillaForm({
               {o.label}
             </Chip>
           ))}
-        </div>
-      </Section>
-
-      {/* §2 external axes */}
-      <Section n="2" title="Inspección externa — 5 ejes (a / b / c)">
-        <div className="space-y-3">
-          {EXTERNAL_AXES.map((axis) => {
-            const aiFlag = value.externalAi[axis.id];
-            return (
-              <div key={axis.id} className="flex flex-wrap items-center gap-3">
-                <span className="min-w-[220px] text-sm font-medium text-on-surface">
-                  {axis.label}
-                  {axis.measured && <span className="ml-1 text-xs text-on-surface-variant">(medición)</span>}
-                </span>
-                <div className="flex gap-1.5">
-                  {ABC_AS_LETTER.map((l, idx) => (
-                    <Chip
-                      key={l}
-                      active={value.externalFinal[axis.id] === l}
-                      suggested={!axis.measured && aiFlag === l}
-                      onClick={() => set("externalFinal", { ...value.externalFinal, [axis.id]: l })}
-                    >
-                      {axis.opts[idx]}
-                    </Chip>
-                  ))}
-                </div>
-                {!axis.measured && aiFlag && (
-                  <span className="text-xs text-primary">
-                    <Sparkles className="mr-1 inline h-3 w-3" />
-                    IA sugiere: {ABC_LABEL[aiFlag]}
-                  </span>
-                )}
-              </div>
-            );
-          })}
         </div>
       </Section>
 
@@ -359,11 +373,15 @@ export function PlanillaForm({
 
       {error && <p className="rounded-lg bg-error-container px-3 py-2 text-sm text-on-error-container">{error}</p>}
 
-      <div className="sticky bottom-0 -mx-5 flex items-center justify-between gap-3 border-t border-outline-variant bg-white px-5 py-4">
-        <span className="text-xs text-on-surface-variant">
+      <div className="sticky bottom-0 -mx-4 flex items-center justify-between gap-3 border-t border-outline-variant bg-white px-4 py-3 sm:-mx-5 sm:px-5 sm:py-4">
+        <span className="hidden text-xs text-on-surface-variant sm:block">
           La etiqueta se calcula con las tablas del Boletín 61. Usted certifica cada campo.
         </span>
-        <Button onClick={save} disabled={saving || !etiquetaReady} className="h-12 gap-2 bg-primary text-white">
+        <Button
+          onClick={save}
+          disabled={saving || !etiquetaReady}
+          className="h-12 w-full gap-2 bg-primary text-white sm:w-auto"
+        >
           <Check className="h-4 w-4" />
           {saving ? "Guardando…" : "Certificar y guardar"}
         </Button>
@@ -392,10 +410,12 @@ function Section({
   aiHint?: string | null;
 }) {
   return (
-    <section className="rounded-2xl border border-outline-variant bg-white p-5">
-      <div className="mb-3 flex items-center justify-between">
-        <div className="flex items-baseline gap-2">
-          <span className="text-xs font-bold uppercase tracking-wider text-primary">{n}</span>
+    <section className="rounded-2xl border border-outline-variant bg-white p-4 sm:p-5">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <span className="whitespace-nowrap rounded bg-primary-fixed/40 px-1.5 py-0.5 text-xs font-bold uppercase tracking-wider text-primary">
+            §{n}
+          </span>
           <h3 className="font-heading text-base font-semibold text-on-surface">{title}</h3>
           {aiHint && (
             <span className="text-xs text-primary">
@@ -430,55 +450,63 @@ function ElementRow({
         isSuggested ? "border-primary/40 bg-primary-fixed/20" : "border-outline-variant bg-surface-container-low",
       )}
     >
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="space-y-2">
         <input
           value={el.label}
           onChange={(e) => onUpdate({ label: e.target.value })}
           placeholder="Etiqueta (p.ej. Columna B-3)"
-          className="h-9 flex-1 rounded-lg border border-outline-variant bg-white px-2 text-sm outline-none focus:border-primary"
+          className="h-9 w-full rounded-lg border border-outline-variant bg-white px-2 text-sm outline-none focus:border-primary"
         />
-        <select
-          value={el.elementTypeFinal ?? ""}
-          onChange={(e) => onUpdate({ elementTypeFinal: (e.target.value || null) as ElementType | null })}
-          className="h-9 rounded-lg border border-outline-variant bg-white px-2 text-sm"
-        >
-          <option value="">Tipo…</option>
-          {TIPO_ESTRUCTURAL_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-        <select
-          value={el.gradeFinal ?? ""}
-          onChange={(e) => onUpdate({ gradeFinal: (e.target.value || null) as DamageGradeDb | null, confirmed: el.confirmed })}
-          className="h-9 rounded-lg border border-outline-variant bg-white px-2 text-sm"
-        >
-          <option value="">Grado…</option>
-          {GRADES.map((g) => (
-            <option key={g} value={g}>
-              {GRADE_LABEL[g]}
-            </option>
-          ))}
-        </select>
-        {isSuggested ? (
-          <Button onClick={onConfirm} className="h-9 gap-1 bg-primary text-xs text-white">
-            <Check className="h-3.5 w-3.5" /> Confirmar
-          </Button>
-        ) : (
-          <span className="rounded-full bg-secondary-container px-2 py-1 text-xs text-secondary">Confirmado</span>
-        )}
-        <button onClick={onRemove} aria-label="Quitar" className="rounded-lg p-1.5 text-on-surface-variant hover:text-destructive">
-          <Trash2 className="h-4 w-4" />
-        </button>
+        <div className="flex gap-2">
+          <select
+            value={el.elementTypeFinal ?? ""}
+            onChange={(e) => onUpdate({ elementTypeFinal: (e.target.value || null) as ElementType | null })}
+            className="h-9 min-w-0 flex-1 rounded-lg border border-outline-variant bg-white px-2 text-sm"
+          >
+            <option value="">Tipo…</option>
+            {TIPO_ESTRUCTURAL_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+          <select
+            value={el.gradeFinal ?? ""}
+            onChange={(e) => onUpdate({ gradeFinal: (e.target.value || null) as DamageGradeDb | null, confirmed: el.confirmed })}
+            className="h-9 min-w-0 flex-1 rounded-lg border border-outline-variant bg-white px-2 text-sm"
+          >
+            <option value="">Grado…</option>
+            {GRADES.map((g) => (
+              <option key={g} value={g}>
+                {GRADE_LABEL[g]}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex items-center justify-between gap-2">
+          {el.source === "ai_drafted" ? (
+            <span className="text-xs text-on-surface-variant">
+              <Sparkles className="mr-1 inline h-3 w-3 text-primary" />
+              IA: {el.gradeAi ? GRADE_LABEL[el.gradeAi] : "sin grado"}
+              {el.photoQuality && el.photoQuality !== "ok" ? ` · foto ${el.photoQuality}` : ""}
+            </span>
+          ) : (
+            <span />
+          )}
+          <div className="flex items-center gap-2">
+            {isSuggested ? (
+              <Button onClick={onConfirm} className="h-9 gap-1 bg-primary text-xs text-white">
+                <Check className="h-3.5 w-3.5" /> Confirmar
+              </Button>
+            ) : (
+              <span className="rounded-full bg-secondary-container px-2 py-1 text-xs text-secondary">Confirmado</span>
+            )}
+            <button onClick={onRemove} aria-label="Quitar" className="rounded-lg p-1.5 text-on-surface-variant hover:text-destructive">
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
       </div>
-      {el.source === "ai_drafted" && (
-        <p className="mt-1.5 text-xs text-on-surface-variant">
-          <Sparkles className="mr-1 inline h-3 w-3 text-primary" />
-          IA sugirió: {el.gradeAi ? GRADE_LABEL[el.gradeAi] : "sin grado"}
-          {el.photoQuality && el.photoQuality !== "ok" ? ` · foto ${el.photoQuality}` : ""}
-        </p>
-      )}
     </div>
   );
 }

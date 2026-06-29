@@ -4,6 +4,10 @@
 // (ADR 0001-digital-boletin-61 §D6). No free-text indicators anywhere.
 
 export const STRUCTURAL_INDICATORS = [
+  // The defining Severo indicator for concrete elements (Fig 16): a crack that
+  // crosses the FULL section side-to-side, or a diagonal shear crack across the
+  // whole member. This — not the mm width — is what makes a crack Severo.
+  "grieta_pasante",
   "caida_recubrimiento", // caída / pérdida del recubrimiento de concreto
   "desconchado", // desconchado del concreto
   "acero_expuesto", // refuerzo/barras expuestas
@@ -11,6 +15,7 @@ export const STRUCTURAL_INDICATORS = [
   "fractura_barras", // fractura de barras
   "acortamiento_columna", // acortamiento de la columna
   "desplazamiento_residual", // desplazamiento residual / permanente
+  "desplazamiento_vertical", // desplazamiento vertical visible (viga)
   "caida_concreto", // caída de porciones de concreto
   "aplastamiento_local", // aplastamiento local del concreto
   "grietas_diagonales", // patrón de agrietamiento diagonal
@@ -42,3 +47,9 @@ export const CRACK_BAND_MM: Record<Exclude<CrackBand, "unknown">, { min: number;
   gt6: { min: 6, max: null },
   gt10: { min: 10, max: null },
 };
+
+/** True if `band`'s lower bound is at or above `minBand`'s lower bound. */
+export function bandAtLeast(band: CrackBand, minBand: CrackBand): boolean {
+  if (band === "unknown" || minBand === "unknown") return false;
+  return CRACK_BAND_MM[band].min >= CRACK_BAND_MM[minBand].min;
+}
