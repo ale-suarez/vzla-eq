@@ -64,7 +64,7 @@ const ALLOWED_DOCUMENT_MIME_TYPES = new Set([
   "application/msword",
 ]);
 
-export default function VolunteerEngineerRegistrationPage() {
+export function RegistrationForm({ inviteToken, inviteName }: { inviteToken?: string; inviteName?: string } = {}) {
   const [step, setStep] = useState<1 | 2>(1);
   const [draft, setDraft] = useState<ApplicationDraft>(INITIAL_DRAFT);
   const [documents, setDocuments] = useState<File[]>([]);
@@ -219,6 +219,7 @@ export default function VolunteerEngineerRegistrationPage() {
     }
 
     const payload = buildFormData(draft, documents);
+    if (inviteToken) payload.append("invite_token", inviteToken);
 
     startTransition(async () => {
       try {
@@ -274,6 +275,15 @@ export default function VolunteerEngineerRegistrationPage() {
 
       <section className="mx-auto w-full max-w-6xl px-5 py-6">
         <div className="space-y-6">
+          {inviteName && (
+            <div className="flex items-center gap-3 rounded-[14px] border border-[#c5eccd] bg-[#e7f8ea] px-4 py-3">
+              <BadgeCheck className="h-5 w-5 shrink-0 text-[#006e2d]" />
+              <p className="text-sm text-[#006e2d]">
+                <b className="font-semibold">Te invitó {inviteName}.</b> Completa tu solicitud — un
+                administrador la revisará antes de darte acceso.
+              </p>
+            </div>
+          )}
           <div className="rounded-[18px] border border-outline-variant bg-white p-5 shadow-[0px_4px_20px_rgba(0,0,0,0.05)]">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div>
@@ -925,4 +935,9 @@ function LinkIcon({ className }: { className?: string }) {
       />
     </svg>
   );
+}
+
+// /register — plain (un-attributed) registration entry point.
+export default function VolunteerEngineerRegistrationPage() {
+  return <RegistrationForm />;
 }

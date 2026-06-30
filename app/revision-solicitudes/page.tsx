@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 
 import { SignOutButton } from "@/app/dashboard/sign-out-button";
+import { InvitePanel } from "@/app/revision-solicitudes/invite-panel";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -284,6 +285,8 @@ export default function RevisionSolicitudesPage() {
               Usa la búsqueda general, filtra por estado y revisa cada aplicación con sus documentos adjuntos.
             </p>
           </div>
+
+          <InvitePanel />
 
           <div className="rounded-[18px] border border-outline-variant bg-white p-4 shadow-[0px_4px_20px_rgba(0,0,0,0.05)]">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
