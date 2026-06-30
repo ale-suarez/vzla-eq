@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Camera, Loader2, Sparkles, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { DashboardTopBar } from "@/app/dashboard/dashboard-top-bar";
+import { ConsoleShell } from "@/components/console/console-shell";
+import { useConsoleUser } from "@/components/console/use-console-user";
 import { PlanillaForm } from "@/app/inspeccion/planilla-form";
 import {
   NON_STRUCTURAL_COMPONENTS,
@@ -55,6 +56,7 @@ const nextId = () => `el-${++elementCounter}`;
 
 export default function InspeccionPage() {
   const router = useRouter();
+  const user = useConsoleUser();
   const [phase, setPhase] = useState<Phase>("capture");
   const [photos, setPhotos] = useState<CapturedPhoto[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -140,21 +142,9 @@ export default function InspeccionPage() {
     setPhase("review");
   };
 
-  const topBar = useMemo(
-    () => (
-      <DashboardTopBar
-        title="Nueva Inspección"
-        subtitle="Evaluación Rápida de Daños · Boletín 61"
-        backLink={{ href: "/dashboard", label: "Dashboard" }}
-      />
-    ),
-    [],
-  );
-
   return (
-    <div className="min-h-dvh bg-[#F8FAFC]">
-      {topBar}
-      <main className="mx-auto w-full max-w-5xl px-4 py-5 sm:px-5 sm:py-8">
+    <ConsoleShell title="Nueva inspección" subtitle="Evaluación Rápida de Daños · Boletín 61" user={user}>
+      <div className="mx-auto w-full max-w-5xl px-4 py-5 sm:px-6 sm:py-8">
 
         {phase === "capture" && (
           <section className="rounded-2xl border border-outline-variant bg-white p-6">
@@ -233,10 +223,10 @@ export default function InspeccionPage() {
           <PlanillaForm
             value={planilla}
             onChange={setPlanilla}
-            onSaved={(id) => router.push(`/dashboard?inspeccion=${id}`)}
+            onSaved={(id) => router.push(`/inspecciones?nueva=${id}`)}
           />
         )}
-      </main>
-    </div>
+      </div>
+    </ConsoleShell>
   );
 }
