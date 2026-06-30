@@ -54,19 +54,39 @@ IMPORTANTE: si el eje NO es evaluable con estas fotos (no se ve el terreno, no h
 los edificios contiguos, etc.), devuelve null para ese eje — NO asumas "a". Explica el motivo
 en su nota. No inventes seguridad: "a" significa que VISTE que no hay peligro, no que no sabes.
 
+ASENTAMIENTO e INCLINACIÓN son MEDICIONES de campo (cm / plomada d/60cm). Tú NO puedes medirlas
+desde una foto, pero SÍ puedes marcar si VES indicios visibles (el edificio se ve inclinado,
+hundido, fundaciones expuestas). Si ves un indicio, devuelve un flag a/b/c con la nota
+"verificar con medición"; si no se aprecia, devuelve null. Nunca afirmes un valor medido.
+
+USO PREDOMINANTE: infiere el uso del edificio desde las fotos (Vivienda / Comercio / Oficina /
+Gubernamental / Educativo / Médico / Industrial / Religioso / Otros), o null si no es claro.
+
 Responde ÚNICAMENTE con JSON, con una nota breve por eje:
 {
-  "externalFlags": { "colapso": "a"|"b"|"c"|null, "aledanos": "a"|"b"|"c"|null, "geologico": "a"|"b"|"c"|null },
-  "notes": { "colapso": "motivo breve", "aledanos": "motivo breve", "geologico": "motivo breve" },
-  "tipoEstructural": ${ELEMENT_TYPES.map((t) => `"${t}"`).join("|")}|null
-}
-Inclinación y asentamiento NO los reportes: son mediciones de campo del inspector.`;
+  "externalFlags": {
+    "colapso": "a"|"b"|"c"|null, "aledanos": "a"|"b"|"c"|null, "geologico": "a"|"b"|"c"|null,
+    "asentamiento": "a"|"b"|"c"|null, "inclinacion": "a"|"b"|"c"|null
+  },
+  "notes": { "colapso": "...", "aledanos": "...", "geologico": "...", "asentamiento": "...", "inclinacion": "..." },
+  "tipoEstructural": ${ELEMENT_TYPES.map((t) => `"${t}"`).join("|")}|null,
+  "uso": "texto del uso predominante"|null
+}`;
 }
 
 function estructuralesPrompt(): string {
   return `Eres un asistente de inspección post-sismo (Boletín ANIH Nº 61).
-Estas son fotos de ELEMENTOS ESTRUCTURALES del piso crítico. Para CADA elemento reporta hechos
-observables, NO grados. NUNCA estimes milímetros: usa una banda de estas opciones: ${CRACK_BANDS.join(", ")}.
+Estas son fotos de ELEMENTOS ESTRUCTURALES del piso crítico.
+
+UN ELEMENTO POR MIEMBRO ESTRUCTURAL DISTINTO. Cada columna, cada viga, cada muro, cada nodo
+es un elemento SEPARADO en "elements" — NUNCA combines dos miembros (p.ej. una columna y una
+viga) en un solo elemento. Si una foto muestra una columna y una viga, son DOS elementos. Si
+varias fotos muestran el MISMO miembro desde distintos ángulos, es UN solo elemento. Asigna un
+"label" específico por miembro (p.ej. "Columna A-1", "Viga eje B"). El conteo de elementos
+alimenta la Tabla 2, así que la separación correcta es importante.
+
+Para CADA elemento reporta hechos observables, NO grados. NUNCA estimes milímetros: usa una
+banda de estas opciones: ${CRACK_BANDS.join(", ")}.
 Tipos válidos: ${ELEMENT_TYPES.join(", ")}.
 Indicadores válidos (SOLO estos tokens): ${ALL_INDICATORS.join(", ")}.
 
@@ -83,16 +103,24 @@ CLAVE para concreto armado — distingue DAÑO SUPERFICIAL de DAÑO ESTRUCTURAL:
 El daño Severo requiere una grieta diagonal/pasante ACOMPAÑADA de ancho >2mm o desconchado; una
 grieta fina sin desprendimiento es Moderada.
 
-Responde ÚNICAMENTE con JSON:
+Responde ÚNICAMENTE con JSON — un objeto por CADA miembro estructural distinto:
 {
   "elements": [
     {
-      "label": "p.ej. Columna B-3",
+      "label": "Columna A-1",
       "elementType": ${ELEMENT_TYPES.map((t) => `"${t}"`).join("|")},
       "crackBand": ${CRACK_BANDS.map((b) => `"${b}"`).join("|")},
       "indicators": ["token", ...],
       "photoQuality": "ok"|"low"|"unusable",
       "note": "breve descripción"
+    },
+    {
+      "label": "Viga eje B",
+      "elementType": "concreto_armado",
+      "crackBand": "unknown",
+      "indicators": ["caida_recubrimiento"],
+      "photoQuality": "ok",
+      "note": "..."
     }
   ]
 }
@@ -109,6 +137,33 @@ Responde ÚNICAMENTE con JSON:
 {
   "nonStructural": [ { "component": "texto", "letter": "a"|"b"|"c", "note": "breve" } ]
 }`;
+}
+
+// Suggest §7 recommended actions from the drafted damage. Values match the
+// RECOMMENDATIONS / SECURITY_MEASURES constants in lib/planilla.ts exactly.
+function suggestAcciones(draft: DraftPlanilla): string[] {
+  const out = new Set<string>();
+  const anySevere = draft.elements.some((e) => e.gradeAi === "severo" || e.gradeAi === "completo");
+  const anyStructuralDamage = draft.elements.some((e) => e.gradeAi && e.gradeAi !== "sin_dano" && e.gradeAi !== "menor");
+  const extC = (f: AxisFlag) => f === "c";
+  const highRisk =
+    anySevere ||
+    extC(draft.externalFlags.colapso) ||
+    extC(draft.externalFlags.aledanos) ||
+    extC(draft.externalFlags.geologico) ||
+    extC(draft.externalFlags.asentamiento) ||
+    extC(draft.externalFlags.inclinacion);
+
+  if (anyStructuralDamage) out.add("Inspección especializada: Estructura");
+  if (extC(draft.externalFlags.geologico) || extC(draft.externalFlags.asentamiento)) {
+    out.add("Inspección especializada: Geotecnia");
+  }
+  if (highRisk) {
+    out.add("Restringir paso peatonal");
+    out.add("Restringir tráfico vehicular");
+  }
+  if (extC(draft.externalFlags.aledanos)) out.add("Evaluar / evacuar edificio vecino");
+  return [...out];
 }
 
 async function resizeImage(buffer: Buffer): Promise<string> {
@@ -152,11 +207,27 @@ export interface DraftNonStructural {
 export type AxisFlag = "a" | "b" | "c" | null;
 export interface DraftPlanilla {
   tipoEstructuralAi: ElementType | null;
-  externalFlags: { colapso: AxisFlag; aledanos: AxisFlag; geologico: AxisFlag };
-  // Per-axis basis. null flag + a note = "evaluated, couldn't tell" (verify).
-  externalNotes: { colapso: string | null; aledanos: string | null; geologico: string | null };
+  // Building use inferred from the photos (free text matched to a Uso chip).
+  uso: string | null;
+  externalFlags: {
+    colapso: AxisFlag;
+    aledanos: AxisFlag;
+    geologico: AxisFlag;
+    // Measurement axes: a visible-indication flag only ("verificar con medición").
+    asentamiento: AxisFlag;
+    inclinacion: AxisFlag;
+  };
+  externalNotes: {
+    colapso: string | null;
+    aledanos: string | null;
+    geologico: string | null;
+    asentamiento: string | null;
+    inclinacion: string | null;
+  };
   elements: DraftElement[];
   nonStructural: DraftNonStructural[];
+  // Recommended actions (§7) suggested from the damage + computed risk.
+  acciones: string[];
   rubricVersion: string;
 }
 
@@ -238,10 +309,12 @@ export async function inspectionDraftPost(c: Context) {
 
   const draft: DraftPlanilla = {
     tipoEstructuralAi: null,
-    externalFlags: { colapso: null, aledanos: null, geologico: null },
-    externalNotes: { colapso: null, aledanos: null, geologico: null },
+    uso: null,
+    externalFlags: { colapso: null, aledanos: null, geologico: null, asentamiento: null, inclinacion: null },
+    externalNotes: { colapso: null, aledanos: null, geologico: null, asentamiento: null, inclinacion: null },
     elements: [],
     nonStructural: [],
+    acciones: [],
     rubricVersion: RUBRIC_VERSION,
   };
   const rawByCategory: Record<string, unknown> = {};
@@ -254,19 +327,25 @@ export async function inspectionDraftPost(c: Context) {
         externalFlags?: Record<string, unknown>;
         notes?: Record<string, unknown>;
         tipoEstructural?: unknown;
+        uso?: unknown;
       };
       draft.externalFlags = {
         colapso: coerceAbc(r.externalFlags?.colapso),
         aledanos: coerceAbc(r.externalFlags?.aledanos),
         geologico: coerceAbc(r.externalFlags?.geologico),
+        asentamiento: coerceAbc(r.externalFlags?.asentamiento),
+        inclinacion: coerceAbc(r.externalFlags?.inclinacion),
       };
       const note = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : null);
       draft.externalNotes = {
         colapso: note(r.notes?.colapso),
         aledanos: note(r.notes?.aledanos),
         geologico: note(r.notes?.geologico),
+        asentamiento: note(r.notes?.asentamiento),
+        inclinacion: note(r.notes?.inclinacion),
       };
       draft.tipoEstructuralAi = coerceElementType(r.tipoEstructural);
+      draft.uso = note(r.uso);
     }
 
     if (byCategory.estructurales.length > 0) {
@@ -309,6 +388,9 @@ export async function inspectionDraftPost(c: Context) {
   } catch {
     return c.json({ error: "No se pudo generar el borrador del modelo." }, 502);
   }
+
+  // §7 — suggest recommended actions deterministically from the observed damage.
+  draft.acciones = suggestAcciones(draft);
 
   const latencyMs = Date.now() - startedAt;
 

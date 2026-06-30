@@ -11,12 +11,26 @@ import { CaptureStepper } from "@/app/inspection/capture-stepper";
 import { PlanillaForm } from "@/app/inspection/planilla-form";
 import {
   NON_STRUCTURAL_COMPONENTS,
+  RECOMMENDATIONS,
+  SECURITY_MEASURES,
+  USO_OPTIONS,
   emptyPlanilla,
   type PlanillaElement,
   type PlanillaState,
 } from "@/lib/planilla";
 import type { ElementType } from "@/lib/rubric";
 import type { DamageGradeDb } from "@/lib/assessment";
+
+// Match the AI's free-text building use to the closest Uso chip (substring match).
+function matchUso(aiUso: string | null): string | null {
+  if (!aiUso) return null;
+  const lower = aiUso.toLowerCase();
+  return (
+    USO_OPTIONS.find((o) => o.toLowerCase() === lower) ??
+    USO_OPTIONS.find((o) => lower.includes(o.toLowerCase().split(" ")[0] ?? "") || o.toLowerCase().includes(lower)) ??
+    null
+  );
+}
 
 type Phase = "capture" | "drafting" | "review";
 
@@ -44,12 +58,15 @@ interface DraftNonStructural {
   component: string;
   letter: "a" | "b" | "c";
 }
+type Abc3 = "a" | "b" | "c" | null;
 interface DraftResponse {
   tipoEstructuralAi: ElementType | null;
-  externalFlags: { colapso: "a" | "b" | "c" | null; aledanos: "a" | "b" | "c" | null; geologico: "a" | "b" | "c" | null };
-  externalNotes: { colapso: string | null; aledanos: string | null; geologico: string | null };
+  uso: string | null;
+  externalFlags: { colapso: Abc3; aledanos: Abc3; geologico: Abc3; asentamiento: Abc3; inclinacion: Abc3 };
+  externalNotes: { colapso: string | null; aledanos: string | null; geologico: string | null; asentamiento: string | null; inclinacion: string | null };
   elements: DraftElement[];
   nonStructural: DraftNonStructural[];
+  acciones: string[];
 }
 
 const nextId = () =>
@@ -124,28 +141,43 @@ export default function InspeccionPage() {
         );
         if (match) nonStructural[match] = ns.letter;
       }
+      // Match the AI's free-text uso to the closest Uso chip.
+      const uso = matchUso(draft.uso);
+      // Split the suggested actions into the two planilla lists by exact string.
+      const recommendations = (draft.acciones ?? []).filter((a) => RECOMMENDATIONS.includes(a as never));
+      const securityMeasures = (draft.acciones ?? []).filter((a) => SECURITY_MEASURES.includes(a as never));
       setPlanilla((cur) => ({
         ...cur,
         latitude: coords?.lat ?? cur.latitude,
         longitude: coords?.lng ?? cur.longitude,
+        uso: uso ?? cur.uso,
+        usoAi: uso,
         tipoEstructuralAi: draft.tipoEstructuralAi,
         tipoEstructuralFinal: draft.tipoEstructuralAi,
         externalAi: {
           colapso: draft.externalFlags.colapso ?? undefined,
           aledanos: draft.externalFlags.aledanos ?? undefined,
           geologico: draft.externalFlags.geologico ?? undefined,
+          asentamiento: draft.externalFlags.asentamiento ?? undefined,
+          inclinacion: draft.externalFlags.inclinacion ?? undefined,
         },
         externalAiEvaluated: {
           colapso: draft.externalFlags.colapso !== null,
           aledanos: draft.externalFlags.aledanos !== null,
           geologico: draft.externalFlags.geologico !== null,
+          asentamiento: draft.externalFlags.asentamiento !== null,
+          inclinacion: draft.externalFlags.inclinacion !== null,
         },
         externalNotes: {
           colapso: draft.externalNotes?.colapso ?? null,
           aledanos: draft.externalNotes?.aledanos ?? null,
           geologico: draft.externalNotes?.geologico ?? null,
+          asentamiento: draft.externalNotes?.asentamiento ?? null,
+          inclinacion: draft.externalNotes?.inclinacion ?? null,
         },
         nonStructural,
+        recommendations,
+        securityMeasures,
         elements,
       }));
       setPhase("review");
