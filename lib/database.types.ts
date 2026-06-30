@@ -34,7 +34,9 @@ export type Database = {
           address: string | null
           application_status: Database["public"]["Enums"]["engineer_application_status"]
           camera_affiliation: string | null
+          city: string | null
           created_at: string
+          document_number: string | null
           documents_storage_paths: string[]
           documents_summary: string | null
           email: string | null
@@ -45,6 +47,7 @@ export type Database = {
           license_number: string | null
           longitude: number | null
           motivation: string | null
+          phone: string | null
           profile_url: string | null
           review_notes: string | null
           reviewed_at: string | null
@@ -58,7 +61,9 @@ export type Database = {
           address?: string | null
           application_status?: Database["public"]["Enums"]["engineer_application_status"]
           camera_affiliation?: string | null
+          city?: string | null
           created_at?: string
+          document_number?: string | null
           documents_storage_paths?: string[]
           documents_summary?: string | null
           email?: string | null
@@ -69,6 +74,7 @@ export type Database = {
           license_number?: string | null
           longitude?: number | null
           motivation?: string | null
+          phone?: string | null
           profile_url?: string | null
           review_notes?: string | null
           reviewed_at?: string | null
@@ -82,7 +88,9 @@ export type Database = {
           address?: string | null
           application_status?: Database["public"]["Enums"]["engineer_application_status"]
           camera_affiliation?: string | null
+          city?: string | null
           created_at?: string
+          document_number?: string | null
           documents_storage_paths?: string[]
           documents_summary?: string | null
           email?: string | null
@@ -93,6 +101,7 @@ export type Database = {
           license_number?: string | null
           longitude?: number | null
           motivation?: string | null
+          phone?: string | null
           profile_url?: string | null
           review_notes?: string | null
           reviewed_at?: string | null

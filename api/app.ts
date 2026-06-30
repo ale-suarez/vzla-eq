@@ -6,6 +6,7 @@ import { registerEngineerRoutes } from "@/api/ingenieros/routes";
 import { registerGeocodeRoutes } from "@/api/geocode/routes";
 import { registerIncidentRoutes } from "@/api/incidents/routes";
 import { registerInspectionRoutes } from "@/api/inspections/routes";
+import { registerProfileRoutes } from "@/api/profile/routes";
 
 export const apiApp = new Hono().basePath("/api");
 
@@ -15,3 +16,4 @@ registerEngineerRoutes(apiApp);
 registerGeocodeRoutes(apiApp);
 registerIncidentRoutes(apiApp);
 registerInspectionRoutes(apiApp);
+registerProfileRoutes(apiApp);
