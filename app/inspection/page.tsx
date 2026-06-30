@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Crosshair, Loader2, MapPin, Plus, Sparkles, X } from "lucide-react";
+import { Camera, Crosshair, Image as ImageIcon, Loader2, MapPin, Sparkles, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ConsoleShell } from "@/components/console/console-shell";
@@ -248,9 +248,22 @@ export default function InspeccionPage() {
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-2.5">
+                      {/* Camera tile (capture="environment" opens the rear camera on mobile) */}
                       <label className="flex h-[78px] w-[78px] cursor-pointer flex-col items-center justify-center gap-1 rounded-[11px] border-2 border-dashed border-[#c3c6d7] bg-[#f7f8fc] text-center text-primary hover:border-primary">
-                        <Plus className="h-5 w-5" />
-                        <span className="text-[10px] font-semibold text-[#7a7f90]">Agregar</span>
+                        <Camera className="h-5 w-5" />
+                        <span className="text-[10px] font-semibold text-[#7a7f90]">Cámara</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          capture="environment"
+                          className="hidden"
+                          onChange={(e) => addFiles(e.target.files, cat.id)}
+                        />
+                      </label>
+                      {/* Gallery tile (multiple, no capture → opens the photo library) */}
+                      <label className="flex h-[78px] w-[78px] cursor-pointer flex-col items-center justify-center gap-1 rounded-[11px] border-2 border-dashed border-[#c3c6d7] bg-[#f7f8fc] text-center text-primary hover:border-primary">
+                        <ImageIcon className="h-5 w-5" />
+                        <span className="text-[10px] font-semibold text-[#7a7f90]">Galería</span>
                         <input
                           type="file"
                           accept="image/*"
