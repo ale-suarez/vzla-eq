@@ -15,10 +15,10 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { href: "/inspeccion", label: "Nueva inspección", icon: Camera },
+  { href: "/inspection", label: "Nueva inspección", icon: Camera },
   { href: "/dashboard", label: "Mapa", icon: MapPin },
-  { href: "/inspecciones", label: "Inspecciones", icon: ClipboardList },
-  { href: "/perfil", label: "Perfil", icon: UserCircle },
+  { href: "/history", label: "Inspecciones", icon: ClipboardList },
+  { href: "/profile", label: "Perfil", icon: UserCircle },
 ];
 
 function isActive(pathname: string, href: string) {
@@ -65,7 +65,7 @@ export function ConsoleNav({
         {NAV_ITEMS.map((item) => {
           const active = isActive(pathname, item.href);
           const Icon = item.icon;
-          const badge = item.href === "/inspecciones" && inspectionCount ? String(inspectionCount) : item.badge;
+          const badge = item.href === "/history" && inspectionCount ? String(inspectionCount) : item.badge;
           return (
             <Link
               key={item.href}
@@ -87,7 +87,7 @@ export function ConsoleNav({
 
       {/* User footer */}
       <div className="mt-auto border-t border-[#eef0f6] px-4 py-3.5">
-        <Link href="/perfil" className="flex items-center gap-[11px] rounded-xl p-1.5 text-left hover:bg-surface-container-low">
+        <Link href="/profile" className="flex items-center gap-[11px] rounded-xl p-1.5 text-left hover:bg-surface-container-low">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-fixed text-[13px] font-bold text-[#003ea8]">
             {user?.initials ?? "··"}
           </div>

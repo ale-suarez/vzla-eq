@@ -11,7 +11,7 @@ interface MeData {
   role?: string;
 }
 
-export function PerfilClient() {
+export function ProfileClient() {
   const user = useConsoleUser();
   const [me, setMe] = useState<MeData | null>(null);
 

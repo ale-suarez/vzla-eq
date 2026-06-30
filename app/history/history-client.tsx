@@ -25,7 +25,7 @@ function isCertificada(i: Incident) {
   return i.state === "resolved" || !!i.assignee;
 }
 
-export function InspeccionesClient() {
+export function HistoryClient() {
   const user = useConsoleUser();
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [filter, setFilter] = useState<HistFilter>("all");

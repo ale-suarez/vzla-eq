@@ -13,9 +13,9 @@ import { Menu, ShieldCheck, X } from "lucide-react";
 const HEADERLESS_PREFIXES = [
   "/form",
   "/dashboard",
-  "/inspeccion",
-  "/inspecciones",
-  "/perfil",
+  "/inspection",
+  "/history",
+  "/profile",
   "/register",
   "/revision-solicitudes",
 ];

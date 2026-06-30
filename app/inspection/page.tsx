@@ -7,8 +7,8 @@ import { Crosshair, Loader2, MapPin, Plus, Sparkles, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConsoleShell } from "@/components/console/console-shell";
 import { useConsoleUser } from "@/components/console/use-console-user";
-import { CaptureStepper } from "@/app/inspeccion/capture-stepper";
-import { PlanillaForm } from "@/app/inspeccion/planilla-form";
+import { CaptureStepper } from "@/app/inspection/capture-stepper";
+import { PlanillaForm } from "@/app/inspection/planilla-form";
 import {
   NON_STRUCTURAL_COMPONENTS,
   emptyPlanilla,
@@ -272,7 +272,7 @@ export default function InspeccionPage() {
           <PlanillaForm
             value={planilla}
             onChange={setPlanilla}
-            onSaved={(id) => router.push(`/inspecciones?nueva=${id}`)}
+            onSaved={(id) => router.push(`/history?nueva=${id}`)}
             onBackToPhotos={() => setPhase("capture")}
           />
         )}

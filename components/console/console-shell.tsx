@@ -89,7 +89,7 @@ export function ConsoleShell({
             )}
             {showNewButton && (
               <Link
-                href="/inspeccion"
+                href="/inspection"
                 className="flex h-[38px] items-center gap-2 rounded-[10px] bg-primary px-4 text-[12.5px] font-bold tracking-[0.03em] text-white shadow-[0_2px_8px_rgba(0,74,198,.25)] transition-opacity hover:opacity-90"
               >
                 <Plus className="h-4 w-4" />
