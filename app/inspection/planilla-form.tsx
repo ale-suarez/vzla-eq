@@ -631,7 +631,7 @@ function ElementRow({
           {el.source === "ai_drafted" ? (
             <span className="text-[11.5px] text-[#7a7f90]">
               <Sparkles className="mr-1 inline h-3 w-3 text-primary" />
-              IA: {el.gradeAi ? GRADE_LABEL[el.gradeAi] : "sin grado"}
+              IA: {GRADE_LABEL[el.gradeAi ?? "sin_dano"]}
               {el.photoQuality && el.photoQuality !== "ok" ? ` · foto ${el.photoQuality}` : ""}
             </span>
           ) : (
