@@ -52,8 +52,8 @@ interface DraftResponse {
   nonStructural: DraftNonStructural[];
 }
 
-let elementCounter = 0;
-const nextId = () => `el-${++elementCounter}`;
+const nextId = () =>
+  typeof crypto !== "undefined" && crypto.randomUUID ? `el-${crypto.randomUUID()}` : `el-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
 export default function InspeccionPage() {
   const router = useRouter();
@@ -273,6 +273,7 @@ export default function InspeccionPage() {
             value={planilla}
             onChange={setPlanilla}
             onSaved={(id) => router.push(`/inspecciones?nueva=${id}`)}
+            onBackToPhotos={() => setPhase("capture")}
           />
         )}
       </div>
