@@ -40,7 +40,10 @@ function computeRisks(input: InspectionInput) {
     .map((e) => (e.gradeFinal === "severo" || e.gradeFinal === "completo" ? "c" : e.gradeFinal === "moderado" ? "b" : "a"));
   const nonStructLetters = [...input.nonStructuralLetters, ...mamposteriaSignals];
 
-  const struct = structuralRisk(structuralGrades, input.inspectedStructuralCount ?? undefined);
+  // Default the Tabla 2 denominator to the count of structural element rows
+  // (matches the client default) when the inspector did not override it.
+  const structuralRowCount = input.elements.filter((e) => e.elementTypeFinal !== "mamposteria").length;
+  const struct = structuralRisk(structuralGrades, input.inspectedStructuralCount ?? (structuralRowCount || undefined));
   const ext = externalRisk(externalLetters);
   const nonStruct = nonStructuralRisk(nonStructLetters);
   const { etiqueta } = computeEtiqueta({ external: ext, structural: struct.risk, nonStructural: nonStruct });

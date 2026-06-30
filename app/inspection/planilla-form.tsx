@@ -15,6 +15,7 @@ import {
   TIPO_ESTRUCTURAL_OPTIONS,
   USO_OPTIONS,
   computePlanillaEtiqueta,
+  structuralElementCount,
   type Abc,
   type PlanillaElement,
   type PlanillaState,
@@ -260,6 +261,12 @@ export function PlanillaForm({
         <div className="mt-3.5">
           <span className="mb-1.5 block text-[10.5px] font-bold uppercase tracking-[0.03em] text-[#8a8fa0]">
             Uso predominante de la edificación
+            {value.usoAi && (
+              <span className="ml-2 normal-case text-primary">
+                <Sparkles className="mr-0.5 inline h-3 w-3" />
+                IA: {value.usoAi}
+              </span>
+            )}
           </span>
           <ChipSelect options={USO_OPTIONS as readonly string[]} value={value.uso} onSelect={(v) => set("uso", v)} />
         </div>
@@ -312,6 +319,14 @@ export function PlanillaForm({
                     <span className="whitespace-nowrap text-[11px] font-semibold text-primary" title={aiNote ?? undefined}>
                       <Sparkles className="mr-0.5 inline h-3 w-3" />
                       IA: {ABC_LABEL[aiFlag]}
+                    </span>
+                  )}
+                  {/* Measured axes: AI can only FLAG a visible indication; the
+                      inspector must confirm with the actual measurement. */}
+                  {axis.measured && aiFlag && (
+                    <span className="whitespace-nowrap text-[11px] font-semibold text-tertiary" title={aiNote ?? undefined}>
+                      <AlertTriangle className="mr-0.5 inline h-3 w-3" />
+                      IA: posible — verificar con medición
                     </span>
                   )}
                   {aiUnsure && (
@@ -390,9 +405,13 @@ export function PlanillaForm({
         <div className="mt-3 max-w-xs">
           <NumField
             label="Total elementos inspeccionados (denominador Tabla 2)"
-            value={value.inspectedStructuralCount}
+            value={value.inspectedStructuralCount ?? (structuralElementCount(value) || null)}
             onChange={(v) => set("inspectedStructuralCount", v)}
           />
+          <p className="mt-1 text-[11px] text-[#9398a8]">
+            Se completa automáticamente con los elementos listados. Edítelo si inspeccionó más de
+            los que registró.
+          </p>
         </div>
       </Section>
 

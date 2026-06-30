@@ -115,6 +115,7 @@ export interface PlanillaState {
   anioConstruccion: number | null;
   // §3/§4
   uso: string;
+  usoAi: string | null; // the AI-suggested uso (for the IA tag)
   tipoEstructuralAi: ElementType | null;
   tipoEstructuralFinal: ElementType | null;
   // §2 external (final letters + AI flags)
@@ -136,6 +137,12 @@ export interface PlanillaState {
   recommendations: string[];
   securityMeasures: string[];
   observaciones: string;
+}
+
+/** Count of structural element rows (excludes mampostería) — the natural
+ * default for the Tabla 2 denominator when the inspector hasn't overridden it. */
+export function structuralElementCount(s: PlanillaState): number {
+  return s.elements.filter((e) => e.elementTypeFinal && e.elementTypeFinal !== "mamposteria").length;
 }
 
 const GRADEABLE = (g: DamageGradeDb | null): g is "menor" | "moderado" | "severo" | "completo" =>
@@ -160,7 +167,7 @@ export function computePlanillaEtiqueta(s: PlanillaState) {
     ...mamposteriaSignals,
   ];
 
-  const struct = structuralRisk(structuralGrades, s.inspectedStructuralCount ?? undefined);
+  const struct = structuralRisk(structuralGrades, s.inspectedStructuralCount ?? (structuralElementCount(s) || undefined));
   const ext = externalRisk(externalLetters);
   const nonStruct = nonStructuralRisk(nonStructLetters);
   const { buildingRisk, etiqueta } = computeEtiqueta({
@@ -191,6 +198,7 @@ export function emptyPlanilla(): PlanillaState {
     sotanos: null,
     anioConstruccion: null,
     uso: "",
+    usoAi: null,
     tipoEstructuralAi: null,
     tipoEstructuralFinal: null,
     externalFinal: {},
