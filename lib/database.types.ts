@@ -29,6 +29,30 @@ export type Database = {
         }
         Relationships: []
       }
+      engineer_invite_sources: {
+        Row: {
+          id: string
+          name: string
+          token: string
+          created_by: string | null
+          is_active: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          token: string
+          created_by?: string | null
+          is_active?: boolean
+          created_at?: string
+        }
+        Update: {
+          name?: string
+          token?: string
+          is_active?: boolean
+        }
+        Relationships: []
+      }
       engineers: {
         Row: {
           address: string | null
@@ -43,6 +67,7 @@ export type Database = {
           full_name: string | null
           id: string
           is_certified: boolean
+          invite_source_id: string | null
           latitude: number | null
           license_number: string | null
           longitude: number | null
@@ -70,6 +95,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           is_certified?: boolean
+          invite_source_id?: string | null
           latitude?: number | null
           license_number?: string | null
           longitude?: number | null
@@ -97,6 +123,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           is_certified?: boolean
+          invite_source_id?: string | null
           latitude?: number | null
           license_number?: string | null
           longitude?: number | null

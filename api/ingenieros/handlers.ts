@@ -407,6 +407,20 @@ export async function ingenierosSolicitudesPost(c: Context) {
   const supportingDocumentPaths = supportingDocuments.map((document) => document.storage_path);
 
   const supabase = createSupabaseAdminClient();
+
+  // Resolve the invite token (from a /join/<token> link) to a source id. An
+  // absent / invalid / inactive token just means an un-attributed application.
+  const inviteToken = formData.get("invite_token");
+  let inviteSourceId: string | null = null;
+  if (typeof inviteToken === "string" && inviteToken.length > 0) {
+    const { data: src } = await supabase
+      .from("engineer_invite_sources")
+      .select("id, is_active")
+      .eq("token", inviteToken)
+      .maybeSingle();
+    if (src?.is_active) inviteSourceId = src.id;
+  }
+
   const payload = {
     email: validation.value.email,
     full_name: validation.value.fullName,
@@ -421,6 +435,9 @@ export async function ingenierosSolicitudesPost(c: Context) {
     documents_summary: supportingDocuments.map((document) => document.name).join(" · "),
     documents_storage_paths: supportingDocumentPaths,
     profile_url: validation.value.profileUrl,
+    // Only set the source when we resolved one, so re-applying without a token
+    // never wipes an existing attribution.
+    ...(inviteSourceId ? { invite_source_id: inviteSourceId } : {}),
     application_status: "pending" as const,
     is_certified: false,
     review_notes: null,
