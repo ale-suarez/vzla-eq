@@ -7,13 +7,10 @@ const supabasePublishableKey =
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+const BACKOFFICE_PREFIXES = ["/dashboard", "/inspection", "/history", "/profile"];
+
 function isBackofficePath(pathname: string) {
-  return (
-    pathname === "/dashboard" ||
-    pathname.startsWith("/dashboard/") ||
-    pathname === "/inspeccion" ||
-    pathname.startsWith("/inspeccion/")
-  );
+  return BACKOFFICE_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
 // Phase 1 is engineer-first (ADR 0001-digital-boletin-61 §D9). Citizen capture
@@ -103,7 +100,7 @@ export async function proxy(request: NextRequest) {
 
   // Shelved citizen routes (Phase 2) -> redirect to the engineer flow.
   if (isShelvedCitizenPath(pathname)) {
-    return NextResponse.redirect(new URL("/inspeccion", request.url));
+    return NextResponse.redirect(new URL("/inspection", request.url));
   }
 
   const { role } = await resolveRole(request, response);
@@ -142,7 +139,9 @@ export const config = {
   matcher: [
     "/login",
     "/dashboard/:path*",
-    "/inspeccion/:path*",
+    "/inspection/:path*",
+    "/history/:path*",
+    "/profile/:path*",
     "/revision-solicitudes/:path*",
     "/form/:path*",
     "/upload/:path*",
