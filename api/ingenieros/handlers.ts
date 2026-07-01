@@ -32,6 +32,7 @@ type EngineerRow = {
   id: string;
   email: string | null;
   full_name: string | null;
+  invite_source_id: string | null;
   document_number: string | null;
   license_number: string | null;
   specialty: string | null;
@@ -362,12 +363,24 @@ async function buildSignedDocumentMap(paths: string[]) {
   return map;
 }
 
-async function mapEngineerRow(row: EngineerRow) {
+async function buildInviteSourceNameMap(supabase: ReturnType<typeof createSupabaseAdminClient>, rows: EngineerRow[]) {
+  const sourceIds = Array.from(new Set(rows.map((row) => row.invite_source_id).filter((id): id is string => Boolean(id))));
+
+  if (sourceIds.length === 0) {
+    return new Map<string, string>();
+  }
+
+  const { data } = await supabase.from("engineer_invite_sources").select("id,name").in("id", sourceIds);
+  return new Map((data ?? []).map((source) => [source.id, source.name]));
+}
+
+async function mapEngineerRow(row: EngineerRow, inviteSourceName?: string | null) {
   const documentPaths = row.documents_storage_paths ?? [];
   const documentMap = await buildSignedDocumentMap(documentPaths);
 
   return {
     ...row,
+    invite_source_name: inviteSourceName ?? null,
     documents: documentPaths.map((path) => documentMap.get(path) ?? { path, filename: path.split("/").pop() ?? path, signed_url: null }),
   };
 }
@@ -382,7 +395,7 @@ export async function ingenierosSolicitudesGet(c: Context) {
   const { data, error } = await supabase
     .from("engineers")
     .select(
-      "id,email,full_name,document_number,license_number,specialty,camera_affiliation,latitude,longitude,address,years_experience,motivation,documents_summary,documents_storage_paths,profile_url,application_status,is_certified,review_notes,reviewed_by,reviewed_at,created_at,updated_at"
+      "id,email,full_name,invite_source_id,document_number,license_number,specialty,camera_affiliation,latitude,longitude,address,years_experience,motivation,documents_summary,documents_storage_paths,profile_url,application_status,is_certified,review_notes,reviewed_by,reviewed_at,created_at,updated_at"
     )
     .order("created_at", { ascending: false })
     .limit(200);
@@ -391,7 +404,9 @@ export async function ingenierosSolicitudesGet(c: Context) {
     return jsonError(c, 500, error.message);
   }
 
-  const mapped = await Promise.all((data ?? []).map((row) => mapEngineerRow(row as EngineerRow)));
+  const rows = (data ?? []) as EngineerRow[];
+  const inviteSourceNameMap = await buildInviteSourceNameMap(supabase, rows);
+  const mapped = await Promise.all(rows.map((row) => mapEngineerRow(row, row.invite_source_id ? inviteSourceNameMap.get(row.invite_source_id) : null)));
   return c.json({ data: mapped });
 }
 
@@ -452,7 +467,7 @@ export async function ingenierosSolicitudesPost(c: Context) {
     reviewed_at: null,
   };
   const selectColumns =
-    "id,email,full_name,document_number,license_number,specialty,camera_affiliation,latitude,longitude,address,years_experience,motivation,documents_summary,documents_storage_paths,profile_url,application_status,is_certified,review_notes,reviewed_by,reviewed_at,created_at,updated_at";
+    "id,email,full_name,invite_source_id,document_number,license_number,specialty,camera_affiliation,latitude,longitude,address,years_experience,motivation,documents_summary,documents_storage_paths,profile_url,application_status,is_certified,review_notes,reviewed_by,reviewed_at,created_at,updated_at";
 
   const { data: existing, error: existingError } = await supabase
     .from("engineers")
@@ -478,7 +493,9 @@ export async function ingenierosSolicitudesPost(c: Context) {
       return jsonError(c, 400, error.message);
     }
 
-    return c.json({ data: await mapEngineerRow(data as EngineerRow) }, 200);
+    const row = data as EngineerRow;
+    const inviteSourceNameMap = await buildInviteSourceNameMap(supabase, [row]);
+    return c.json({ data: await mapEngineerRow(row, row.invite_source_id ? inviteSourceNameMap.get(row.invite_source_id) : null) }, 200);
   }
 
   const { data, error } = await supabase.from("engineers").insert(payload).select(selectColumns).single();
@@ -487,7 +504,9 @@ export async function ingenierosSolicitudesPost(c: Context) {
     return jsonError(c, 400, error.message);
   }
 
-  return c.json({ data: await mapEngineerRow(data as EngineerRow) }, 201);
+  const row = data as EngineerRow;
+  const inviteSourceNameMap = await buildInviteSourceNameMap(supabase, [row]);
+  return c.json({ data: await mapEngineerRow(row, row.invite_source_id ? inviteSourceNameMap.get(row.invite_source_id) : null) }, 201);
 }
 
 export async function engineerSolicitudByIdPatch(c: Context) {
@@ -501,14 +520,14 @@ export async function engineerSolicitudByIdPatch(c: Context) {
     return jsonError(c, 400, "Falta el identificador de la solicitud.");
   }
 
-  let body: { application_status?: string; review_notes?: string | null };
+  let body: { application_status?: string; decision?: string; review_notes?: string | null };
   try {
-    body = (await c.req.json()) as { application_status?: string; review_notes?: string | null };
+    body = (await c.req.json()) as { application_status?: string; decision?: string; review_notes?: string | null };
   } catch {
     return jsonError(c, 400, "El cuerpo debe ser JSON.");
   }
 
-  const status = String(body.application_status ?? "").trim() as "approved" | "rejected";
+  const status = String(body.application_status ?? body.decision ?? "").trim() as "approved" | "rejected";
   if (!["approved", "rejected"].includes(status)) {
     return jsonError(c, 400, "El estado debe ser approved o rejected.");
   }
@@ -527,7 +546,7 @@ export async function engineerSolicitudByIdPatch(c: Context) {
     })
     .eq("id", id)
     .select(
-      "id,email,full_name,document_number,license_number,specialty,camera_affiliation,latitude,longitude,address,years_experience,motivation,documents_summary,documents_storage_paths,profile_url,application_status,is_certified,review_notes,reviewed_by,reviewed_at,created_at,updated_at"
+      "id,email,full_name,invite_source_id,document_number,license_number,specialty,camera_affiliation,latitude,longitude,address,years_experience,motivation,documents_summary,documents_storage_paths,profile_url,application_status,is_certified,review_notes,reviewed_by,reviewed_at,created_at,updated_at"
     )
     .maybeSingle();
 
@@ -539,5 +558,7 @@ export async function engineerSolicitudByIdPatch(c: Context) {
     return jsonError(c, 404, "No encontramos esa solicitud.");
   }
 
-  return c.json({ data: data ? await mapEngineerRow(data as EngineerRow) : data });
+  const row = data as EngineerRow;
+  const inviteSourceNameMap = await buildInviteSourceNameMap(supabase, [row]);
+  return c.json({ data: await mapEngineerRow(row, row.invite_source_id ? inviteSourceNameMap.get(row.invite_source_id) : null) });
 }
