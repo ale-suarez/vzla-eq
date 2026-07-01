@@ -37,6 +37,8 @@ type EngineerApplication = {
   id: string;
   email: string | null;
   full_name: string | null;
+  invite_source_id: string | null;
+  invite_source_name: string | null;
   document_number: string | null;
   license_number: string | null;
   specialty: string | null;
@@ -214,7 +216,7 @@ export default function RevisionSolicitudesPage() {
         const response = await fetch(`/api/ingenieros/solicitudes/${id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ decision, review_notes: notes[id] }),
+          body: JSON.stringify({ application_status: decision, review_notes: notes[id] }),
         });
 
         const body = (await response.json()) as { data?: EngineerApplication; error?: string };
@@ -469,6 +471,7 @@ export default function RevisionSolicitudesPage() {
                                       <Info label="Experiencia" value={application.years_experience === null ? "No indicado" : `${application.years_experience} años`} />
                                       <Info label="Cámara" value={application.camera_affiliation ?? "No indicado"} />
                                       <Info label="Perfil" value={application.profile_url ?? "No indicado"} />
+                                      {application.invite_source_name ? <Info label="Invitación" value={application.invite_source_name} /> : null}
                                     </div>
 
                                     <div className="rounded-[18px] border border-outline-variant/70 bg-white p-4">
