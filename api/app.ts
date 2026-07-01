@@ -11,6 +11,11 @@ import { registerProfileRoutes } from "@/api/profile/routes";
 
 export const apiApp = new Hono().basePath("/api");
 
+apiApp.onError((error, c) => {
+  console.error("[api] unhandled error", error);
+  return c.json({ error: "Error interno del servidor." }, 500);
+});
+
 registerAnalysisRoutes(apiApp);
 registerAuthRoutes(apiApp);
 registerEngineerRoutes(apiApp);

@@ -11,7 +11,6 @@
 //   otros         -> §10 non-structural component letters only
 
 import OpenAI from "openai";
-import sharp from "sharp";
 import type { Context } from "hono";
 
 import { getSessionContext, hasBackofficeAccess } from "@/api/lib/auth";
@@ -167,6 +166,7 @@ function suggestAcciones(draft: DraftPlanilla): string[] {
 }
 
 async function resizeImage(buffer: Buffer): Promise<string> {
+  const { default: sharp } = await import("sharp");
   const resized = await sharp(buffer)
     .resize(1024, 1024, { fit: "inside", withoutEnlargement: true })
     .jpeg({ quality: 82 })
@@ -257,8 +257,71 @@ async function runCategory(
   return { raw: match ? JSON.parse(match[0]) : {}, text };
 }
 
+async function persistDraft({
+  inspectionId,
+  rawByCategory,
+  draft,
+  latencyMs,
+}: {
+  inspectionId: string | null;
+  rawByCategory: Record<string, unknown>;
+  draft: DraftPlanilla;
+  latencyMs: number;
+}) {
+  const supabase = createSupabaseAdminClient();
+  const { error: draftError } = await supabase.from("ai_drafts").insert({
+    inspection_id: inspectionId,
+    raw_output: { rawByCategory, draft } as unknown as Json,
+    model_id: MODEL_DRAFT,
+    prompt_version: RUBRIC_VERSION,
+    latency_ms: latencyMs,
+  });
+
+  if (draftError) {
+    throw draftError;
+  }
+
+  if (inspectionId) {
+    const { error: deleteError } = await supabase
+      .from("inspection_elements")
+      .delete()
+      .eq("inspection_id", inspectionId)
+      .eq("source", "ai_drafted");
+
+    if (deleteError) {
+      throw deleteError;
+    }
+
+    if (draft.elements.length > 0) {
+      const { error: elementsError } = await supabase.from("inspection_elements").insert(
+        draft.elements.map((e) => ({
+          inspection_id: inspectionId,
+          element_label: e.label,
+          source: "ai_drafted" as const,
+          element_type_ai: e.elementTypeAi,
+          grade_ai: (e.gradeAi as "sin_dano" | "menor" | "moderado" | "severo" | "completo" | null) ?? null,
+          crack_band_ai: e.crackBandAi,
+          indicators_ai: e.indicatorsAi,
+          photo_quality: e.photoQuality,
+        })),
+      );
+
+      if (elementsError) {
+        throw elementsError;
+      }
+    }
+  }
+}
+
 export async function inspectionDraftPost(c: Context) {
-  const { role } = await getSessionContext();
+  let role;
+  try {
+    ({ role } = await getSessionContext());
+  } catch (error) {
+    console.error("[inspection-draft] auth context failed", error);
+    return c.json({ error: "No se pudo validar la sesión." }, 503);
+  }
+
   if (!hasBackofficeAccess(role)) {
     return c.json({ error: "No autorizado." }, 403);
   }
@@ -394,31 +457,10 @@ export async function inspectionDraftPost(c: Context) {
 
   const latencyMs = Date.now() - startedAt;
 
-  const supabase = createSupabaseAdminClient();
-  await supabase.from("ai_drafts").insert({
-    inspection_id: inspectionId,
-    raw_output: { rawByCategory, draft } as unknown as Json,
-    model_id: MODEL_DRAFT,
-    prompt_version: RUBRIC_VERSION,
-    latency_ms: latencyMs,
-  });
-
-  if (inspectionId) {
-    await supabase.from("inspection_elements").delete().eq("inspection_id", inspectionId).eq("source", "ai_drafted");
-    if (draft.elements.length > 0) {
-      await supabase.from("inspection_elements").insert(
-        draft.elements.map((e) => ({
-          inspection_id: inspectionId!,
-          element_label: e.label,
-          source: "ai_drafted" as const,
-          element_type_ai: e.elementTypeAi,
-          grade_ai: (e.gradeAi as "menor" | "moderado" | "severo" | "completo" | null) ?? null,
-          crack_band_ai: e.crackBandAi,
-          indicators_ai: e.indicatorsAi,
-          photo_quality: e.photoQuality,
-        })),
-      );
-    }
+  try {
+    await persistDraft({ inspectionId, rawByCategory, draft, latencyMs });
+  } catch (error) {
+    console.error("[inspection-draft] draft persistence failed", error);
   }
 
   return c.json({ data: draft });
