@@ -32,6 +32,7 @@ type EngineerRow = {
   id: string;
   email: string | null;
   full_name: string | null;
+  document_number: string | null;
   license_number: string | null;
   specialty: string | null;
   camera_affiliation: string | null;
@@ -190,11 +191,16 @@ function validateSubmission(formData: FormData) {
 
   const email = normalizeEmail(formData.get("email"));
   const fullName = readTextField(formData, "full_name", "fullName");
-  const documentNumber = readTextField(formData, "license_number", "documentNumber");
+  // Cédula and colegiado (CVI) are now two separate fields. Fall back to the
+  // legacy single "license_number" field for compatibility.
+  const documentNumber = readTextField(formData, "cedula", "documentNumber") || readTextField(formData, "license_number");
   const specialty = normalizeSpecialty(readTextField(formData, "specialty"));
   const explicitCollegiateStatus = readTextField(formData, "collegiateStatus");
   const collegiateStatus = deriveCollegiateStatus(documentNumber, explicitCollegiateStatus);
-  const licenseNumber = normalizeOptionalText(formData.get("license_number")) ?? normalizeOptionalText(formData.get("licenseNumber"));
+  const licenseNumber =
+    normalizeOptionalText(formData.get("colegiado")) ??
+    normalizeOptionalText(formData.get("licenseNumber")) ??
+    normalizeOptionalText(formData.get("license_number"));
   const latitude = normalizeCoordinate(formData.get("latitude"), -90, 90);
   const longitude = normalizeCoordinate(formData.get("longitude"), -180, 180);
   const address = normalizeOptionalText(formData.get("address"));
@@ -255,11 +261,10 @@ function validateSubmission(formData: FormData) {
     errors.consent = "Debes confirmar que la información es veraz.";
   }
 
-  if (files.length === 0) {
-    errors.supportingDocuments = "Adjunta al menos un documento de respaldo.";
-  } else if (files.length > MAX_SUPPORTING_DOCUMENTS) {
+  // Supporting documents are now optional; validate only if any were provided.
+  if (files.length > MAX_SUPPORTING_DOCUMENTS) {
     errors.supportingDocuments = `Puedes adjuntar hasta ${MAX_SUPPORTING_DOCUMENTS} archivos.`;
-  } else {
+  } else if (files.length > 0) {
     const oversized = files.find((file) => file.size > MAX_SUPPORTING_DOCUMENT_SIZE);
     if (oversized) {
       errors.supportingDocuments = `El archivo ${oversized.name} supera el límite de 10 MB.`;
@@ -278,7 +283,8 @@ function validateSubmission(formData: FormData) {
         ? {
             email,
             fullName,
-            licenseNumber: documentNumber,
+            documentNumber,
+            licenseNumber,
             specialty,
             latitude,
             longitude,
@@ -376,7 +382,7 @@ export async function ingenierosSolicitudesGet(c: Context) {
   const { data, error } = await supabase
     .from("engineers")
     .select(
-      "id,email,full_name,license_number,specialty,camera_affiliation,latitude,longitude,address,years_experience,motivation,documents_summary,documents_storage_paths,profile_url,application_status,is_certified,review_notes,reviewed_by,reviewed_at,created_at,updated_at"
+      "id,email,full_name,document_number,license_number,specialty,camera_affiliation,latitude,longitude,address,years_experience,motivation,documents_summary,documents_storage_paths,profile_url,application_status,is_certified,review_notes,reviewed_by,reviewed_at,created_at,updated_at"
     )
     .order("created_at", { ascending: false })
     .limit(200);
@@ -424,6 +430,7 @@ export async function ingenierosSolicitudesPost(c: Context) {
   const payload = {
     email: validation.value.email,
     full_name: validation.value.fullName,
+    document_number: validation.value.documentNumber,
     license_number: validation.value.licenseNumber,
     specialty: validation.value.specialty,
     camera_affiliation: validation.value.cameraAffiliation,
@@ -445,7 +452,7 @@ export async function ingenierosSolicitudesPost(c: Context) {
     reviewed_at: null,
   };
   const selectColumns =
-    "id,email,full_name,license_number,specialty,camera_affiliation,latitude,longitude,address,years_experience,motivation,documents_summary,documents_storage_paths,profile_url,application_status,is_certified,review_notes,reviewed_by,reviewed_at,created_at,updated_at";
+    "id,email,full_name,document_number,license_number,specialty,camera_affiliation,latitude,longitude,address,years_experience,motivation,documents_summary,documents_storage_paths,profile_url,application_status,is_certified,review_notes,reviewed_by,reviewed_at,created_at,updated_at";
 
   const { data: existing, error: existingError } = await supabase
     .from("engineers")
@@ -520,7 +527,7 @@ export async function engineerSolicitudByIdPatch(c: Context) {
     })
     .eq("id", id)
     .select(
-      "id,email,full_name,license_number,specialty,camera_affiliation,latitude,longitude,address,years_experience,motivation,documents_summary,documents_storage_paths,profile_url,application_status,is_certified,review_notes,reviewed_by,reviewed_at,created_at,updated_at"
+      "id,email,full_name,document_number,license_number,specialty,camera_affiliation,latitude,longitude,address,years_experience,motivation,documents_summary,documents_storage_paths,profile_url,application_status,is_certified,review_notes,reviewed_by,reviewed_at,created_at,updated_at"
     )
     .maybeSingle();
 

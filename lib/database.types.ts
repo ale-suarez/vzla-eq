@@ -58,7 +58,6 @@ export type Database = {
           address: string | null
           application_status: Database["public"]["Enums"]["engineer_application_status"]
           camera_affiliation: string | null
-          city: string | null
           created_at: string
           document_number: string | null
           documents_storage_paths: string[]
@@ -86,7 +85,6 @@ export type Database = {
           address?: string | null
           application_status?: Database["public"]["Enums"]["engineer_application_status"]
           camera_affiliation?: string | null
-          city?: string | null
           created_at?: string
           document_number?: string | null
           documents_storage_paths?: string[]
@@ -114,7 +112,6 @@ export type Database = {
           address?: string | null
           application_status?: Database["public"]["Enums"]["engineer_application_status"]
           camera_affiliation?: string | null
-          city?: string | null
           created_at?: string
           document_number?: string | null
           documents_storage_paths?: string[]
