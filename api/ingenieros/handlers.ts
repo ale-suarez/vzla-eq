@@ -442,6 +442,11 @@ export async function ingenierosSolicitudesPost(c: Context) {
     if (src?.is_active) inviteSourceId = src.id;
   }
 
+  // Beta onboarding: applicants arriving through a valid, active invite link
+  // (/join/<token>) are certified immediately so they can start without waiting
+  // for manual review. Plain /register submissions (no token) remain pending.
+  const autoCertified = inviteSourceId !== null;
+
   const payload = {
     email: validation.value.email,
     full_name: validation.value.fullName,
@@ -460,8 +465,15 @@ export async function ingenierosSolicitudesPost(c: Context) {
     // Only set the source when we resolved one, so re-applying without a token
     // never wipes an existing attribution.
     ...(inviteSourceId ? { invite_source_id: inviteSourceId } : {}),
-    application_status: "pending" as const,
-    is_certified: false,
+  };
+
+  // Certification/review state is set only when creating a new row. A
+  // re-submitting engineer keeps their existing certification/status/review
+  // state (insert-only certification), so these fields are never part of an
+  // update payload.
+  const certification = {
+    application_status: autoCertified ? ("approved" as const) : ("pending" as const),
+    is_certified: autoCertified,
     review_notes: null,
     reviewed_by: null,
     reviewed_at: null,
@@ -498,7 +510,11 @@ export async function ingenierosSolicitudesPost(c: Context) {
     return c.json({ data: await mapEngineerRow(row, row.invite_source_id ? inviteSourceNameMap.get(row.invite_source_id) : null) }, 200);
   }
 
-  const { data, error } = await supabase.from("engineers").insert(payload).select(selectColumns).single();
+  const { data, error } = await supabase
+    .from("engineers")
+    .insert({ ...payload, ...certification })
+    .select(selectColumns)
+    .single();
 
   if (error) {
     return jsonError(c, 400, error.message);
