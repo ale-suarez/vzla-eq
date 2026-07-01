@@ -13,7 +13,7 @@ export const profileSchema = z
     licenseNumber: z.string().nullable(), // N° CIV
     specialty: z.string().nullable(),
     phone: z.string().nullable(),
-    city: z.string().nullable(), // zona asignada
+    address: z.string().nullable(), // zona asignada (del pin del mapa)
     isCertified: z.boolean(),
     role: z.enum(["engineer", "admin"]),
   })
@@ -29,7 +29,7 @@ export const profileUpdateSchema = z
     licenseNumber: z.string().max(40).optional(),
     specialty: z.string().max(120).optional(),
     phone: z.string().max(40).optional(),
-    city: z.string().max(120).optional(),
+    address: z.string().max(200).optional(),
   })
   .openapi("ProfileUpdate");
 

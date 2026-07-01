@@ -1,20 +1,17 @@
 "use client";
 
-import { useMemo, useRef, useState, useTransition, type ComponentType, type DragEvent } from "react";
+import { useState, useTransition, type ComponentType } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
   BadgeCheck,
   Building2,
   CheckCircle2,
-  FileText,
   Mail,
   ShieldCheck,
-  Upload,
   UserRound,
-  X,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
 import LocationPicker, { type PickedLocation } from "@/components/location-picker";
@@ -25,7 +22,8 @@ type Specialty = "Ingeniería Civil" | "Ingeniería Estructural" | "Arquitectura
 type ApplicationDraft = {
   email: string;
   full_name: string;
-  license_number: string;
+  cedula: string;
+  colegiado: string;
   specialty: Specialty | "";
   latitude: number | null;
   longitude: number | null;
@@ -36,12 +34,13 @@ type ApplicationDraft = {
   profile_url: string;
 };
 
-type ValidationErrors = Partial<Record<keyof ApplicationDraft | "documents" | "location", string>>;
+type ValidationErrors = Partial<Record<keyof ApplicationDraft | "location", string>>;
 
 const INITIAL_DRAFT: ApplicationDraft = {
   email: "",
   full_name: "",
-  license_number: "",
+  cedula: "",
+  colegiado: "",
   specialty: "",
   latitude: null,
   longitude: null,
@@ -53,41 +52,17 @@ const INITIAL_DRAFT: ApplicationDraft = {
 };
 
 const SPECIALTY_OPTIONS: Specialty[] = ["Ingeniería Civil", "Ingeniería Estructural", "Arquitectura", "Otra"];
-const MAX_DOCUMENT_FILE_SIZE = 10 * 1024 * 1024;
-const ALLOWED_DOCUMENT_MIME_TYPES = new Set([
-  "application/pdf",
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "application/vnd.oasis.opendocument.text",
-  "application/msword",
-]);
 
 export function RegistrationForm({ inviteToken, inviteName }: { inviteToken?: string; inviteName?: string } = {}) {
   const [step, setStep] = useState<1 | 2>(1);
   const [draft, setDraft] = useState<ApplicationDraft>(INITIAL_DRAFT);
-  const [documents, setDocuments] = useState<File[]>([]);
   const [fieldErrors, setFieldErrors] = useState<ValidationErrors>({});
   const [submitted, setSubmitted] = useState(false);
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [dragActive, setDragActive] = useState(false);
   const [pending, startTransition] = useTransition();
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const progress = step === 1 ? 50 : 100;
-
-  const reviewDocuments = useMemo(
-    () =>
-      documents.map((file) => ({
-        key: `${file.name}-${file.size}-${file.lastModified}`,
-        name: file.name,
-        size: formatFileSize(file.size),
-        type: file.type || inferMimeType(file.name),
-      })),
-    [documents]
-  );
 
   const setField = <K extends keyof ApplicationDraft>(key: K, value: ApplicationDraft[K]) => {
     setDraft((current) => ({ ...current, [key]: value }));
@@ -99,39 +74,13 @@ export function RegistrationForm({ inviteToken, inviteName }: { inviteToken?: st
     setFieldErrors((current) => ({ ...current, location: undefined }));
   };
 
-  const addDocuments = (files: FileList | File[] | null | undefined) => {
-    if (!files || files.length === 0) {
-      return;
-    }
-
-    const next = Array.from(files);
-    const oversized = next.find((file) => file.size > MAX_DOCUMENT_FILE_SIZE);
-    if (oversized) {
-      setFieldErrors((current) => ({ ...current, documents: `El archivo "${oversized.name}" supera los 10 MB permitidos.` }));
-      return;
-    }
-
-    const invalid = next.find((file) => !isAllowedDocumentFile(file));
-    if (invalid) {
-      setFieldErrors((current) => ({ ...current, documents: `El archivo "${invalid.name}" tiene un formato no permitido.` }));
-      return;
-    }
-
-    setFieldErrors((current) => ({ ...current, documents: undefined }));
-    setDocuments((current) => dedupeFiles([...current, ...next]));
-  };
-
-  const removeDocument = (index: number) => {
-    setDocuments((current) => current.filter((_, currentIndex) => currentIndex !== index));
-    setFieldErrors((current) => ({ ...current, documents: undefined }));
-  };
-
   const validateDraft = () => {
     const errors: ValidationErrors = {};
     const email = draft.email.trim();
     const fullName = draft.full_name.trim();
     const specialty = draft.specialty;
-    const licenseNumber = normalizeLicenseNumber(draft.license_number);
+    const cedula = normalizeLicenseNumber(draft.cedula);
+    const colegiado = normalizeLicenseNumber(draft.colegiado);
     const yearsExperience = draft.years_experience.trim();
     const profileUrl = draft.profile_url.trim();
 
@@ -147,8 +96,14 @@ export function RegistrationForm({ inviteToken, inviteName }: { inviteToken?: st
       errors.full_name = "El nombre debe tener al menos 2 caracteres.";
     }
 
-    if (licenseNumber && !/^(V|CVI)-\d+$/i.test(licenseNumber)) {
-      errors.license_number = "La cédula o colegiado debe comenzar con V- o CVI-.";
+    if (!cedula) {
+      errors.cedula = "Ingresa tu cédula.";
+    } else if (!/^V-\d+$/i.test(cedula)) {
+      errors.cedula = "La cédula debe comenzar con V-.";
+    }
+
+    if (colegiado && !/^CVI-\d+$/i.test(colegiado)) {
+      errors.colegiado = "El colegiado debe comenzar con CVI-.";
     }
 
     if (!specialty) {
@@ -179,20 +134,6 @@ export function RegistrationForm({ inviteToken, inviteName }: { inviteToken?: st
       }
     }
 
-    if (documents.length === 0) {
-      errors.documents = "Adjunta al menos un archivo de respaldo.";
-    } else {
-      const oversized = documents.find((file) => file.size > MAX_DOCUMENT_FILE_SIZE);
-      if (oversized) {
-        errors.documents = `El archivo "${oversized.name}" supera los 10 MB permitidos.`;
-      } else {
-        const invalid = documents.find((file) => !isAllowedDocumentFile(file));
-        if (invalid) {
-          errors.documents = `El archivo "${invalid.name}" tiene un formato no permitido.`;
-        }
-      }
-    }
-
     return errors;
   };
 
@@ -218,7 +159,7 @@ export function RegistrationForm({ inviteToken, inviteName }: { inviteToken?: st
       return;
     }
 
-    const payload = buildFormData(draft, documents);
+    const payload = buildFormData(draft);
     if (inviteToken) payload.append("invite_token", inviteToken);
 
     startTransition(async () => {
@@ -241,10 +182,6 @@ export function RegistrationForm({ inviteToken, inviteName }: { inviteToken?: st
         setSubmitError("Error de conexión. No se pudo enviar la solicitud.");
       }
     });
-  };
-
-  const openFilePicker = () => {
-    fileInputRef.current?.click();
   };
 
   return (
@@ -347,12 +284,20 @@ export function RegistrationForm({ inviteToken, inviteName }: { inviteToken?: st
                       error={fieldErrors.full_name}
                     />
                     <Field
-                      label="Cédula / colegiado"
+                      label="Cédula *"
                       icon={BadgeCheck}
-                      value={draft.license_number}
-                      onChange={(value) => setField("license_number", value)}
-                      placeholder="V-12345678 / CVI-12345"
-                      error={fieldErrors.license_number}
+                      value={draft.cedula}
+                      onChange={(value) => setField("cedula", value)}
+                      placeholder="V-12345678"
+                      error={fieldErrors.cedula}
+                    />
+                    <Field
+                      label="N° de colegiado (CVI)"
+                      icon={BadgeCheck}
+                      value={draft.colegiado}
+                      onChange={(value) => setField("colegiado", value)}
+                      placeholder="CVI-12345"
+                      error={fieldErrors.colegiado}
                     />
                     <SelectField
                       label="Especialidad *"
@@ -409,17 +354,6 @@ export function RegistrationForm({ inviteToken, inviteName }: { inviteToken?: st
                       onChange={(value) => setField("motivation", value)}
                       placeholder="Comparte por qué quieres participar y qué tipo de apoyo puedes aportar."
                     />
-                    <FileUploadField
-                      label="Documentos o respaldo *"
-                      description="Adjunta uno o varios archivos en PDF, imágenes o documentos. Cada archivo debe pesar 10 MB o menos."
-                      files={reviewDocuments}
-                      error={fieldErrors.documents}
-                      onBrowse={openFilePicker}
-                      onDrop={(fileList) => addDocuments(fileList)}
-                      onRemove={removeDocument}
-                      dragActive={dragActive}
-                      setDragActive={setDragActive}
-                    />
                   </div>
 
                   <div className="flex justify-end">
@@ -439,7 +373,8 @@ export function RegistrationForm({ inviteToken, inviteName }: { inviteToken?: st
                   <div className="soft-card space-y-3 rounded-[18px] p-4">
                     <SummaryRow label="Correo" value={draft.email} />
                     <SummaryRow label="Nombre" value={draft.full_name} />
-                    <SummaryRow label="Cédula / colegiado" value={summaryValue(draft.license_number)} />
+                    <SummaryRow label="Cédula" value={summaryValue(draft.cedula)} />
+                    <SummaryRow label="N° de colegiado" value={summaryValue(draft.colegiado)} />
                     <SummaryRow label="Especialidad" value={draft.specialty || "No indicado"} />
                     <SummaryRow
                       label="Ubicación"
@@ -454,10 +389,6 @@ export function RegistrationForm({ inviteToken, inviteName }: { inviteToken?: st
                     <SummaryRow label="Años de experiencia" value={summaryNumber(draft.years_experience)} />
                     <SummaryRow label="Cámara / afiliación" value={summaryValue(draft.camera_affiliation)} />
                     <SummaryRow label="Motivación" value={summaryValue(draft.motivation)} />
-                    <SummaryRow
-                      label="Documentos"
-                      value={reviewDocuments.length > 0 ? reviewDocuments.map((file) => file.name).join(" · ") : "No indicado"}
-                    />
                     <SummaryRow label="Perfil profesional" value={summaryValue(draft.profile_url)} />
                   </div>
 
@@ -519,18 +450,6 @@ export function RegistrationForm({ inviteToken, inviteName }: { inviteToken?: st
           </motion.div>
         </div>
       </section>
-
-      <input
-        ref={fileInputRef}
-        type="file"
-        multiple
-        accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.odt,image/jpeg,image/png,image/webp,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.oasis.opendocument.text"
-        onChange={(event) => {
-          addDocuments(event.target.files);
-          event.currentTarget.value = "";
-        }}
-        className="hidden"
-      />
     </main>
   );
 }
@@ -669,120 +588,6 @@ function TextareaField({
   );
 }
 
-function FileUploadField({
-  label,
-  description,
-  files,
-  error,
-  onBrowse,
-  onDrop,
-  onRemove,
-  dragActive,
-  setDragActive,
-}: {
-  label: string;
-  description: string;
-  files: Array<{ key: string; name: string; size: string; type: string }>;
-  error?: string;
-  onBrowse: () => void;
-  onDrop: (files: FileList | File[]) => void;
-  onRemove: (index: number) => void;
-  dragActive: boolean;
-  setDragActive: (value: boolean) => void;
-}) {
-  const handleDrop = (event: DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-    setDragActive(false);
-    onDrop(event.dataTransfer.files);
-  };
-
-  return (
-    <div className="space-y-2">
-      <span className="text-sm font-medium text-on-surface-variant">{label}</span>
-      <div
-        className={cn(
-          "upload-dashed rounded-[18px] bg-surface-container-lowest p-4 transition-colors",
-          dragActive && "bg-primary-fixed/40"
-        )}
-        onDragEnter={(event) => {
-          event.preventDefault();
-          setDragActive(true);
-        }}
-        onDragOver={(event) => {
-          event.preventDefault();
-          setDragActive(true);
-        }}
-        onDragLeave={(event) => {
-          event.preventDefault();
-          setDragActive(false);
-        }}
-        onDrop={handleDrop}
-      >
-        <div className="flex flex-col items-center justify-center gap-3 py-4 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary-fixed text-primary">
-            <Upload className="h-6 w-6" />
-          </div>
-          <div className="space-y-1">
-            <p className="font-heading text-base font-semibold text-on-surface">Arrastra y suelta tus archivos</p>
-            <p className="text-sm leading-6 text-on-surface-variant">{description}</p>
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            className="h-12 rounded-[18px] border-outline-variant bg-white px-5 text-sm font-semibold text-on-surface hover:bg-surface-container"
-            onClick={onBrowse}
-          >
-            Elegir archivos
-          </Button>
-        </div>
-
-        <AnimatePresence>
-          {files.length > 0 ? (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="mt-4 space-y-2"
-            >
-              {files.map((file, index) => (
-                <div
-                  key={file.key}
-                  className="flex items-center justify-between gap-3 rounded-[16px] border border-outline-variant bg-white px-4 py-3"
-                >
-                  <div className="flex min-w-0 items-center gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-surface-container text-on-surface-variant">
-                      <FileText className="h-4 w-4" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-on-surface">{file.name}</p>
-                      <p className="text-xs text-on-surface-variant">
-                        {file.type} · {file.size}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => onRemove(index)}
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-outline-variant bg-surface-container-lowest text-on-surface-variant hover:bg-surface-container"
-                    aria-label={`Eliminar ${file.name}`}
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-              ))}
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
-      </div>
-      <p className="text-xs leading-5 text-on-surface-variant">
-        Formatos aceptados: PDF, PNG, JPG/JPEG, WEBP, DOC, DOCX y ODT. Cada archivo debe pesar 10 MB o menos.
-      </p>
-      {error ? <p className="text-xs text-error">{error}</p> : null}
-    </div>
-  );
-}
-
 function SummaryRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-1 border-b border-outline-variant/50 pb-2 last:border-b-0 last:pb-0 sm:flex-row sm:items-start sm:justify-between">
@@ -800,14 +605,19 @@ function summaryValue(value: string) {
   return value.trim() ? value.trim() : "No indicado";
 }
 
-function buildFormData(draft: ApplicationDraft, files: File[]) {
+function buildFormData(draft: ApplicationDraft) {
   const formData = new FormData();
   formData.append("email", draft.email.trim());
   formData.append("full_name", draft.full_name.trim());
 
-  const licenseNumber = normalizeLicenseNumber(draft.license_number);
-  if (licenseNumber) {
-    formData.append("license_number", licenseNumber);
+  const cedula = normalizeLicenseNumber(draft.cedula);
+  if (cedula) {
+    formData.append("cedula", cedula);
+  }
+
+  const colegiado = normalizeLicenseNumber(draft.colegiado);
+  if (colegiado) {
+    formData.append("colegiado", colegiado);
   }
 
   if (draft.specialty) {
@@ -842,80 +652,11 @@ function buildFormData(draft: ApplicationDraft, files: File[]) {
     formData.append("profile_url", draft.profile_url.trim());
   }
 
-  formData.append("documents_summary", files.map((file) => file.name).join(" · "));
-
-  files.forEach((file) => {
-    formData.append("documents", file, file.name);
-  });
-
   return formData;
-}
-
-function dedupeFiles(files: File[]) {
-  const seen = new Set<string>();
-  const result: File[] = [];
-
-  for (const file of files) {
-    const key = `${file.name}-${file.size}-${file.lastModified}`;
-    if (seen.has(key)) {
-      continue;
-    }
-
-    seen.add(key);
-    result.push(file);
-  }
-
-  return result;
-}
-
-function isAllowedDocumentFile(file: File) {
-  const mimeType = file.type || inferMimeType(file.name);
-  return ALLOWED_DOCUMENT_MIME_TYPES.has(mimeType);
-}
-
-function inferMimeType(fileName: string) {
-  const extension = fileName.split(".").pop()?.toLowerCase();
-
-  switch (extension) {
-    case "pdf":
-      return "application/pdf";
-    case "png":
-      return "image/png";
-    case "jpg":
-    case "jpeg":
-      return "image/jpeg";
-    case "webp":
-      return "image/webp";
-    case "docx":
-      return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-    case "doc":
-      return "application/msword";
-    case "odt":
-      return "application/vnd.oasis.opendocument.text";
-    default:
-      return "application/octet-stream";
-  }
 }
 
 function normalizeLicenseNumber(value: string) {
   return value.trim().toUpperCase();
-}
-
-function formatFileSize(bytes: number) {
-  if (bytes < 1024) {
-    return `${bytes} B`;
-  }
-
-  const units = ["KB", "MB", "GB"];
-  let size = bytes / 1024;
-  let unitIndex = 0;
-
-  while (size >= 1024 && unitIndex < units.length - 1) {
-    size /= 1024;
-    unitIndex += 1;
-  }
-
-  return `${size.toFixed(size >= 10 ? 0 : 1)} ${units[unitIndex]}`;
 }
 
 function LinkIcon({ className }: { className?: string }) {

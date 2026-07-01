@@ -8,7 +8,7 @@ import { profileUpdateSchema, type Profile } from "@/api/profile/schemas";
 type EngineerUpdate = Database["public"]["Tables"]["engineers"]["Update"];
 
 const ENGINEER_COLUMNS =
-  "id, user_id, email, full_name, document_number, license_number, specialty, phone, city, is_certified";
+  "id, user_id, email, full_name, document_number, license_number, specialty, phone, address, is_certified";
 
 // Resolve the signed-in engineer's row by user_id, falling back to email
 // (mirrors the link logic in getSessionContext / proxy).
@@ -42,7 +42,7 @@ export async function profileGet(c: Context) {
     licenseNumber: eng?.license_number ?? null,
     specialty: eng?.specialty ?? null,
     phone: eng?.phone ?? null,
-    city: eng?.city ?? null,
+    address: eng?.address ?? null,
     isCertified: eng?.is_certified ?? false,
     role: role === "admin" ? "admin" : "engineer",
   };
@@ -81,7 +81,7 @@ export async function profilePatch(c: Context) {
   if (u.licenseNumber !== undefined) update.license_number = u.licenseNumber;
   if (u.specialty !== undefined) update.specialty = u.specialty;
   if (u.phone !== undefined) update.phone = u.phone;
-  if (u.city !== undefined) update.city = u.city;
+  if (u.address !== undefined) update.address = u.address;
   // Ensure the row is linked to this auth user going forward.
   if (!eng.user_id) update.user_id = user.id;
 

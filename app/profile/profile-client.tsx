@@ -13,12 +13,12 @@ interface Profile {
   licenseNumber: string | null;
   specialty: string | null;
   phone: string | null;
-  city: string | null;
+  address: string | null;
   isCertified: boolean;
   role: "engineer" | "admin";
 }
 
-type EditableField = "fullName" | "documentNumber" | "licenseNumber" | "specialty" | "phone" | "city";
+type EditableField = "fullName" | "documentNumber" | "licenseNumber" | "specialty" | "phone" | "address";
 
 const FIELDS: { key: EditableField; label: string; full?: boolean }[] = [
   { key: "fullName", label: "Nombre completo" },
@@ -26,7 +26,7 @@ const FIELDS: { key: EditableField; label: string; full?: boolean }[] = [
   { key: "licenseNumber", label: "N° CIV" },
   { key: "specialty", label: "Especialidad" },
   { key: "phone", label: "Teléfono" },
-  { key: "city", label: "Zona asignada", full: true },
+  { key: "address", label: "Zona asignada (dirección)", full: true },
 ];
 
 const EMPTY_FORM: Record<EditableField, string> = {
@@ -35,7 +35,7 @@ const EMPTY_FORM: Record<EditableField, string> = {
   licenseNumber: "",
   specialty: "",
   phone: "",
-  city: "",
+  address: "",
 };
 
 export function ProfileClient() {
@@ -57,7 +57,7 @@ export function ProfileClient() {
           licenseNumber: body.data.licenseNumber ?? "",
           specialty: body.data.specialty ?? "",
           phone: body.data.phone ?? "",
-          city: body.data.city ?? "",
+          address: body.data.address ?? "",
         });
       })
       .catch(() => {});
@@ -110,7 +110,7 @@ export function ProfileClient() {
               {profile?.isCertified && (
                 <span className="rounded-[7px] bg-[#dcfce0] px-2.5 py-1 text-[11px] font-bold text-[#006e2d]">Verificada</span>
               )}
-              {form.city && <span className="rounded-[7px] bg-[#f1f3f9] px-2.5 py-1 text-[11px] font-semibold text-[#434655]">Zona: {form.city}</span>}
+              {form.address && <span className="rounded-[7px] bg-[#f1f3f9] px-2.5 py-1 text-[11px] font-semibold text-[#434655]">Zona: {form.address}</span>}
             </div>
           </div>
         </div>

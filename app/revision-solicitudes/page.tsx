@@ -37,6 +37,7 @@ type EngineerApplication = {
   id: string;
   email: string | null;
   full_name: string | null;
+  document_number: string | null;
   license_number: string | null;
   specialty: string | null;
   latitude: number | null;
@@ -389,7 +390,7 @@ export default function RevisionSolicitudesPage() {
                       <th className="sticky left-0 z-10 border-b border-outline-variant/70 bg-surface-container-low/70 px-4 py-3">Estado</th>
                       <th className="border-b border-outline-variant/70 px-4 py-3">Nombre</th>
                       <th className="border-b border-outline-variant/70 px-4 py-3">Ubicación</th>
-                      <th className="border-b border-outline-variant/70 px-4 py-3">Colegiado</th>
+                      <th className="border-b border-outline-variant/70 px-4 py-3">Cédula / colegiado</th>
                       <th className="border-b border-outline-variant/70 px-4 py-3">Especialidad</th>
                       <th className="border-b border-outline-variant/70 px-4 py-3">Documentos</th>
                       <th className="border-b border-outline-variant/70 px-4 py-3">Recibida</th>
@@ -430,7 +431,8 @@ export default function RevisionSolicitudesPage() {
                             </td>
                             <td className="border-b border-outline-variant/70 px-4 py-4 text-sm text-on-surface">{application.address ?? "No indicado"}</td>
                             <td className="border-b border-outline-variant/70 px-4 py-4 text-sm text-on-surface">
-                              {application.license_number ?? "No indicado"}
+                              <div>{application.document_number ?? "—"}</div>
+                              <div className="text-xs text-on-surface-variant">{application.license_number ?? "Sin colegiado"}</div>
                             </td>
                             <td className="border-b border-outline-variant/70 px-4 py-4 text-sm text-on-surface">{application.specialty ?? "No indicado"}</td>
                             <td className="border-b border-outline-variant/70 px-4 py-4 text-sm text-on-surface">
