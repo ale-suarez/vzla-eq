@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useCallback, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Camera, Crosshair, Image as ImageIcon, Loader2, MapPin, Sparkles, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -15,8 +15,10 @@ import {
   SECURITY_MEASURES,
   USO_OPTIONS,
   emptyPlanilla,
+  planillaFromInspection,
   type PlanillaElement,
   type PlanillaState,
+  type StoredInspection,
 } from "@/lib/planilla";
 import type { ElementType } from "@/lib/rubric";
 import type { DamageGradeDb } from "@/lib/assessment";
@@ -72,8 +74,10 @@ interface DraftResponse {
 const nextId = () =>
   typeof crypto !== "undefined" && crypto.randomUUID ? `el-${crypto.randomUUID()}` : `el-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
-export default function InspeccionPage() {
+function InspeccionPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const resumeId = searchParams.get("id");
   const user = useConsoleUser();
   const [phase, setPhase] = useState<Phase>("capture");
   const [photos, setPhotos] = useState<CapturedPhoto[]>([]);
@@ -81,6 +85,45 @@ export default function InspeccionPage() {
   const [gpsBusy, setGpsBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [planilla, setPlanilla] = useState<PlanillaState>(emptyPlanilla);
+  // Set while loading an existing draft for resume (?id=...).
+  const [inspectionId, setInspectionId] = useState<string | null>(null);
+  const [resuming, setResuming] = useState(!!resumeId);
+
+  // Resume an existing DRAFT: load it, hydrate the planilla, jump to review.
+  // A submitted inspection is immutable — send it to the read-only detail.
+  useEffect(() => {
+    if (!resumeId) return;
+    let active = true;
+    // `resuming` is already initialized to !!resumeId; the async handlers below
+    // clear it. No synchronous setState needed here.
+    fetch(`/api/inspections/${resumeId}`)
+      .then((r) => r.json().then((body: { data?: StoredInspection & { submitted_at?: string | null }; error?: string }) => ({ ok: r.ok, body })))
+      .then(({ ok, body }) => {
+        if (!active) return;
+        if (!ok || !body.data) {
+          setError(body.error ?? "No se pudo cargar el borrador.");
+          setResuming(false);
+          return;
+        }
+        if (body.data.submitted_at) {
+          router.replace(`/inspection/${resumeId}`);
+          return;
+        }
+        setPlanilla(planillaFromInspection(body.data));
+        setInspectionId(resumeId);
+        setPhase("review");
+        setResuming(false);
+      })
+      .catch(() => {
+        if (active) {
+          setError("No se pudo cargar el borrador.");
+          setResuming(false);
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [resumeId, router]);
 
   const captureGps = useCallback(() => {
     if (!navigator.geolocation) return;
@@ -205,11 +248,28 @@ export default function InspeccionPage() {
     setPhase("review");
   };
 
+  if (resuming) {
+    return (
+      <ConsoleShell title="Inspección" subtitle="Evaluación Rápida de Daños · Boletín 61" user={user}>
+        <div className="mx-auto flex w-full max-w-[880px] flex-col items-center justify-center gap-4 px-4 py-[80px]">
+          <Loader2 className="h-[42px] w-[42px] animate-spin text-primary" />
+          <p className="text-[14.5px] font-semibold text-[#15171d]">Cargando borrador…</p>
+          {error && <p className="rounded-lg bg-error-container px-3 py-2 text-sm text-on-error-container">{error}</p>}
+        </div>
+      </ConsoleShell>
+    );
+  }
+
   return (
-    <ConsoleShell title="Nueva inspección" subtitle="Evaluación Rápida de Daños · Boletín 61" user={user}>
+    <ConsoleShell
+      title={inspectionId ? "Editar inspección" : "Nueva inspección"}
+      subtitle="Evaluación Rápida de Daños · Boletín 61"
+      user={user}
+    >
       <div className="mx-auto w-full max-w-[880px] px-4 py-6 sm:px-6 sm:py-7">
 
-        <CaptureStepper activeIndex={phase === "review" ? 2 : phase === "drafting" ? 1 : 0} />
+        {/* When resuming a draft there are no capture steps — hide the stepper. */}
+        {!inspectionId && <CaptureStepper activeIndex={phase === "review" ? 2 : phase === "drafting" ? 1 : 0} />}
 
         {phase === "capture" && (
           <section className="rounded-[18px] border border-[#e8eaf2] bg-white p-5 shadow-[0_2px_10px_rgba(20,30,60,.03)] sm:p-6">
@@ -331,10 +391,20 @@ export default function InspeccionPage() {
             value={planilla}
             onChange={setPlanilla}
             onSaved={(id) => router.push(`/history?nueva=${id}`)}
-            onBackToPhotos={() => setPhase("capture")}
+            onBackToPhotos={inspectionId ? undefined : () => setPhase("capture")}
+            inspectionId={inspectionId ?? undefined}
           />
         )}
       </div>
     </ConsoleShell>
+  );
+}
+
+export default function InspeccionPage() {
+  // useSearchParams (?id resume) requires a Suspense boundary under App Router.
+  return (
+    <Suspense>
+      <InspeccionPageInner />
+    </Suspense>
   );
 }

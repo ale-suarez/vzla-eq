@@ -61,12 +61,15 @@ export function PlanillaForm({
   onChange,
   onSaved,
   onBackToPhotos,
+  inspectionId,
 }: {
   value: PlanillaState;
   onChange: (next: PlanillaState) => void;
   onSaved: (id: string) => void;
   /** Return to the capture phase (shown when a draft exists). */
   onBackToPhotos?: () => void;
+  /** When resuming an existing draft, its id — save() then PUTs instead of POSTs. */
+  inspectionId?: string;
 }) {
   const [savingMode, setSavingMode] = useState<"submit" | "draft" | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -159,8 +162,8 @@ export function PlanillaForm({
           photoQuality: e.photoQuality,
         })),
       };
-      const res = await fetch("/api/inspections", {
-        method: "POST",
+      const res = await fetch(inspectionId ? `/api/inspections/${inspectionId}` : "/api/inspections", {
+        method: inspectionId ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });

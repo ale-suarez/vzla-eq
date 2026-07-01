@@ -187,6 +187,113 @@ export function computePlanillaEtiqueta(s: PlanillaState) {
   };
 }
 
+// ── resume: DB inspection row -> client planilla state ────────────────────────
+
+type Abc3 = "a" | "b" | "c" | null;
+
+/** Shape of a persisted inspection (+ its elements) as returned by
+ * GET /api/inspections/:id. Kept structural so lib/planilla stays free of the
+ * generated DB types import. */
+export interface StoredInspection {
+  planilla_no: string | null;
+  address: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  nivel_pisos: number | null;
+  semisotanos: number | null;
+  sotanos: number | null;
+  anio_construccion: number | null;
+  uso: string | null;
+  tipo_estructural_ai: ElementType | null;
+  tipo_estructural_final: ElementType | null;
+  ext_colapso_ai: Abc3;
+  ext_colapso_final: Abc3;
+  ext_aledanos_ai: Abc3;
+  ext_aledanos_final: Abc3;
+  ext_geologico_ai: Abc3;
+  ext_geologico_final: Abc3;
+  ext_asentamiento_final: Abc3;
+  ext_inclinacion_final: Abc3;
+  etiqueta_overridden: boolean;
+  etiqueta: "verde" | "amarilla" | "roja" | null;
+  override_reason: string | null;
+  observaciones: string | null;
+  elements: StoredInspectionElement[];
+}
+
+export interface StoredInspectionElement {
+  id: string;
+  element_label: string | null;
+  element_type_ai: ElementType | null;
+  element_type_final: ElementType | null;
+  grade_ai: DamageGradeDb | null;
+  grade_final: DamageGradeDb | null;
+  source: "ai_drafted" | "inspector_added";
+  confirmed: boolean;
+  photo_quality: string | null;
+}
+
+/** Rebuild the editable planilla state from a persisted (draft) inspection so
+ * the engineer can resume. Inverse of the form's save() payload + toRow(). */
+export function planillaFromInspection(row: StoredInspection): PlanillaState {
+  const abc = (v: Abc3): Abc | undefined => (v === "a" || v === "b" || v === "c" ? v : undefined);
+  const externalFinal: Partial<Record<ExternalAxisId, Abc>> = {};
+  const externalAi: Partial<Record<ExternalAxisId, Abc>> = {};
+  const setAxis = (id: ExternalAxisId, final: Abc3, ai?: Abc3) => {
+    const f = abc(final);
+    if (f) externalFinal[id] = f;
+    if (ai !== undefined) {
+      const a = abc(ai);
+      if (a) externalAi[id] = a;
+    }
+  };
+  setAxis("colapso", row.ext_colapso_final, row.ext_colapso_ai);
+  setAxis("aledanos", row.ext_aledanos_final, row.ext_aledanos_ai);
+  setAxis("geologico", row.ext_geologico_final, row.ext_geologico_ai);
+  setAxis("asentamiento", row.ext_asentamiento_final);
+  setAxis("inclinacion", row.ext_inclinacion_final);
+
+  return {
+    planillaNo: row.planilla_no ?? "",
+    address: row.address ?? "",
+    latitude: row.latitude,
+    longitude: row.longitude,
+    nivelPisos: row.nivel_pisos,
+    semisotanos: row.semisotanos,
+    sotanos: row.sotanos,
+    anioConstruccion: row.anio_construccion,
+    uso: row.uso ?? "",
+    usoAi: null,
+    tipoEstructuralAi: row.tipo_estructural_ai,
+    tipoEstructuralFinal: row.tipo_estructural_final,
+    externalFinal,
+    externalAi,
+    externalAiEvaluated: {},
+    externalNotes: {},
+    elements: row.elements.map((e) => ({
+      id: e.id,
+      label: e.element_label ?? "",
+      elementTypeAi: e.element_type_ai,
+      elementTypeFinal: e.element_type_final,
+      gradeAi: e.grade_ai,
+      gradeFinal: e.grade_final,
+      source: e.source,
+      // Persisted elements are already attested; treat them as confirmed so the
+      // etiqueta computes immediately on resume (no re-confirm gate).
+      confirmed: true,
+      photoQuality: e.photo_quality,
+    })),
+    inspectedStructuralCount: null,
+    nonStructural: {},
+    etiquetaOverride: row.etiqueta_overridden ? row.etiqueta : null,
+    overrideReason: row.override_reason ?? "",
+    // §12/§13 were flattened into observaciones on save; keep the free text as-is.
+    recommendations: [],
+    securityMeasures: [],
+    observaciones: row.observaciones ?? "",
+  };
+}
+
 export function emptyPlanilla(): PlanillaState {
   return {
     planillaNo: "",
