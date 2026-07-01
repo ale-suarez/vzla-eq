@@ -58,6 +58,7 @@ export function RegistrationForm({ inviteToken, inviteName }: { inviteToken?: st
   const [draft, setDraft] = useState<ApplicationDraft>(INITIAL_DRAFT);
   const [fieldErrors, setFieldErrors] = useState<ValidationErrors>({});
   const [submitted, setSubmitted] = useState(false);
+  const [submitHeading, setSubmitHeading] = useState<string | null>(null);
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -169,7 +170,11 @@ export function RegistrationForm({ inviteToken, inviteName }: { inviteToken?: st
           body: payload,
         });
 
-        const body = (await response.json()) as { error?: string; message?: string };
+        const body = (await response.json()) as {
+          error?: string;
+          message?: string;
+          data?: { application_status?: string };
+        };
 
         if (!response.ok) {
           setSubmitError(body.error ?? "No se pudo enviar la solicitud.");
@@ -177,7 +182,17 @@ export function RegistrationForm({ inviteToken, inviteName }: { inviteToken?: st
         }
 
         setSubmitted(true);
-        setSubmitMessage(body.message ?? "Tu solicitud fue enviada para revisión.");
+        // Applicants arriving through a valid invite link are certified on the
+        // spot (application_status="approved"); everyone else waits for review.
+        if (body.data?.application_status === "approved") {
+          setSubmitHeading("¡Bienvenido!");
+          setSubmitMessage(body.message ?? "Tu cuenta ya está certificada. Puedes ingresar y comenzar de inmediato.");
+        } else {
+          setSubmitHeading("Solicitud recibida");
+          setSubmitMessage(
+            body.message ?? "Tu solicitud quedó en cola de revisión. El equipo revisor la evaluará manualmente."
+          );
+        }
       } catch {
         setSubmitError("Error de conexión. No se pudo enviar la solicitud.");
       }
@@ -428,7 +443,9 @@ export function RegistrationForm({ inviteToken, inviteName }: { inviteToken?: st
                   <CheckCircle2 className="h-7 w-7" />
                 </div>
                 <div className="space-y-2">
-                  <h2 className="font-heading text-2xl font-semibold text-on-surface">Solicitud recibida</h2>
+                  <h2 className="font-heading text-2xl font-semibold text-on-surface">
+                    {submitHeading ?? "Solicitud recibida"}
+                  </h2>
                   <p className="text-sm leading-6 text-on-surface-variant">
                     {submitMessage ?? "Tu solicitud quedó en cola de revisión. El equipo revisor la evaluará manualmente."}
                   </p>
