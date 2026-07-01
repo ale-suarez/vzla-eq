@@ -1,41 +1,81 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Check, ChevronRight, Circle } from "lucide-react";
 
 import { ConsoleShell } from "@/components/console/console-shell";
 import { useConsoleUser } from "@/components/console/use-console-user";
 import { cn } from "@/lib/utils";
-import { fromDbIncident, type DbIncident, type Incident } from "@/lib/incidents";
-import type { VerdictLevel } from "@/lib/assessment";
 
-type HistFilter = "all" | "certificada" | "borrador";
+type HistFilter = "all" | "enviada" | "borrador";
 
-// Map the damage verdict to a habitability etiqueta (left-border color + chip).
-const ETIQUETA: Record<VerdictLevel, { text: string; accent: string; bg: string; color: string }> = {
-  menor: { text: "Habitable", accent: "#16a34a", bg: "#dcfce0", color: "#006e2d" },
-  moderado: { text: "Habitable", accent: "#16a34a", bg: "#dcfce0", color: "#006e2d" },
-  severo: { text: "Uso restringido", accent: "#ea8a00", bg: "#ffe7c2", color: "#653e00" },
-  completo: { text: "Insegura", accent: "#ba1a1a", bg: "#ffdad6", color: "#93000a" },
+type Etiqueta = "verde" | "amarilla" | "roja";
+
+// One inspection row as returned by GET /api/inspections?mine=1.
+type InspectionRow = {
+  id: string;
+  planilla_no: string | null;
+  address: string | null;
+  estado: string | null;
+  municipio: string | null;
+  etiqueta: Etiqueta | null;
+  submitted_at: string | null;
+  created_at: string;
 };
 
-// An incident is "certificada" when an engineer has been assigned/reviewed it.
-function isCertificada(i: Incident) {
-  return i.state === "resolved" || !!i.assignee;
+// Traffic-light etiqueta presentation (verde/amarilla/roja), faithful to the
+// Boletín 61 label. Mirrors the planilla-form chips.
+const ETIQUETA: Record<Etiqueta, { text: string; accent: string; bg: string; color: string }> = {
+  verde: { text: "Habitable", accent: "#16a34a", bg: "#dcfce0", color: "#006e2d" },
+  amarilla: { text: "Uso restringido", accent: "#ea8a00", bg: "#ffe7c2", color: "#653e00" },
+  roja: { text: "Insegura", accent: "#ba1a1a", bg: "#ffdad6", color: "#93000a" },
+};
+// A draft may have no computed etiqueta yet — show a neutral pending style.
+const ETIQUETA_PENDING = { text: "Sin etiqueta", accent: "#c2c6d4", bg: "#f1f3f9", color: "#6b6f80" };
+
+function isSubmitted(i: InspectionRow) {
+  return !!i.submitted_at;
+}
+
+function rowTitle(i: InspectionRow) {
+  if (i.address) return i.address;
+  const place = [i.municipio, i.estado].filter(Boolean).join(", ");
+  if (place) return place;
+  if (i.planilla_no) return `Planilla ${i.planilla_no}`;
+  return "Inspección sin dirección";
+}
+
+function rowSubtitle(i: InspectionRow) {
+  const parts = [i.planilla_no ? `Planilla ${i.planilla_no}` : null, i.municipio, i.estado].filter(Boolean);
+  return parts.length > 0 ? parts.join(" · ") : "Sin ubicación registrada";
+}
+
+function formatDate(iso: string) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleDateString("es-VE", { day: "2-digit", month: "short", year: "numeric" });
+}
+
+// Draft rows resume the planilla form; submitted rows open the read-only detail.
+function rowHref(i: InspectionRow) {
+  return isSubmitted(i) ? `/inspection/${i.id}` : `/inspection?id=${i.id}`;
 }
 
 export function HistoryClient() {
   const user = useConsoleUser();
-  const [incidents, setIncidents] = useState<Incident[]>([]);
+  const searchParams = useSearchParams();
+  const nuevaId = searchParams.get("nueva");
+  const [inspections, setInspections] = useState<InspectionRow[]>([]);
   const [filter, setFilter] = useState<HistFilter>("all");
 
   useEffect(() => {
     let active = true;
-    fetch("/api/incidents")
+    fetch("/api/inspections?mine=1")
       .then((r) => r.json())
-      .then((body: { data?: DbIncident[] }) => {
-        if (active) setIncidents((body.data ?? []).map(fromDbIncident));
+      .then((body: { data?: InspectionRow[] }) => {
+        if (active) setInspections(body.data ?? []);
       })
       .catch(() => {});
     return () => {
@@ -44,29 +84,29 @@ export function HistoryClient() {
   }, []);
 
   const stats = useMemo(() => {
-    const total = incidents.length;
-    const certificadas = incidents.filter(isCertificada).length;
+    const total = inspections.length;
+    const enviadas = inspections.filter(isSubmitted).length;
     const now = new Date();
-    const esteMes = incidents.filter((i) => {
-      const d = new Date(i.meta);
+    const esteMes = inspections.filter((i) => {
+      const d = new Date(i.created_at);
       return !Number.isNaN(d.getTime()) && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
     }).length;
-    return { total, certificadas, esteMes };
-  }, [incidents]);
+    return { total, enviadas, esteMes };
+  }, [inspections]);
 
   const visible = useMemo(() => {
-    if (filter === "all") return incidents;
-    return incidents.filter((i) => (filter === "certificada" ? isCertificada(i) : !isCertificada(i)));
-  }, [incidents, filter]);
+    if (filter === "all") return inspections;
+    return inspections.filter((i) => (filter === "enviada" ? isSubmitted(i) : !isSubmitted(i)));
+  }, [inspections, filter]);
 
   return (
-    <ConsoleShell title="Inspecciones" subtitle="Historial de evaluaciones realizadas" showNewButton user={user} inspectionCount={incidents.length}>
+    <ConsoleShell title="Inspecciones" subtitle="Historial de evaluaciones realizadas" showNewButton user={user} inspectionCount={inspections.length}>
       <div className="mx-auto max-w-[920px] px-4 py-6 md:px-6">
         {/* Stat cards */}
         <div className="mb-5 grid grid-cols-3 gap-3.5">
           <StatCard label="Realizadas" value={stats.total} />
           <StatCard label="Este mes" value={stats.esteMes} />
-          <StatCard label="Certificadas" value={stats.certificadas} sub={`${stats.total - stats.certificadas} en borrador`} />
+          <StatCard label="Enviadas" value={stats.enviadas} sub={`${stats.total - stats.enviadas} en borrador`} />
         </div>
 
         {/* Heading + filters */}
@@ -76,7 +116,7 @@ export function HistoryClient() {
             {(
               [
                 ["all", "Todas"],
-                ["certificada", "Certificadas"],
+                ["enviada", "Enviadas"],
                 ["borrador", "Borradores"],
               ] as [HistFilter, string][]
             ).map(([key, label]) => (
@@ -98,18 +138,22 @@ export function HistoryClient() {
         <div className="flex flex-col gap-2.5">
           {visible.length === 0 && <p className="py-8 text-center text-sm text-on-surface-variant">Sin inspecciones que mostrar.</p>}
           {visible.map((i) => {
-            const et = ETIQUETA[i.verdict];
-            const cert = isCertificada(i);
+            const et = i.etiqueta ? ETIQUETA[i.etiqueta] : ETIQUETA_PENDING;
+            const submitted = isSubmitted(i);
+            const isNueva = i.id === nuevaId;
             return (
               <Link
                 key={i.id}
-                href={`/dashboard/incidents/${i.id}`}
-                className="flex items-center gap-4 rounded-[14px] border border-[#ebedf4] bg-white p-[15px] pl-[18px] shadow-[0_1px_3px_rgba(20,30,60,.04)] transition-colors hover:border-primary"
+                href={rowHref(i)}
+                className={cn(
+                  "flex items-center gap-4 rounded-[14px] border bg-white p-[15px] pl-[18px] shadow-[0_1px_3px_rgba(20,30,60,.04)] transition-colors hover:border-primary",
+                  isNueva ? "border-primary ring-2 ring-primary/30" : "border-[#ebedf4]",
+                )}
                 style={{ borderLeft: `4px solid ${et.accent}` }}
               >
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2.5">
-                    <h3 className="font-heading text-[14.5px] font-bold text-[#15171d]">{i.title}</h3>
+                    <h3 className="font-heading text-[14.5px] font-bold text-[#15171d]">{rowTitle(i)}</h3>
                     <span
                       className="rounded-[7px] px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-[0.04em]"
                       style={{ background: et.bg, color: et.color }}
@@ -117,18 +161,18 @@ export function HistoryClient() {
                       {et.text}
                     </span>
                   </div>
-                  <div className="mt-1 text-xs text-[#7a7f90]">{i.attribution ?? "Sin dirección registrada"}</div>
+                  <div className="mt-1 text-xs text-[#7a7f90]">{rowSubtitle(i)}</div>
                 </div>
                 <div className="shrink-0 text-right">
-                  <div className="text-[12.5px] font-medium text-[#434655]">{i.meta}</div>
+                  <div className="text-[12.5px] font-medium text-[#434655]">{formatDate(i.created_at)}</div>
                   <div
                     className={cn(
                       "mt-1.5 inline-flex items-center gap-1.5 rounded-[7px] px-2 py-1 text-[11px] font-bold",
-                      cert ? "bg-[#e7f8ea] text-[#006e2d]" : "bg-[#f1f3f9] text-[#6b6f80]",
+                      submitted ? "bg-[#e7f8ea] text-[#006e2d]" : "bg-[#f1f3f9] text-[#6b6f80]",
                     )}
                   >
-                    {cert ? <Check className="h-3 w-3" /> : <Circle className="h-2.5 w-2.5" />}
-                    {cert ? "Certificada" : "Borrador"}
+                    {submitted ? <Check className="h-3 w-3" /> : <Circle className="h-2.5 w-2.5" />}
+                    {submitted ? "Enviada" : "Borrador"}
                   </div>
                 </div>
                 <ChevronRight className="h-[18px] w-[18px] shrink-0 text-[#c2c6d4]" />
