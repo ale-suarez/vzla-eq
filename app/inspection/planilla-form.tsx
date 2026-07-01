@@ -164,7 +164,18 @@ export function PlanillaForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      const body = (await res.json()) as { data?: { id: string }; error?: string };
+      // Guard against non-JSON error pages (serverless crash / gateway 5xx).
+      const rawText = await res.text();
+      let body: { data?: { id: string }; error?: string };
+      try {
+        body = JSON.parse(rawText) as { data?: { id: string }; error?: string };
+      } catch {
+        throw new Error(
+          res.ok
+            ? "El servicio devolvió una respuesta inesperada. Intenta de nuevo."
+            : `El servicio no está disponible (error ${res.status}). Intenta de nuevo en unos minutos.`,
+        );
+      }
       if (!res.ok || !body.data) throw new Error(body.error ?? "No se pudo guardar la inspección.");
       onSaved(body.data.id);
     } catch (e) {

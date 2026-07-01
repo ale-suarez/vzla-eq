@@ -113,7 +113,20 @@ export default function InspeccionPage() {
       for (const p of photos) fd.append("fotos", p.file);
       fd.append("categories", JSON.stringify(photos.map((p) => p.category)));
       const res = await fetch("/api/inspections/draft", { method: "POST", body: fd });
-      const body = (await res.json()) as { data?: DraftResponse; error?: string };
+      // The endpoint can return a non-JSON HTML error page (serverless crash,
+      // timeout, gateway 5xx). Parse defensively so the user sees a real
+      // message instead of "Unexpected token '<'".
+      const rawText = await res.text();
+      let body: { data?: DraftResponse; error?: string };
+      try {
+        body = JSON.parse(rawText) as { data?: DraftResponse; error?: string };
+      } catch {
+        throw new Error(
+          res.ok
+            ? "El servicio devolvió una respuesta inesperada. Intenta de nuevo."
+            : `El servicio no está disponible (error ${res.status}). Intenta de nuevo en unos minutos.`,
+        );
+      }
       if (!res.ok || !body.data) {
         throw new Error(body.error ?? "No se pudo generar el borrador.");
       }
