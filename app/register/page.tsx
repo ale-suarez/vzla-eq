@@ -98,12 +98,12 @@ export function RegistrationForm({ inviteToken, inviteName }: { inviteToken?: st
 
     if (!cedula) {
       errors.cedula = "Ingresa tu cédula.";
-    } else if (!/^V-\d+$/i.test(cedula)) {
-      errors.cedula = "La cédula debe comenzar con V-.";
+    } else if (!/^\d{6,9}$/.test(cedula)) {
+      errors.cedula = "La cédula debe tener entre 6 y 9 dígitos.";
     }
 
-    if (colegiado && !/^CVI-\d+$/i.test(colegiado)) {
-      errors.colegiado = "El colegiado debe comenzar con CVI-.";
+    if (colegiado && !/^\d{3,8}$/.test(colegiado)) {
+      errors.colegiado = "El número de colegiado debe tener solo dígitos.";
     }
 
     if (!specialty) {
@@ -286,17 +286,19 @@ export function RegistrationForm({ inviteToken, inviteName }: { inviteToken?: st
                     <Field
                       label="Cédula *"
                       icon={BadgeCheck}
+                      prefix="V-"
                       value={draft.cedula}
-                      onChange={(value) => setField("cedula", value)}
-                      placeholder="V-12345678"
+                      onChange={(value) => setField("cedula", value.replace(/\D/g, ""))}
+                      placeholder="12345678"
                       error={fieldErrors.cedula}
                     />
                     <Field
                       label="N° de colegiado (CVI)"
                       icon={BadgeCheck}
+                      prefix="CVI-"
                       value={draft.colegiado}
-                      onChange={(value) => setField("colegiado", value)}
-                      placeholder="CVI-12345"
+                      onChange={(value) => setField("colegiado", value.replace(/\D/g, ""))}
+                      placeholder="12345"
                       error={fieldErrors.colegiado}
                     />
                     <SelectField
@@ -373,8 +375,8 @@ export function RegistrationForm({ inviteToken, inviteName }: { inviteToken?: st
                   <div className="soft-card space-y-3 rounded-[18px] p-4">
                     <SummaryRow label="Correo" value={draft.email} />
                     <SummaryRow label="Nombre" value={draft.full_name} />
-                    <SummaryRow label="Cédula" value={summaryValue(draft.cedula)} />
-                    <SummaryRow label="N° de colegiado" value={summaryValue(draft.colegiado)} />
+                    <SummaryRow label="Cédula" value={draft.cedula ? `V-${draft.cedula}` : "No indicado"} />
+                    <SummaryRow label="N° de colegiado" value={draft.colegiado ? `CVI-${draft.colegiado}` : "No indicado"} />
                     <SummaryRow label="Especialidad" value={draft.specialty || "No indicado"} />
                     <SummaryRow
                       label="Ubicación"
@@ -486,6 +488,7 @@ function Field({
   min,
   max,
   error,
+  prefix,
 }: {
   label: string;
   icon: ComponentType<{ className?: string }>;
@@ -496,6 +499,8 @@ function Field({
   min?: string;
   max?: string;
   error?: string;
+  /** Fixed, non-editable prefix shown inside the box (e.g. "V-" for cédula). */
+  prefix?: string;
 }) {
   return (
     <label className="block space-y-2">
@@ -507,6 +512,7 @@ function Field({
         )}
       >
         <Icon className="h-4 w-4 text-on-surface-variant" />
+        {prefix ? <span className="select-none text-sm font-medium text-on-surface-variant">{prefix}</span> : null}
         <input
           type={type}
           value={value}
@@ -610,14 +616,15 @@ function buildFormData(draft: ApplicationDraft) {
   formData.append("email", draft.email.trim());
   formData.append("full_name", draft.full_name.trim());
 
-  const cedula = normalizeLicenseNumber(draft.cedula);
+  // draft holds only digits; store the canonical prefixed form (V- / CVI-).
+  const cedula = draft.cedula.replace(/\D/g, "");
   if (cedula) {
-    formData.append("cedula", cedula);
+    formData.append("cedula", `V-${cedula}`);
   }
 
-  const colegiado = normalizeLicenseNumber(draft.colegiado);
+  const colegiado = draft.colegiado.replace(/\D/g, "");
   if (colegiado) {
-    formData.append("colegiado", colegiado);
+    formData.append("colegiado", `CVI-${colegiado}`);
   }
 
   if (draft.specialty) {
