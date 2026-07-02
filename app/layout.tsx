@@ -4,6 +4,7 @@ import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { AssessmentProvider } from "@/components/assessment-provider";
 import { SiteHeader } from "@/components/site-header";
+import { Analytics } from "@vercel/analytics/next";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -50,6 +51,7 @@ export default function RootLayout({
           <SiteHeader />
           {children}
         </AssessmentProvider>
+        <Analytics />
       </body>
     </html>
   );
