@@ -90,13 +90,6 @@ export function SiteHeader() {
         </Link>
         {/* Inline nav on >= sm; collapses to a hamburger on mobile. */}
         <div className="hidden items-center gap-3 sm:flex">
-          {/* Points to the public live map on the home page. */}
-          <Link
-            href="/#incidentes"
-            className="whitespace-nowrap text-sm font-medium text-on-surface-variant transition-opacity hover:opacity-80"
-          >
-            Incidentes Reportados
-          </Link>
           {authenticated ? (
             <button
               type="button"
@@ -133,13 +126,6 @@ export function SiteHeader() {
       {menuOpen && (
         <div className="border-t border-outline-variant bg-surface px-5 py-3 sm:hidden">
           <nav className="flex flex-col gap-1">
-            <Link
-              href="/#incidentes"
-              onClick={() => setMenuOpen(false)}
-              className="rounded-[12px] px-3 py-3 text-sm font-medium text-on-surface transition-colors hover:bg-surface-container"
-            >
-              Incidentes Reportados
-            </Link>
             {authenticated ? (
               <button
                 type="button"
