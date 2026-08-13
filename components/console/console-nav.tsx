@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Camera, ChevronRight, ClipboardList, MapPin, ShieldCheck, UserCircle } from "lucide-react";
+import { Camera, ChevronRight, ClipboardList, ShieldCheck, UserCircle } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -16,7 +16,6 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { href: "/inspection", label: "Nueva inspección", icon: Camera },
-  { href: "/dashboard", label: "Mapa", icon: MapPin },
   { href: "/history", label: "Inspecciones", icon: ClipboardList },
   { href: "/profile", label: "Perfil", icon: UserCircle },
 ];

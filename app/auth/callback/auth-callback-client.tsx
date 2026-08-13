@@ -8,7 +8,7 @@ export function AuthCallbackClient() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    const next = searchParams.get("next") ?? "/dashboard";
+    const next = searchParams.get("next") ?? "/history";
     const error = searchParams.get("error");
 
     if (error) {
