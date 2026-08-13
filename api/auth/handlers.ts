@@ -22,8 +22,8 @@ function normalizeNextPath(next: string | null | undefined, fallback: string) {
 export async function authCallbackGet(c: Context) {
   const requestUrl = new URL(c.req.url);
   const code = requestUrl.searchParams.get("code");
-  const next = normalizeNextPath(requestUrl.searchParams.get("next"), "/dashboard");
-  const safeNext = next.startsWith("/") ? next : "/dashboard";
+  const next = normalizeNextPath(requestUrl.searchParams.get("next"), "/history");
+  const safeNext = next.startsWith("/") ? next : "/history";
 
   if (!supabaseUrl || !supabasePublishableKey || !code) {
     return c.redirect("/login?reason=auth");
@@ -81,7 +81,7 @@ export async function authCallbackGet(c: Context) {
     const engineer = engineerByUserId ?? engineerByEmail;
 
     if (admin) {
-      destination = "/dashboard";
+      destination = "/history";
     } else if (reviewer) {
       destination = "/revision-solicitudes";
     } else if (engineer?.is_certified) {
@@ -89,7 +89,7 @@ export async function authCallbackGet(c: Context) {
         await adminSupabase.from("engineers").update({ user_id: user.id }).eq("id", engineer.id);
       }
 
-      destination = "/dashboard";
+      destination = "/history";
     }
   }
 
@@ -110,7 +110,7 @@ export async function authMagicLinkPost(c: Context) {
   }
 
   const email = String(body.email ?? "").trim().toLowerCase();
-  const next = normalizeNextPath(body.next, "/dashboard");
+  const next = normalizeNextPath(body.next, "/history");
   if (!email) {
     return c.json({ error: "Ingresa un correo válido." }, 400);
   }
@@ -146,7 +146,7 @@ export async function authSessionPost(c: Context) {
 
   const accessToken = String(body.access_token ?? "").trim();
   const refreshToken = String(body.refresh_token ?? "").trim();
-  const next = normalizeNextPath(body.next, "/dashboard");
+  const next = normalizeNextPath(body.next, "/history");
 
   if (!accessToken || !refreshToken) {
     return c.json({ error: "Sesión inválida." }, 400);

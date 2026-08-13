@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 function normalizeNext(next?: string | null) {
   if (!next || !next.startsWith("/") || next.startsWith("//")) {
-    return "/dashboard";
+    return "/history";
   }
 
   return next;
